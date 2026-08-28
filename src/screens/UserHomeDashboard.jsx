@@ -123,7 +123,7 @@ const UserHomeDashboard = () => {
 
       if (!isAdmin) {
         return (
-          customer?.SalespersonId === currentUser?._id &&
+          customer?.SalespersonId === currentUser?.EmpId &&
           customer?.Status === "Pending"
         );
       }
@@ -201,9 +201,14 @@ const UserHomeDashboard = () => {
   }, [localityList, localitySearch]);
 
   useEffect(() => {
-    dispatch(getAllCustomers());
-    dispatch(getAllSalesPerson());
-    dispatch(getLocality());
+    const getfunction = async () => {
+      const res = await dispatch(getAllCustomers());
+      console.log(res);
+
+      await dispatch(getAllSalesPerson());
+      await dispatch(getLocality());
+    }
+    getfunction()
   }, []);
 
   const renderCustomer = ({ item }) => {
@@ -272,7 +277,7 @@ const UserHomeDashboard = () => {
 
         {/* Status */}
 
-        <View
+        {isAdmin && <View
           style={[
             styles.statusBadge,
             isApproved
@@ -305,7 +310,7 @@ const UserHomeDashboard = () => {
               ? "Approved"
               : "Pending"}
           </Text>
-        </View>
+        </View>}
 
         {/* Arrow */}
 
@@ -507,7 +512,8 @@ const UserHomeDashboard = () => {
               </View>
             )}
           </View>
-        )}
+        )
+      }
 
       <FlatList
         refreshControl={
@@ -519,13 +525,7 @@ const UserHomeDashboard = () => {
           />
         }
         data={filteredCustomers}
-        keyExtractor={(item, index) =>
-          String(
-            item?.CustomerId ??
-            item?._id ??
-            index
-          )
-        }
+        keyExtractor={(item, index) => String(item?.CustomerId ?? item?._id ?? index)}
         renderItem={renderCustomer}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}

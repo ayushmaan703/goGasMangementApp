@@ -1,5 +1,15 @@
-import { BACKEND_URL } from '@env';
-// export default baseUrl = BACKEND_URL;
-export default baseUrl = 'http://103.175.22.11:8911/STKAPIdata.asmx';
-// export default baseUrl =
-//   'https://e3dc-2409-40d2-3002-f242-95-f113-2932-360d.ngrok-free.app/api/v1';
+import { BACKEND_URL_DEMO } from '@env';
+import { BACKEND_URL_LIVE } from '@env';
+import { DEV_ENV } from '@env';
+
+let baseUrl;
+console.log(DEV_ENV);
+
+if (DEV_ENV == 'dev') baseUrl = BACKEND_URL_DEMO;
+else baseUrl = BACKEND_URL_LIVE;
+
+console.log(baseUrl);
+
+export default baseUrl;
+
+// export default baseUrl = 'http://103.175.22.11:8911/STKAPIdata.asmx';;

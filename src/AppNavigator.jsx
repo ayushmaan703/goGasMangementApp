@@ -38,7 +38,9 @@ export default function App() {
         await handleLogout();
         dispatch(logoutUser());
       } finally {
-        setIsRestoring(false);
+        setTimeout(() => {
+          setIsRestoring(false);
+        }, 1800)
       }
     };
 

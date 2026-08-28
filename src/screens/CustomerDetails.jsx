@@ -11,6 +11,7 @@ import {
 import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
 import { useNavigation } from "@react-navigation/native";
 import CustomNavBar from "../helper/CustomNavBar";
+import { useSelector } from "react-redux";
 
 const DetailItem = ({
     icon,
@@ -81,6 +82,8 @@ const CustomerDetails = ({ route }) => {
     const salespersonId = customer?.SalespersonId || "Not Available";
     const createdDate = customer?.Createddate || "Not Available";
     const isApproved = status?.toLowerCase() === "approved";
+    const currentUser = useSelector((state) => state.auth.userData);
+    const isAdmin = currentUser?.UserType === "Admin";
 
     // =====================================================
     // CALL CUSTOMER
@@ -180,7 +183,7 @@ const CustomerDetails = ({ route }) => {
 
                     {/* STATUS */}
 
-                    <View
+                    {isAdmin && <View
                         style={[styles.statusBadge,
                         {
                             backgroundColor: statusColors.background,
@@ -214,7 +217,7 @@ const CustomerDetails = ({ route }) => {
                         >
                             {status}
                         </Text>
-                    </View>
+                    </View>}
                 </View>
 
 
@@ -312,18 +315,19 @@ const CustomerDetails = ({ route }) => {
                         label="Customer ID"
                         value={customerId}
                     />
-                    {/* 
-                    <DetailItem
+                    {/*<DetailItem
                         icon="calendar"
                         label="Created Date"
                         value={createdDate}
                     /> */}
 
-                    <DetailItem
-                        icon="circle-check"
-                        label="Current Status"
-                        value={status}
-                    />
+                    {isAdmin &&
+                        <DetailItem
+                            icon="circle-check"
+                            label="Current Status"
+                            value={status}
+                        />
+                    }
                     <DetailItem
                         icon="location-dot"
                         label="Locality"

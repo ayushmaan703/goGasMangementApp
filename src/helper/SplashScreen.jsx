@@ -48,7 +48,16 @@ const styles = StyleSheet.create({
         width: 150,
         height: 150,
         resizeMode: 'contain',
-        backgroundColor: "#fff"
+        backgroundColor: "#fff",
+        borderRadius: 30,
+        shadowColor: "#4A90E2",
+        shadowOpacity: 0.14,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+        elevation: 5,
     },
     loader: {
         marginTop: 20,
