@@ -144,7 +144,7 @@ const PaymentSubmitForm = ({ navigation }) => {
         };
 
         const res = await dispatch(submitDailyPayment(data))
-        if (res.type === "submitDailyStockEntry/fulfilled" && res.payload[0].Status == "Sucess") {
+        if (res.type === "submitDailyPayment/fulfilled" && res.payload[0].Status == "Sucess") {
             Toast.show({
                 type: "customNotificationSuccess",
                 text1: "Entries submitted successfully",

@@ -155,7 +155,7 @@ const PaymentEntryList = ({ navigation }) => {
                             <TouchableOpacity
                                 style={styles.editButton}
                                 onPress={() => {
-                                    navigation.navigate("DailyStockEntry", {
+                                    navigation.navigate("DailyPaymentEntry", {
                                         entry: item,
                                         isEdit: true,
                                         fromDate: formatApiDate(toDate),
@@ -199,7 +199,7 @@ const PaymentEntryList = ({ navigation }) => {
                             </Text>
 
                             <Text style={styles.infoValue}>
-                                {formatDate(item.OrderDate)}
+                                {formatDate(item.payDate)}
                             </Text>
 
                         </View>
@@ -233,74 +233,6 @@ const PaymentEntryList = ({ navigation }) => {
                     </View>
 
                 </View>
-
-
-                {/* CYCLE DETAILS */}
-
-                <View style={styles.cycleContainer}>
-
-                    <Text style={styles.sectionLabel}>
-                        Cycle Details
-                    </Text>
-
-
-                    <View style={styles.cycleRow}>
-
-                        <View style={styles.cycleItem}>
-
-                            <Text style={styles.cycleLabel}>
-                                Cyc In
-                            </Text>
-
-                            <Text style={styles.cycleValue}>
-                                {item.CycIn}
-                            </Text>
-
-                        </View>
-
-
-                        <View style={styles.cycleItem}>
-
-                            <Text style={styles.cycleLabel}>
-                                Cyc Out
-                            </Text>
-
-                            <Text style={styles.cycleValue}>
-                                {item.CycOut}
-                            </Text>
-
-                        </View>
-
-
-                        <View style={styles.cycleItem}>
-
-                            <Text style={styles.cycleLabel}>
-                                Bal Cyc
-                            </Text>
-
-                            <Text style={styles.cycleValue}>
-                                {item.BalCyc}
-                            </Text>
-
-                        </View>
-
-
-                        <View style={styles.cycleItem}>
-
-                            <Text style={styles.cycleLabel}>
-                                Regulator
-                            </Text>
-
-                            <Text style={styles.cycleValue}>
-                                {item.Regulator}
-                            </Text>
-
-                        </View>
-
-                    </View>
-
-                </View>
-
             </View>
         );
     };
@@ -386,7 +318,7 @@ const PaymentEntryList = ({ navigation }) => {
                 {status === 0 && (
                     <TouchableOpacity
                         style={styles.submitButton}
-                        onPress={() => { navigation.navigate("Home", { screen: "SubmitForm" }) }}
+                        onPress={() => { navigation.navigate("Home", { screen: "PaymentSubmitForm" }) }}
                     >
                         <FontAwesome6 name="paper-plane" size={13} color="#FFFFFF" />
                         <Text style={styles.submitButtonText}>Submit Entries</Text>

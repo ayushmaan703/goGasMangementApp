@@ -387,9 +387,10 @@ const DailyStockEntry = ({ navigation }) => {
             return;
         }
 
-        const apiDate = getDateObject(form.date);
+        const [day, month, year] = form.date.split("/");
         const payload = {
-            OrderDate: apiDate.toISOString().split("T")[0],
+            PayDate: `${year}-${month}-${day}`,
+            OrderDate: `${year}-${month}-${day}`,
             CustomerId: form.customerId,
             CycIn: form.in,
             CycOut: form.out,

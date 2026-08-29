@@ -260,10 +260,10 @@ const DailyPaymentEntry = ({ navigation }) => {
             });
             return;
         }
-
-        const apiDate = getDateObject(form.date);
+        const [day, month, year] = form.date.split("/");
+        
         const payload = {
-            PayDate: apiDate.toISOString().split("T")[0],
+            PayDate: `${year}-${month}-${day}`,
             CustomerId: form.customerId,
             PayMode: form.paymode,
             Amount: form.amount,
@@ -280,7 +280,7 @@ const DailyPaymentEntry = ({ navigation }) => {
 
             if (res.type === "editDailyPayment/fulfilled" && res.payload?.[0]?.EntryId) {
                 Toast.show({
-                    type: "customNotificationSucess",
+                    type: "customNotificationSuccess",
                     text1: "Entry updated Successfully",
                 });
 
