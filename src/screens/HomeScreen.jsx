@@ -38,7 +38,6 @@ const HomeScreen = () => {
         } else {
             try {
                 const data = await dispatch(changePassword({ id, newPwd: values.newPassword }))
-                console.log(data);
 
                 if (data.type === "changePassword/fulfilled" && data.payload[0].Status == "Sucess") {
                     Toast.show({

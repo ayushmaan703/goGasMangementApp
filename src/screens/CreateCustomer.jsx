@@ -194,7 +194,7 @@ const CreateCustomer = () => {
     return (
         <View style={styles.container}>
 
-            <CustomNavBar navName={"Create Customer"} subTitle={"Add a new customer to goGas"} />
+            <CustomNavBar navName={"Create Customer"} subTitle={"Add a new customer"} />
 
             <KeyboardAvoidingView
                 style={{ flex: 1 }}

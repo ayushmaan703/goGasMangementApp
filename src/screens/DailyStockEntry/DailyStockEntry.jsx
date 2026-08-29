@@ -96,7 +96,7 @@ const DailyStockEntry = ({ navigation }) => {
 
     const route = useRoute();
     const dispatch = useDispatch();
-    const { entry, isEdit, } = route.params || {};
+    const { entry, isEdit } = route.params || {};
 
     const currUser = useSelector(state => state.auth.userData);
     const customerList = useSelector(state => state.customer.customerList);
@@ -249,6 +249,17 @@ const DailyStockEntry = ({ navigation }) => {
     useEffect(() => {
 
         if (!isEdit || !entry) {
+            setForm({
+                customer: "",
+                paymode: "",
+                in: "",
+                out: "",
+                regulator: "",
+                balEmpty: "",
+                amount: "",
+                date: getTodayDate(),
+                customerId: "",
+            })
             return;
         }
 
@@ -462,387 +473,291 @@ const DailyStockEntry = ({ navigation }) => {
         <>
             <KeyboardAvoidingView
                 style={styles.container}
-                behavior={
-                    Platform.OS === "ios"
-                        ? "padding"
-                        : undefined
-                }
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
             >
-
-                <KeyboardAwareScrollView
-                    contentContainerStyle={
-                        styles.scrollContainer
+                {/* HEADER */}
+                <CustomNavBar
+                    navName={
+                        isEdit
+                            ? "Edit Daily Stock Entry"
+                            : "Daily Stock Entry"
                     }
+                    subtitle={
+                        isEdit
+                            ? "Update the pending stock entry"
+                            : "Enter daily stock entry for customer"
+                    }
+                />
+                <KeyboardAwareScrollView
+                    contentContainerStyle={styles.scrollContainer}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                     enableOnAndroid={true}
                 >
 
 
-                    {/* NAVBAR */}
-
-                    <CustomNavBar
-                        navName={
-                            isEdit
-                                ? "Edit Daily Stock Entry"
-                                : "Daily Stock Entry"
-                        }
-
-                        subtitle={
-                            isEdit
-                                ? "Update the pending stock entry"
-                                : "Enter daily stock entry for customer"
-                        }
-                    />
-
-
                     <ScrollView
-                        contentContainerStyle={
-                            styles.content
-                        }
+                        contentContainerStyle={styles.content}
                         keyboardShouldPersistTaps="handled"
                         showsVerticalScrollIndicator={false}
                         nestedScrollEnabled={true}
                     >
 
-
-                        {/* CUSTOMER DETAILS */}
-
+                        {/* ================= CUSTOMER ================= */}
                         <View style={styles.section}>
+                            <View style={styles.sectionHeader}>
+                                <View style={styles.sectionIcon}>
+                                    <Icon
+                                        name="user-group"
+                                        size={14}
+                                        color="#4A90E2"
+                                    />
+                                </View>
 
-                            <Text
-                                style={styles.sectionTitle}
-                            >
-                                Customer Details
-                            </Text>
+                                <View>
+                                    <Text style={styles.sectionTitle}>
+                                        Customer Details
+                                    </Text>
+                                    <Text style={styles.sectionSubtitle}>
+                                        Select customer and payment method
+                                    </Text>
+                                </View>
+                            </View>
 
+                            <View style={styles.row}>
+                                {/* CUSTOMER */}
+                                <View style={styles.halfField}>
+                                    <Dropdown
+                                        icon="user"
+                                        label="Customer"
+                                        value={form.customer}
+                                        placeholder="Select customer"
+                                        open={customerDropdown}
+                                        setOpen={setCustomerDropdown}
+                                        data={customerList}
+                                        onSelect={handleCusotmerSelect}
+                                        displayKey="CustomerName"
+                                    />
+                                </View>
 
-                            <Dropdown
-                                icon="user"
-                                label="Customer"
-                                value={form.customer}
-                                placeholder="Select customer"
-                                open={customerDropdown}
-                                setOpen={
-                                    setCustomerDropdown
-                                }
-                                data={customerList}
-                                onSelect={
-                                    handleCusotmerSelect
-                                }
-                                displayKey="CustomerName"
-                            />
-
-
-                            <Dropdown
-                                icon="wallet"
-                                label="Pay Mode"
-                                value={paymentType}
-                                placeholder="Select payment mode"
-                                open={paymentDropdown}
-                                setOpen={
-                                    setPaymentDropdown
-                                }
-                                data={
-                                    paymentMethodList
-                                }
-                                onSelect={
-                                    handlePaymentSelect
-                                }
-                                displayKey="Name"
-                            />
-
+                                {/* PAYMENT */}
+                                <View style={styles.halfField}>
+                                    <Dropdown
+                                        icon="wallet"
+                                        label="Pay Mode"
+                                        value={paymentType}
+                                        placeholder="Select payment mode"
+                                        open={paymentDropdown}
+                                        setOpen={setPaymentDropdown}
+                                        data={paymentMethodList}
+                                        onSelect={handlePaymentSelect}
+                                        displayKey="Name"
+                                    />
+                                </View>
+                            </View>
                         </View>
 
 
-                        {/* TRANSACTION DETAILS */}
-
+                        {/* ================= TRANSACTION ================= */}
                         <View style={styles.section}>
-
-                            <Text
-                                style={styles.sectionTitle}
-                            >
-                                Transaction Details
-                            </Text>
-
-
-                            {/* DATE */}
-
-                            <TouchableOpacity
-                                style={styles.dateField}
-                                onPress={() =>
-                                    setShowDatePicker(
-                                        true
-                                    )
-                                }
-                            >
-
-                                <Icon
-                                    name="calendar"
-                                    size={17}
-                                    color="#777"
-                                />
-
-
-                                <View
-                                    style={{
-                                        flex: 1,
-                                    }}
-                                >
-
-                                    <Text
-                                        style={
-                                            styles.dateLabel
-                                        }
-                                    >
-                                        Date
-                                    </Text>
-
-
-                                    <Text
-                                        style={[
-                                            styles.dateValue,
-
-                                            !form.date &&
-                                            styles.placeholder,
-                                        ]}
-                                    >
-                                        {form.date ||
-                                            "Select date"}
-                                    </Text>
-
+                            <View style={styles.sectionHeader}>
+                                <View style={styles.sectionIcon}>
+                                    <Icon
+                                        name="arrow-right-arrow-left"
+                                        size={14}
+                                        color="#4A90E2"
+                                    />
                                 </View>
 
-                            </TouchableOpacity>
+                                <View>
+                                    <Text style={styles.sectionTitle}>
+                                        Transaction Details
+                                    </Text>
+                                    <Text style={styles.sectionSubtitle}>
+                                        Enter stock and payment information
+                                    </Text>
+                                </View>
+                            </View>
 
 
+                            {/* DATE + AMOUNT */}
+                            <View style={styles.row}>
+
+                                {/* DATE */}
+                                <View style={styles.halfField}>
+                                    <View style={styles.dateContainer}>
+                                        <Text style={styles.inputLabel}>
+                                            Date
+                                        </Text>
+
+                                        <TouchableOpacity
+                                            style={styles.dateField}
+                                            onPress={() => setShowDatePicker(true)}
+                                            activeOpacity={0.8}
+                                        >
+                                            <Icon
+                                                name="calendar"
+                                                size={15}
+                                                color="#777"
+                                            />
+
+                                            <Text
+                                                style={[
+                                                    styles.dateValue,
+                                                    !form.date && styles.placeholder,
+                                                ]}
+                                            >
+                                                {form.date || "Select date"}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+
+                                {/* AMOUNT */}
+                                <View style={styles.halfField}>
+                                    <InputField
+                                        icon="indian-rupee-sign"
+                                        label="Amount"
+                                        value={form.amount}
+                                        onChangeText={(value) =>
+                                            updateField("amount", value)
+                                        }
+                                        placeholder="Enter amount"
+                                        keyboardType="decimal-pad"
+                                    />
+                                </View>
+                            </View>
+
+
+                            {/* IN + OUT */}
+                            <View style={styles.row}>
+
+                                <View style={styles.halfField}>
+                                    <InputField
+                                        icon="arrow-down"
+                                        label="In"
+                                        value={form.in}
+                                        onChangeText={(value) =>
+                                            updateField("in", value)
+                                        }
+                                        placeholder="Enter in quantity"
+                                        keyboardType="numeric"
+                                    />
+                                </View>
+
+                                <View style={styles.halfField}>
+                                    <InputField
+                                        icon="arrow-up"
+                                        label="Out"
+                                        value={form.out}
+                                        onChangeText={(value) =>
+                                            updateField("out", value)
+                                        }
+                                        placeholder="Enter out quantity"
+                                        keyboardType="numeric"
+                                    />
+                                </View>
+                            </View>
+
+
+                            {/* REGULATOR + EMPTY BALANCE */}
+                            <View style={styles.row}>
+
+                                <View style={styles.halfField}>
+                                    <InputField
+                                        icon="gauge"
+                                        label="Regulator"
+                                        value={form.regulator}
+                                        onChangeText={(value) =>
+                                            updateField("regulator", value)
+                                        }
+                                        placeholder="Enter regulator"
+                                        keyboardType="numeric"
+                                    />
+                                </View>
+
+                                <View style={styles.halfField}>
+                                    <InputField
+                                        icon="box-open"
+                                        label="Empty Balance"
+                                        value={form.balEmpty}
+                                        onChangeText={(value) =>
+                                            updateField("balEmpty", value)
+                                        }
+                                        placeholder="Enter empty balance"
+                                        keyboardType="numeric"
+                                    />
+                                </View>
+                            </View>
+
+
+                            {/* DATE PICKER */}
                             {showDatePicker && (
-
                                 <DateTimePicker
-                                    value={
-                                        getDateObject(
-                                            form.date
-                                        )
-                                    }
-
+                                    value={getDateObject(form.date)}
                                     mode="date"
-
                                     display="default"
+                                    onChange={(event, selectedDate) => {
+                                        setShowDatePicker(false);
 
-                                    onChange={(
-                                        event,
-                                        selectedDate
-                                    ) => {
+                                        if (selectedDate) {
+                                            const day = String(
+                                                selectedDate.getDate()
+                                            ).padStart(2, "0");
 
-                                        setShowDatePicker(
-                                            false
-                                        );
-
-
-                                        if (
-                                            selectedDate
-                                        ) {
-
-                                            const day =
-                                                String(
-                                                    selectedDate.getDate()
-                                                ).padStart(
-                                                    2,
-                                                    "0"
-                                                );
-
-
-                                            const month =
-                                                String(
-                                                    selectedDate.getMonth() + 1
-                                                ).padStart(
-                                                    2,
-                                                    "0"
-                                                );
-
+                                            const month = String(
+                                                selectedDate.getMonth() + 1
+                                            ).padStart(2, "0");
 
                                             const year =
                                                 selectedDate.getFullYear();
 
-
-                                            const formattedDate =
-                                                `${day}/${month}/${year}`;
-
-
                                             updateField(
                                                 "date",
-                                                formattedDate
+                                                `${day}/${month}/${year}`
                                             );
                                         }
-
                                     }}
                                 />
-
                             )}
-
-
-                            {/* IN */}
-
-                            <InputField
-                                icon="arrow-down"
-                                label="In"
-                                value={form.in}
-                                onChangeText={
-                                    value =>
-                                        updateField(
-                                            "in",
-                                            value
-                                        )
-                                }
-                                placeholder="Enter in quantity"
-                                keyboardType="numeric"
-                            />
-
-
-                            {/* OUT */}
-
-                            <InputField
-                                icon="arrow-up"
-                                label="Out"
-                                value={form.out}
-                                onChangeText={
-                                    value =>
-                                        updateField(
-                                            "out",
-                                            value
-                                        )
-                                }
-                                placeholder="Enter out quantity"
-                                keyboardType="numeric"
-                            />
-
-
-                            {/* REGULATOR */}
-
-                            <InputField
-                                icon="gauge"
-                                label="Regulator"
-                                value={
-                                    form.regulator
-                                }
-                                onChangeText={
-                                    value =>
-                                        updateField(
-                                            "regulator",
-                                            value
-                                        )
-                                }
-                                placeholder="Enter regulator quantity"
-                                keyboardType="numeric"
-                            />
-
-
-                            {/* BALANCE */}
-
-                            <InputField
-                                icon="box-open"
-                                label="Bal Empty"
-                                value={
-                                    form.balEmpty
-                                }
-                                onChangeText={
-                                    value =>
-                                        updateField(
-                                            "balEmpty",
-                                            value
-                                        )
-                                }
-                                placeholder="Enter empty balance"
-                                keyboardType="numeric"
-                            />
-
-
-                            {/* AMOUNT */}
-
-                            <InputField
-                                icon="indian-rupee-sign"
-                                label="Amount"
-                                value={
-                                    form.amount
-                                }
-                                onChangeText={
-                                    value =>
-                                        updateField(
-                                            "amount",
-                                            value
-                                        )
-                                }
-                                placeholder="Enter amount"
-                                keyboardType="decimal-pad"
-                            />
-
                         </View>
 
 
-                        {/* SUBMIT BUTTON */}
-
+                        {/* ================= SUBMIT ================= */}
                         <TouchableOpacity
                             style={[
                                 styles.addButton,
-
-                                loading &&
-                                styles.disabledButton,
+                                loading && styles.disabledButton,
                             ]}
-
-                            onPress={
-                                handleAdd
-                            }
-
-                            disabled={
-                                loading
-                            }
-
+                            onPress={handleAdd}
+                            disabled={loading}
                             activeOpacity={0.8}
                         >
-
                             {loading ? (
-
-                                <ActivityIndicator
-                                    color="#fff"
-                                />
-
+                                <ActivityIndicator color="#fff" />
                             ) : (
-
                                 <>
-
                                     <Icon
                                         name={
                                             isEdit
                                                 ? "pen-to-square"
                                                 : "plus"
                                         }
-
-                                        size={17}
-
+                                        size={16}
                                         color="#fff"
                                     />
 
-
-                                    <Text
-                                        style={
-                                            styles.addButtonText
-                                        }
-                                    >
+                                    <Text style={styles.addButtonText}>
                                         {isEdit
                                             ? "Update Transaction"
                                             : "Add Transaction"}
                                     </Text>
-
                                 </>
-
                             )}
-
                         </TouchableOpacity>
 
                     </ScrollView>
-
                 </KeyboardAwareScrollView>
-
             </KeyboardAvoidingView>
         </>
     );
@@ -858,72 +773,37 @@ export default DailyStockEntry;
 
 const styles = StyleSheet.create({
 
+    // =========================
+    // MAIN
+    // =========================
+
     container: {
         flex: 1,
         backgroundColor: "#F6F9FD",
     },
 
-
     scrollContainer: {
         flexGrow: 1,
-        position: "relative",
-        paddingBottom: 35,
+        paddingBottom: 30,
     },
 
-
     content: {
-        padding: 16,
+        paddingHorizontal: 16,
+        paddingTop: 10,
         paddingBottom: 30,
     },
 
 
-    header: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 24,
-    },
-
-
-    backButton: {
-        width: 42,
-        height: 42,
-        borderRadius: 12,
-        backgroundColor: "#fff",
-        alignItems: "center",
-        justifyContent: "center",
-        marginRight: 12,
-        elevation: 2,
-
-        shadowColor: "#000",
-        shadowOpacity: 0.06,
-        shadowRadius: 5,
-
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-    },
-
-
-    title: {
-        fontSize: 22,
-        fontWeight: "700",
-        color: "#1F2937",
-    },
-
-
-    subtitle: {
-        fontSize: 13,
-        color: "#7A8493",
-        marginTop: 3,
-    },
-
+    // =========================
+    // SECTION CARD
+    // =========================
 
     section: {
         backgroundColor: "#fff",
         borderRadius: 16,
         padding: 16,
         marginBottom: 16,
+
         elevation: 1,
 
         shadowColor: "#000",
@@ -936,24 +816,110 @@ const styles = StyleSheet.create({
         },
     },
 
+    sectionHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 18,
+    },
+
+    sectionIcon: {
+        width: 30,
+        height: 30,
+        borderRadius: 8,
+
+        backgroundColor: "#EAF3FF",
+
+        alignItems: "center",
+        justifyContent: "center",
+
+        marginRight: 10,
+    },
 
     sectionTitle: {
+        color: "#252B35",
         fontSize: 16,
         fontWeight: "700",
-        color: "#252B35",
-        marginBottom: 14,
+    },
+
+    sectionSubtitle: {
+        color: "#7A8493",
+        fontSize: 11,
+        marginTop: 2,
     },
 
 
+    // =========================
+    // TWO COLUMN GRID
+    // =========================
+
+    row: {
+        flexDirection: "row",
+        gap: 12,
+        alignItems: "flex-start",
+        marginBottom: 0,
+    },
+    halfField: {
+        flex: 1,
+        minWidth: 0,
+    },
+
+
+    // =========================
+    // DATE
+    // =========================
+
+
+    inputLabel: {
+        fontSize: 8,
+        color: "#64748B",
+        marginBottom: 4,
+        marginLeft: 2,
+        fontFamily: "Merriweather_24pt_SemiCondensed-SemiBold",
+    },
+
+    dateField: {
+        height: 58,
+        gap: 10,
+        minHeight: 51,
+        borderRadius: 14,
+        backgroundColor: "#F8FAFC",
+        borderWidth: 1,
+        borderColor: "#E6EBF2",
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 9,
+    },
+
+    dateValue: {
+        flex: 1,
+        fontSize: 15,
+        color: "#222",
+    },
+
+    placeholder: {
+        color: "#999",
+    },
+
+
+    // =========================
+    // SUBMIT BUTTON
+    // =========================
+
     addButton: {
         height: 54,
+
         borderRadius: 14,
+
         backgroundColor: "#4A90E2",
+
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
+
         gap: 9,
+
         marginTop: 4,
+
         elevation: 3,
 
         shadowColor: "#000",
@@ -966,48 +932,13 @@ const styles = StyleSheet.create({
         },
     },
 
-
-    disabledButton: {
-        opacity: 0.7,
-    },
-
-
     addButtonText: {
         color: "#fff",
         fontSize: 16,
         fontWeight: "700",
     },
 
-
-    dateField: {
-        height: 58,
-        borderWidth: 1,
-        borderColor: "#E1E4E8",
-        borderRadius: 12,
-        paddingHorizontal: 14,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 12,
-        marginBottom: 16,
-        backgroundColor: "#fff",
+    disabledButton: {
+        opacity: 0.7,
     },
-
-
-    dateLabel: {
-        fontSize: 12,
-        color: "#777",
-        marginBottom: 2,
-    },
-
-
-    dateValue: {
-        fontSize: 15,
-        color: "#222",
-    },
-
-
-    placeholder: {
-        color: "#999",
-    },
-
 });

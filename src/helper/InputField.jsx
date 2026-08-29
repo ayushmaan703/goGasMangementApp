@@ -75,17 +75,12 @@ const styles = StyleSheet.create({
 
     inputContainer: {
         minHeight: 51,
-
         borderRadius: 14,
-
         backgroundColor: "#F8FAFC",
-
         borderWidth: 1,
         borderColor: "#E6EBF2",
-
         flexDirection: "row",
         alignItems: "center",
-
         paddingHorizontal: 9,
     },
 
@@ -113,13 +108,9 @@ const styles = StyleSheet.create({
 
     input: {
         flex: 1,
-
         color: "#1E293B",
-
         fontSize: 11,
-
         paddingVertical: 0,
-
         fontFamily:
             "Merriweather_24pt_SemiCondensed-Regular",
     },

@@ -188,7 +188,7 @@ const LoginScreen = () => {
                         </View>
 
                         <Text style={styles.brandName}>
-                            goGas
+                            SmartBiz
                         </Text>
 
                         <Text style={styles.brandTagline}>
@@ -462,7 +462,7 @@ const LoginScreen = () => {
                             />
 
                             <Text style={styles.securityText}>
-                                Secure access to your goGas account
+                                Secure access to your SmartBiz account
                             </Text>
 
                         </View>
@@ -474,7 +474,7 @@ const LoginScreen = () => {
           ========================================== */}
 
                     <Text style={styles.footerText}>
-                        goGas • Gas Station Management
+                        SmartBiz • Manage Smart. Grow Faster
                     </Text>
 
                     <Text style={styles.versionText}>

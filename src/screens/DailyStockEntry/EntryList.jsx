@@ -17,18 +17,34 @@ import { getDailyStockEntry } from "../../store/slice/DailyStockEntry.slice"
 import { useNavigation } from "@react-navigation/native";
 
 const formatDate = (dateString) => {
+    if (!dateString) return "";
+
+    const value = String(dateString).trim();
+
+    // API format:
+    // 8/27/2026 12:00:00
+    // 8/27/2026 12:00:00 AM
+    // 8/27/2026
+    const match = value.match(
+        /^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/
+    );
+
+    if (match) {
+        const [, month, day, year] = match;
+
+        return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`;
+    }
+
     const date = new Date(dateString);
 
     if (isNaN(date.getTime())) {
         return dateString;
     }
-    return date.toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-    });
-};
 
+    return `${String(date.getDate()).padStart(2, "0")}/${String(
+        date.getMonth() + 1
+    ).padStart(2, "0")}/${date.getFullYear()}`;
+};
 const formatApiDate = (date) => {
     if (!date) return null;
 
@@ -103,7 +119,7 @@ const EntryList = ({ navigation }) => {
                             <FontAwesome6
                                 name="user"
                                 size={15}
-                                color="#F28C28"
+                                color="#4A90E2"
                             />
                         </View>
 
@@ -146,7 +162,7 @@ const EntryList = ({ navigation }) => {
                                 <FontAwesome6
                                     name="pen-to-square"
                                     size={14}
-                                    color="#F28C28"
+                                    color="#4A90E2"
                                 />
 
                                 <Text style={styles.editButtonText}>
@@ -306,7 +322,7 @@ const EntryList = ({ navigation }) => {
                     <FontAwesome6
                         name="filter"
                         size={14}
-                        color="#F28C28"
+                        color="#4A90E2"
                     />
 
                     <Text style={styles.filterButtonText}>
@@ -331,7 +347,7 @@ const EntryList = ({ navigation }) => {
                                 backgroundColor:
                                     status === 1
                                         ? "#28A745"
-                                        : "#F28C28",
+                                        : "#4A90E2",
                             },
                         ]}
                     />
@@ -421,7 +437,7 @@ const EntryList = ({ navigation }) => {
                             <FontAwesome6
                                 name="calendar-days"
                                 size={15}
-                                color="#F28C28"
+                                color="#4A90E2"
                             />
 
                             <Text style={styles.dateText}>
@@ -470,7 +486,7 @@ const EntryList = ({ navigation }) => {
                             <FontAwesome6
                                 name="calendar-days"
                                 size={15}
-                                color="#F28C28"
+                                color="#4A90E2"
                             />
 
                             <Text style={styles.dateText}>
@@ -530,7 +546,7 @@ const EntryList = ({ navigation }) => {
                                     size={14}
                                     color={
                                         status === 0
-                                            ? "#F28C28"
+                                            ? "#4A90E2"
                                             : "#7A8493"
                                     }
                                 />
@@ -647,19 +663,19 @@ const EntryList = ({ navigation }) => {
                         <View style={styles.emptyIcon}>
 
                             <FontAwesome6
-                                name="gas-pump"
+                                name="clipboard-list"
                                 size={28}
-                                color="#F28C28"
+                                color="#4A90E2"
                             />
 
                         </View>
 
                         <Text style={styles.emptyTitle}>
-                            No Gas Entries
+                            No Stock Entries
                         </Text>
 
                         <Text style={styles.emptyText}>
-                            Your gas transactions will appear
+                            Your daily stock entries will appear
                             here.
                         </Text>
 
@@ -704,16 +720,24 @@ const styles = StyleSheet.create({
         gap: 8,
         backgroundColor: "#FFFFFF",
         borderWidth: 1,
-        borderColor: "#F28C28",
+        borderColor: "#DCE8F7",
         borderRadius: 10,
         paddingHorizontal: 13,
         paddingVertical: 9,
+        elevation: 1,
+        shadowColor: "#000",
+        shadowOpacity: 0.04,
+        shadowRadius: 3,
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
     },
 
     filterButtonText: {
         fontSize: 13,
         fontWeight: "600",
-        color: "#F28C28",
+        color: "#4A90E2",
     },
 
     statusBadge: {
@@ -742,7 +766,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         gap: 7,
-        backgroundColor: "#F28C28",
+        backgroundColor: "#4A90E2",
         paddingHorizontal: 13,
         paddingVertical: 9,
         borderRadius: 10,
@@ -771,16 +795,19 @@ const styles = StyleSheet.create({
         padding: 16,
         marginBottom: 12,
 
+        borderWidth: 1,
+        borderColor: "#EEF2F6",
+
         elevation: 2,
 
         shadowColor: "#000",
         shadowOffset: {
             width: 0,
-            height: 1,
+            height: 2,
         },
 
         shadowOpacity: 0.06,
-        shadowRadius: 4,
+        shadowRadius: 5,
     },
 
     cardHeader: {
@@ -799,7 +826,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 12,
-        backgroundColor: "#FFF1E3",
+        backgroundColor: "#EAF3FF",
         alignItems: "center",
         justifyContent: "center",
         marginRight: 11,
@@ -838,22 +865,23 @@ const styles = StyleSheet.create({
         paddingHorizontal: 7,
         paddingVertical: 7,
         borderRadius: 8,
-        backgroundColor: "#FFF5EB",
+        backgroundColor: "#F0F7FF",
         borderWidth: 1,
-        borderColor: "#F28C28",
+        borderColor: "#4A90E2",
         // height: 100
     },
 
     editButtonText: {
         fontSize: 12,
         fontWeight: "600",
-        color: "#F28C28",
+        color: "#4A90E2",
     },
 
     amount: {
         fontSize: 18,
         fontWeight: "700",
-        color: "#F28C28",
+        color: "#4A90E2",
+        letterSpacing: 0.2,
     },
 
     divider: {
@@ -1024,8 +1052,8 @@ const styles = StyleSheet.create({
     },
 
     statusOptionActive: {
-        borderColor: "#F28C28",
-        backgroundColor: "#FFF5EB",
+        borderColor: "#4A90E2",
+        backgroundColor: "#F0F7FF",
     },
 
     statusOptionText: {
@@ -1035,7 +1063,7 @@ const styles = StyleSheet.create({
     },
 
     statusOptionTextActive: {
-        color: "#F28C28",
+        color: "#4A90E2",
     },
 
 
@@ -1045,7 +1073,7 @@ const styles = StyleSheet.create({
         height: 50,
         marginTop: 24,
         borderRadius: 12,
-        backgroundColor: "#F28C28",
+        backgroundColor: "#4A90E2",
         alignItems: "center",
         justifyContent: "center",
         flexDirection: "row",
@@ -1069,10 +1097,12 @@ const styles = StyleSheet.create({
     },
 
     emptyIcon: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: "#FFF1E3",
+        width: 68,
+        height: 68,
+        borderRadius: 18,
+        backgroundColor: "#EAF3FF",
+        borderWidth: 1,
+        borderColor: "#D8E8FA",
         alignItems: "center",
         justifyContent: "center",
         marginBottom: 14,

@@ -19,6 +19,7 @@ import { useDispatch, useSelector } from "react-redux";
 import InputField from "../helper/InputField";
 import Dropdown from "../helper/Dropdown";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { logger } from "react-native-reanimated/lib/typescript/common";
 
 const EditCustomer = ({ route }) => {
     const navigation = useNavigation();
@@ -59,8 +60,8 @@ const EditCustomer = ({ route }) => {
     };
 
     useEffect(() => {
-        dispatch(getState());
-        dispatch(getLocality());
+        dispatch(getState(comid));
+        dispatch(getLocality(comid));
     }, []);
 
     const handleStateSelect = state => {

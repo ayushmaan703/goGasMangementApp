@@ -176,7 +176,7 @@ const CustomDrawer = (props) => {
                 )}
                 <CustomBtn
                     title="Daily Stock Entry"
-                    icon="box-open"
+                    icon="arrow-right-arrow-left"
                     onPress={() => navigation.navigate("DailyStockEntry")}
                     isActive={activeButton === "Daily Stock Entry"}
                     setActive={setActiveButton}
@@ -217,7 +217,7 @@ const CustomDrawer = (props) => {
                         ) : (
                             <Icon
                                 name="right-from-bracket"
-                                size={17}
+                                size={14}
                                 color="#D64545"
                             />
                         )}
@@ -250,7 +250,7 @@ const CustomDrawer = (props) => {
                 {/* Version */}
 
                 <Text style={styles.versionText}>
-                    goGas • v1.0
+                    SmartBiz • v1.0
                 </Text>
 
             </View>
@@ -441,14 +441,11 @@ const styles = StyleSheet.create({
 
     footer: {
         backgroundColor: "#FFFFFF",
-
         paddingHorizontal: 16,
-        paddingTop: 10,
-        paddingBottom: 12,
-
+        paddingTop:10,
+        paddingBottom: 8,
         borderTopLeftRadius: 25,
         borderTopRightRadius: 25,
-
         shadowColor: "#000",
         shadowOpacity: 0.05,
         shadowRadius: 10,
@@ -456,7 +453,6 @@ const styles = StyleSheet.create({
             width: 0,
             height: -3,
         },
-
         elevation: 8,
     },
 
@@ -470,26 +466,19 @@ const styles = StyleSheet.create({
     logoutButton: {
         flexDirection: "row",
         alignItems: "center",
-
         backgroundColor: "#FFF5F5",
-
         borderWidth: 1,
         borderColor: "#FFE0E0",
-
         borderRadius: 16,
-
-        paddingHorizontal: 12,
-        paddingVertical: 11,
+        paddingHorizontal: 6,
+        paddingVertical: 5,
     },
 
     logoutIconContainer: {
-        width: 38,
-        height: 38,
-
+        width: 30,
+        height: 30,
         borderRadius: 12,
-
         backgroundColor: "#FFE7E7",
-
         justifyContent: "center",
         alignItems: "center",
     },
@@ -500,15 +489,14 @@ const styles = StyleSheet.create({
     },
 
     logoutTitle: {
-        fontSize: 14,
+        fontSize: 12,
         color: "#B22222",
-
         fontFamily:
             "Merriweather_24pt_SemiCondensed-SemiBold",
     },
 
     logoutSubtitle: {
-        fontSize: 9,
+        fontSize: 8,
         color: "#A88",
 
         fontFamily:

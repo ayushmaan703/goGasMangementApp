@@ -21,7 +21,7 @@ const DrawerNavigator = () => {
             screenOptions={{
                 headerShown: false,
                 drawerStyle: {
-                    width: 300,
+                    width: 250,
                 },
                 // drawerLabelStyle: {
                 //     fontSize: 16,
