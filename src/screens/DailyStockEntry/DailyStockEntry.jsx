@@ -108,11 +108,11 @@ const DailyStockEntry = ({ navigation }) => {
     const [form, setForm] = useState({
         customer: "",
         paymode: "",
-        in: "",
-        out: "",
-        regulator: "",
-        balEmpty: "",
-        amount: "",
+        in: "0",
+        out: "0",
+        regulator: "0",
+        balEmpty: "0",
+        amount: "0",
         date: getTodayDate(),
         customerId: "",
     });
@@ -166,7 +166,7 @@ const DailyStockEntry = ({ navigation }) => {
         }
 
 
-        if (!form.in) {
+        if (!form.in || Number(form.in) == 0 || Number(form.in) < 1) {
 
             Toast.show({
                 type: "customNotificationError",
@@ -177,29 +177,29 @@ const DailyStockEntry = ({ navigation }) => {
         }
 
 
-        if (!form.out) {
+        // if (!form.out) {
 
-            Toast.show({
-                type: "customNotificationError",
-                text1: "Out cannot be empty",
-            });
+        //     Toast.show({
+        //         type: "customNotificationError",
+        //         text1: "Out cannot be empty",
+        //     });
 
-            return false;
-        }
-
-
-        if (!form.amount) {
-
-            Toast.show({
-                type: "customNotificationError",
-                text1: "Amount cannot be empty",
-            });
-
-            return false;
-        }
+        //     return false;
+        // }
 
 
-        if (!form.balEmpty) {
+        // if (!form.amount) {
+
+        //     Toast.show({
+        //         type: "customNotificationError",
+        //         text1: "Amount cannot be empty",
+        //     });
+
+        //     return false;
+        // }
+
+
+        if (!form.balEmpty || Number(form.balEmpty) == 0 || Number(form.balEmpty) < 1) {
 
             Toast.show({
                 type: "customNotificationError",
@@ -210,18 +210,18 @@ const DailyStockEntry = ({ navigation }) => {
         }
 
 
-        if (!form.regulator) {
+        // if (!form.regulator) {
 
-            Toast.show({
-                type: "customNotificationError",
-                text1: "Regulator cannot be empty",
-            });
+        //     Toast.show({
+        //         type: "customNotificationError",
+        //         text1: "Regulator cannot be empty",
+        //     });
 
-            return false;
-        }
+        //     return false;
+        // }
 
 
-        if (!form.paymode) {
+        if (!form.paymode && Number(form.amount) > 0) {
 
             Toast.show({
                 type: "customNotificationError",
@@ -253,11 +253,11 @@ const DailyStockEntry = ({ navigation }) => {
             setForm({
                 customer: "",
                 paymode: "",
-                in: "",
-                out: "",
-                regulator: "",
-                balEmpty: "",
-                amount: "",
+                in: "0",
+                out: "0",
+                regulator: "0",
+                balEmpty: "0",
+                amount: "0",
                 date: getTodayDate(),
                 customerId: "",
             })
@@ -321,8 +321,7 @@ const DailyStockEntry = ({ navigation }) => {
                 "",
 
             paymode:
-                selectedPayment?.Id ||
-                "",
+                selectedPayment?.Id || "",
 
             in:
                 String(
@@ -396,7 +395,7 @@ const DailyStockEntry = ({ navigation }) => {
             CycOut: form.out,
             BalCyc: form.balEmpty,
             Regulator: form.regulator,
-            PayMode: form.paymode,
+            PayMode: form.paymode || "0",
             Amount: form.amount,
             Comid: comid,
             Uid: currUser.EmpId,
@@ -417,11 +416,11 @@ const DailyStockEntry = ({ navigation }) => {
                 setForm({
                     customer: "",
                     paymode: "",
-                    in: "",
-                    out: "",
-                    regulator: "",
-                    balEmpty: "",
-                    amount: "",
+                    in: "0",
+                    out: "0",
+                    regulator: "0",
+                    balEmpty: "0",
+                    amount: "0",
                     date: getTodayDate(),
                     customerId: "",
                 });
@@ -449,11 +448,11 @@ const DailyStockEntry = ({ navigation }) => {
             setForm({
                 customer: "",
                 paymode: "",
-                in: "",
-                out: "",
-                regulator: "",
-                balEmpty: "",
-                amount: "",
+                in: "0",
+                out: "0",
+                regulator: "0",
+                balEmpty: "0",
+                amount: "0",
                 date: getTodayDate(),
                 customerId: "",
             });
@@ -504,7 +503,7 @@ const DailyStockEntry = ({ navigation }) => {
 
                         {/* ================= CUSTOMER ================= */}
                         <View style={styles.section}>
-                            <View style={styles.sectionHeader}>
+                            {/* <View style={styles.sectionHeader}>
                                 <View style={styles.sectionIcon}>
                                     <Icon
                                         name="user-group"
@@ -521,65 +520,24 @@ const DailyStockEntry = ({ navigation }) => {
                                         Select customer and payment method
                                     </Text>
                                 </View>
-                            </View>
-
-                            <View style={styles.row}>
-                                {/* CUSTOMER */}
-                                <View style={styles.halfField}>
-                                    <Dropdown
-                                        icon="user"
-                                        label="Customer"
-                                        value={form.customer}
-                                        placeholder="Select customer"
-                                        open={customerDropdown}
-                                        setOpen={setCustomerDropdown}
-                                        data={customerList}
-                                        onSelect={handleCusotmerSelect}
-                                        displayKey="CustomerName"
-                                    />
-                                </View>
-
-                                {/* PAYMENT */}
-                                <View style={styles.halfField}>
-                                    <Dropdown
-                                        icon="wallet"
-                                        label="Pay Mode"
-                                        value={paymentType}
-                                        placeholder="Select payment mode"
-                                        open={paymentDropdown}
-                                        setOpen={setPaymentDropdown}
-                                        data={paymentMethodList}
-                                        onSelect={handlePaymentSelect}
-                                        displayKey="Name"
-                                    />
-                                </View>
-                            </View>
-                        </View>
-
-
-                        {/* ================= TRANSACTION ================= */}
-                        <View style={styles.section}>
-                            <View style={styles.sectionHeader}>
-                                <View style={styles.sectionIcon}>
-                                    <Icon
-                                        name="arrow-right-arrow-left"
-                                        size={14}
-                                        color="#4A90E2"
-                                    />
-                                </View>
-
-                                <View>
-                                    <Text style={styles.sectionTitle}>
-                                        Transaction Details
-                                    </Text>
-                                    <Text style={styles.sectionSubtitle}>
-                                        Enter stock and payment information
-                                    </Text>
-                                </View>
+                            </View> */}
+                            {/* CUSTOMER */}
+                            <View style={styles.halfField}>
+                                <Dropdown
+                                    icon="user"
+                                    label="Customer"
+                                    value={form.customer}
+                                    placeholder="Select customer"
+                                    open={customerDropdown}
+                                    setOpen={setCustomerDropdown}
+                                    data={customerList}
+                                    onSelect={handleCusotmerSelect}
+                                    displayKey="CustomerName"
+                                />
                             </View>
 
 
-                            {/* DATE + AMOUNT */}
+
                             <View style={styles.row}>
 
                                 {/* DATE */}
@@ -612,19 +570,7 @@ const DailyStockEntry = ({ navigation }) => {
                                     </View>
                                 </View>
 
-                                {/* AMOUNT */}
-                                <View style={styles.halfField}>
-                                    <InputField
-                                        icon="indian-rupee-sign"
-                                        label="Amount"
-                                        value={form.amount}
-                                        onChangeText={(value) =>
-                                            updateField("amount", value)
-                                        }
-                                        placeholder="Enter amount"
-                                        keyboardType="decimal-pad"
-                                    />
-                                </View>
+
                             </View>
 
 
@@ -658,7 +604,6 @@ const DailyStockEntry = ({ navigation }) => {
                                 </View>
                             </View>
 
-
                             {/* REGULATOR + EMPTY BALANCE */}
                             <View style={styles.row}>
 
@@ -689,37 +634,91 @@ const DailyStockEntry = ({ navigation }) => {
                                 </View>
                             </View>
 
+                            <View style={styles.row}>
 
-                            {/* DATE PICKER */}
-                            {showDatePicker && (
-                                <DateTimePicker
-                                    value={getDateObject(form.date)}
-                                    mode="date"
-                                    display="default"
-                                    onChange={(event, selectedDate) => {
-                                        setShowDatePicker(false);
-
-                                        if (selectedDate) {
-                                            const day = String(
-                                                selectedDate.getDate()
-                                            ).padStart(2, "0");
-
-                                            const month = String(
-                                                selectedDate.getMonth() + 1
-                                            ).padStart(2, "0");
-
-                                            const year =
-                                                selectedDate.getFullYear();
-
-                                            updateField(
-                                                "date",
-                                                `${day}/${month}/${year}`
-                                            );
+                                {/* AMOUNT */}
+                                <View style={styles.halfField}>
+                                    <InputField
+                                        icon="indian-rupee-sign"
+                                        label="Amount"
+                                        value={form.amount}
+                                        onChangeText={(value) =>
+                                            updateField("amount", value)
                                         }
-                                    }}
-                                />
-                            )}
+                                        placeholder="Enter amount"
+                                        keyboardType="decimal-pad"
+                                    />
+                                </View>
+                                {/* PAYMENT */}
+                                <View style={styles.halfField}>
+                                    <Dropdown
+                                        icon="wallet"
+                                        label="Pay Mode"
+                                        value={paymentType}
+                                        placeholder="Select payment mode"
+                                        open={paymentDropdown}
+                                        setOpen={setPaymentDropdown}
+                                        data={paymentMethodList}
+                                        onSelect={handlePaymentSelect}
+                                        displayKey="Name"
+                                    />
+                                </View>
+                            </View>
+
                         </View>
+
+
+                        {/* ================= TRANSACTION ================= */}
+                        {/* <View style={styles.section}>
+                            <View style={styles.sectionHeader}>
+                                <View style={styles.sectionIcon}>
+                                    <Icon
+                                        name="arrow-right-arrow-left"
+                                        size={14}
+                                        color="#4A90E2"
+                                    />
+                                </View>
+
+                                <View>
+                                    <Text style={styles.sectionTitle}>
+                                        Transaction Details
+                                    </Text>
+                                    <Text style={styles.sectionSubtitle}>
+                                        Enter stock and payment information
+                                    </Text>
+                                </View>
+                            </View>
+                        </View> */}
+                        {/* DATE PICKER */}
+                        {showDatePicker && (
+                            <DateTimePicker
+                                value={getDateObject(form.date)}
+                                mode="date"
+                                display="default"
+                                onChange={(event, selectedDate) => {
+                                    setShowDatePicker(false);
+
+                                    if (selectedDate) {
+                                        const day = String(
+                                            selectedDate.getDate()
+                                        ).padStart(2, "0");
+
+                                        const month = String(
+                                            selectedDate.getMonth() + 1
+                                        ).padStart(2, "0");
+
+                                        const year =
+                                            selectedDate.getFullYear();
+
+                                        updateField(
+                                            "date",
+                                            `${day}/${month}/${year}`
+                                        );
+                                    }
+                                }}
+                            />
+                        )}
+
 
 
                         {/* ================= SUBMIT ================= */}

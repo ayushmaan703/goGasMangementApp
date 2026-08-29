@@ -261,7 +261,7 @@ const DailyPaymentEntry = ({ navigation }) => {
             return;
         }
         const [day, month, year] = form.date.split("/");
-        
+
         const payload = {
             PayDate: `${year}-${month}-${day}`,
             CustomerId: form.customerId,
@@ -365,7 +365,7 @@ const DailyPaymentEntry = ({ navigation }) => {
 
                         {/* ================= CUSTOMER ================= */}
                         <View style={styles.section}>
-                            <View style={styles.sectionHeader}>
+                            {/* <View style={styles.sectionHeader}>
                                 <View style={styles.sectionIcon}>
                                     <Icon
                                         name="user-group"
@@ -382,23 +382,24 @@ const DailyPaymentEntry = ({ navigation }) => {
                                         Select customer and payment method
                                     </Text>
                                 </View>
+                            </View> */}
+                            
+                            {/* CUSTOMER */}
+                            <View style={styles.halfField}>
+                                <Dropdown
+                                    icon="user"
+                                    label="Customer"
+                                    value={form.customer}
+                                    placeholder="Select customer"
+                                    open={customerDropdown}
+                                    setOpen={setCustomerDropdown}
+                                    data={customerList}
+                                    onSelect={handleCusotmerSelect}
+                                    displayKey="CustomerName"
+                                />
                             </View>
-
                             <View style={styles.row}>
-                                {/* CUSTOMER */}
-                                <View style={styles.halfField}>
-                                    <Dropdown
-                                        icon="user"
-                                        label="Customer"
-                                        value={form.customer}
-                                        placeholder="Select customer"
-                                        open={customerDropdown}
-                                        setOpen={setCustomerDropdown}
-                                        data={customerList}
-                                        onSelect={handleCusotmerSelect}
-                                        displayKey="CustomerName"
-                                    />
-                                </View>
+
 
                                 {/* PAYMENT */}
                                 <View style={styles.halfField}>
@@ -415,32 +416,6 @@ const DailyPaymentEntry = ({ navigation }) => {
                                     />
                                 </View>
                             </View>
-                        </View>
-
-
-                        {/* ================= TRANSACTION ================= */}
-                        <View style={styles.section}>
-                            <View style={styles.sectionHeader}>
-                                <View style={styles.sectionIcon}>
-                                    <Icon
-                                        name="arrow-right-arrow-left"
-                                        size={14}
-                                        color="#4A90E2"
-                                    />
-                                </View>
-
-                                <View>
-                                    <Text style={styles.sectionTitle}>
-                                        Transaction Details
-                                    </Text>
-                                    <Text style={styles.sectionSubtitle}>
-                                        Enter payment details
-                                    </Text>
-                                </View>
-                            </View>
-
-
-                            {/* DATE + AMOUNT */}
                             <View style={styles.row}>
 
                                 {/* DATE */}
@@ -521,6 +496,33 @@ const DailyPaymentEntry = ({ navigation }) => {
                         </View>
 
 
+                        {/* ================= TRANSACTION ================= */}
+                        {/* <View style={styles.section}>
+                            <View style={styles.sectionHeader}>
+                                <View style={styles.sectionIcon}>
+                                    <Icon
+                                        name="arrow-right-arrow-left"
+                                        size={14}
+                                        color="#4A90E2"
+                                    />
+                                </View>
+
+                                <View>
+                                    <Text style={styles.sectionTitle}>
+                                        Transaction Details
+                                    </Text>
+                                    <Text style={styles.sectionSubtitle}>
+                                        Enter payment details
+                                    </Text>
+                                </View>
+                            </View>
+
+
+                     
+
+                        </View> */}
+
+
                         {/* ================= SUBMIT ================= */}
                         <TouchableOpacity
                             style={[
@@ -582,7 +584,7 @@ const styles = StyleSheet.create({
 
     scrollContainer: {
         flexGrow: 1,
-        paddingBottom: 30,
+        marginBottom: 30,
     },
 
     content: {

@@ -55,7 +55,7 @@ export const getDailyStockEntry = createAsyncThunk(
   async data => {
     try {
       const response = await axiosInstance.get(
-        `/GetDailyStockEntry?Comid=${data.Comid}&FromDate=${data.FromDate}&Todate=${data.Todate}&PendingStatus=${data.PendingStatus}`,
+        `/GetDailyStockEntry?Comid=${data.Comid}&FromDate=${data.FromDate}&Todate=${data.Todate}&PendingStatus=${data.PendingStatus}&AdminApproval=${data.AdminApproval}`,
       );
       return response.data;
     } catch (error) {
