@@ -14,16 +14,12 @@ import InputField from "../../helper/InputField";
 import Dropdown from "../../helper/Dropdown";
 import CustomNavBar from "../../helper/CustomNavBar";
 import { useDispatch, useSelector } from "react-redux";
-import {
-    createDailyStockEntry,
-    editDailyStockEntry,
-    getDailyStockEntry,
-    getPaymentMethod,
-} from "../../store/slice/DailyStockEntry.slice";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Toast from "react-native-toast-message";
 import { useRoute } from "@react-navigation/native";
+import { createDailyPayment, editDailyPayment } from "../../store/slice/DailyPayment.slice";
+import { getPaymentMethod } from "../../store/slice/DailyStockEntry.slice";
 
 const getTodayDate = () => {
     const today = new Date();
@@ -93,7 +89,7 @@ const formatFormDate = (dateString) => {
     return `${day}/${month}/${year}`;
 };
 
-const DailyStockEntry = ({ navigation }) => {
+const DailyPaymentEntry = ({ navigation }) => {
 
     const route = useRoute();
     const dispatch = useDispatch();
@@ -108,10 +104,6 @@ const DailyStockEntry = ({ navigation }) => {
     const [form, setForm] = useState({
         customer: "",
         paymode: "",
-        in: "",
-        out: "",
-        regulator: "",
-        balEmpty: "",
         amount: "",
         date: getTodayDate(),
         customerId: "",
@@ -165,29 +157,6 @@ const DailyStockEntry = ({ navigation }) => {
             return false;
         }
 
-
-        if (!form.in) {
-
-            Toast.show({
-                type: "customNotificationError",
-                text1: "In cannot be empty",
-            });
-
-            return false;
-        }
-
-
-        if (!form.out) {
-
-            Toast.show({
-                type: "customNotificationError",
-                text1: "Out cannot be empty",
-            });
-
-            return false;
-        }
-
-
         if (!form.amount) {
 
             Toast.show({
@@ -197,29 +166,6 @@ const DailyStockEntry = ({ navigation }) => {
 
             return false;
         }
-
-
-        if (!form.balEmpty) {
-
-            Toast.show({
-                type: "customNotificationError",
-                text1: "Balance cannot be empty",
-            });
-
-            return false;
-        }
-
-
-        if (!form.regulator) {
-
-            Toast.show({
-                type: "customNotificationError",
-                text1: "Regulator cannot be empty",
-            });
-
-            return false;
-        }
-
 
         if (!form.paymode) {
 
@@ -253,10 +199,6 @@ const DailyStockEntry = ({ navigation }) => {
             setForm({
                 customer: "",
                 paymode: "",
-                in: "",
-                out: "",
-                regulator: "",
-                balEmpty: "",
                 amount: "",
                 date: getTodayDate(),
                 customerId: "",
@@ -264,106 +206,38 @@ const DailyStockEntry = ({ navigation }) => {
             return;
         }
 
-
-        // ----------------------------------------------
-        // CUSTOMER
-        // ----------------------------------------------
-
         const selectedCustomer =
             customerList?.find(
                 customer =>
-                    String(
-                        customer?.CustomerName || ""
-                    )
+                    String(customer?.CustomerName || "")
                         .trim()
                         .toLowerCase() ===
-                    String(
-                        entry?.Customer || ""
-                    )
+                    String(entry?.Customer || "")
                         .trim()
                         .toLowerCase()
             );
-
-
-        // ----------------------------------------------
-        // PAYMENT MODE
-        // ----------------------------------------------
 
         const selectedPayment =
             paymentMethodList?.find(
                 payment =>
-                    String(
-                        payment?.Name || ""
-                    )
+                    String(payment?.Name || "")
                         .trim()
                         .toLowerCase() ===
-                    String(
-                        entry?.PaymentMode || ""
-                    )
+                    String(entry?.PaymentMode || "")
                         .trim()
                         .toLowerCase()
             );
 
 
-        // ----------------------------------------------
-        // FORM DATA
-        // ----------------------------------------------
-
         setForm({
-
-            customer:
-                selectedCustomer?.CustomerName ||
-                entry?.Customer ||
-                "",
-
-            customerId:
-                selectedCustomer?.CustomerId ||
-                "",
-
-            paymode:
-                selectedPayment?.Id ||
-                "",
-
-            in:
-                String(
-                    entry?.CycIn ?? ""
-                ),
-
-            out:
-                String(
-                    entry?.CycOut ?? ""
-                ),
-
-            regulator:
-                String(
-                    entry?.Regulator ?? ""
-                ),
-
-            balEmpty:
-                String(
-                    entry?.BalCyc ?? ""
-                ),
-
-            amount:
-                String(
-                    entry?.Amount ?? ""
-                ),
-
-            date:
-                entry?.OrderDate
-                    ? formatFormDate(
-                        entry.OrderDate
-                    )
-                    : getTodayDate(),
+            customer: selectedCustomer?.CustomerName || entry?.Customer || "",
+            customerId: selectedCustomer?.CustomerId || "",
+            paymode: selectedPayment?.Id || "",
+            amount: String(entry?.Amount ?? ""),
+            date: entry?.OrderDate ? formatFormDate(entry.OrderDate) : getTodayDate(),
         });
 
-
-        setPaymentType(
-            selectedPayment?.Name ||
-            entry?.PaymentMode ||
-            ""
-        );
-
+        setPaymentType(selectedPayment?.Name || entry?.PaymentMode || "");
     }, [
         isEdit,
         entry,
@@ -389,12 +263,8 @@ const DailyStockEntry = ({ navigation }) => {
 
         const apiDate = getDateObject(form.date);
         const payload = {
-            OrderDate: apiDate.toISOString().split("T")[0],
+            PayDate: apiDate.toISOString().split("T")[0],
             CustomerId: form.customerId,
-            CycIn: form.in,
-            CycOut: form.out,
-            BalCyc: form.balEmpty,
-            Regulator: form.regulator,
             PayMode: form.paymode,
             Amount: form.amount,
             Comid: comid,
@@ -406,26 +276,23 @@ const DailyStockEntry = ({ navigation }) => {
         //  EDIT MODE
 
         if (isEdit) {
-            const res = await dispatch(editDailyStockEntry(payload))
+            const res = await dispatch(editDailyPayment(payload))
 
-            if (res.type === "editDailyStockEntry/fulfilled" && res.payload?.[0]?.EntryId) {
+            if (res.type === "editDailyPayment/fulfilled" && res.payload?.[0]?.EntryId) {
                 Toast.show({
-                    type: "customNotificationSuccess",
+                    type: "customNotificationSucess",
                     text1: "Entry updated Successfully",
                 });
+
                 setForm({
                     customer: "",
                     paymode: "",
-                    in: "",
-                    out: "",
-                    regulator: "",
-                    balEmpty: "",
                     amount: "",
                     date: getTodayDate(),
                     customerId: "",
                 });
                 setPaymentType("");
-                // navigation.goBack()
+                navigation.goBack()
             } else {
                 Toast.show({
                     type: "customNotificationError",
@@ -438,9 +305,8 @@ const DailyStockEntry = ({ navigation }) => {
         }
 
         // CREATE
-        const res =
-            await dispatch(createDailyStockEntry(payload));
-        if (res.type === "createDailyStockEntry/fulfilled" && res.payload?.[0]?.EntryId) {
+        const res = await dispatch(createDailyPayment(payload));
+        if (res.type === "createDailyPayment/fulfilled" && res.payload?.[0]?.EntryId) {
             Toast.show({
                 type: "customNotificationSuccess",
                 text1: "Entry created successfully",
@@ -448,10 +314,6 @@ const DailyStockEntry = ({ navigation }) => {
             setForm({
                 customer: "",
                 paymode: "",
-                in: "",
-                out: "",
-                regulator: "",
-                balEmpty: "",
                 amount: "",
                 date: getTodayDate(),
                 customerId: "",
@@ -477,13 +339,13 @@ const DailyStockEntry = ({ navigation }) => {
                 <CustomNavBar
                     navName={
                         isEdit
-                            ? "Edit Daily Stock Entry"
-                            : "Daily Stock Entry"
+                            ? "Edit Daily Payment Entry"
+                            : "Daily Payment Entry"
                     }
                     subtitle={
                         isEdit
-                            ? "Update the pending stock entry"
-                            : "Enter daily stock entry for customer"
+                            ? "Update the pending payment entries"
+                            : "Daily payment entry"
                     }
                 />
                 <KeyboardAwareScrollView
@@ -572,7 +434,7 @@ const DailyStockEntry = ({ navigation }) => {
                                         Transaction Details
                                     </Text>
                                     <Text style={styles.sectionSubtitle}>
-                                        Enter stock and payment information
+                                        Enter payment details
                                     </Text>
                                 </View>
                             </View>
@@ -622,68 +484,6 @@ const DailyStockEntry = ({ navigation }) => {
                                         }
                                         placeholder="Enter amount"
                                         keyboardType="decimal-pad"
-                                    />
-                                </View>
-                            </View>
-
-
-                            {/* IN + OUT */}
-                            <View style={styles.row}>
-
-                                <View style={styles.halfField}>
-                                    <InputField
-                                        icon="arrow-down"
-                                        label="In"
-                                        value={form.in}
-                                        onChangeText={(value) =>
-                                            updateField("in", value)
-                                        }
-                                        placeholder="Enter in quantity"
-                                        keyboardType="numeric"
-                                    />
-                                </View>
-
-                                <View style={styles.halfField}>
-                                    <InputField
-                                        icon="arrow-up"
-                                        label="Out"
-                                        value={form.out}
-                                        onChangeText={(value) =>
-                                            updateField("out", value)
-                                        }
-                                        placeholder="Enter out quantity"
-                                        keyboardType="numeric"
-                                    />
-                                </View>
-                            </View>
-
-
-                            {/* REGULATOR + EMPTY BALANCE */}
-                            <View style={styles.row}>
-
-                                <View style={styles.halfField}>
-                                    <InputField
-                                        icon="gauge"
-                                        label="Regulator"
-                                        value={form.regulator}
-                                        onChangeText={(value) =>
-                                            updateField("regulator", value)
-                                        }
-                                        placeholder="Enter regulator"
-                                        keyboardType="numeric"
-                                    />
-                                </View>
-
-                                <View style={styles.halfField}>
-                                    <InputField
-                                        icon="box-open"
-                                        label="Empty Balance"
-                                        value={form.balEmpty}
-                                        onChangeText={(value) =>
-                                            updateField("balEmpty", value)
-                                        }
-                                        placeholder="Enter empty balance"
-                                        keyboardType="numeric"
                                     />
                                 </View>
                             </View>
@@ -762,7 +562,7 @@ const DailyStockEntry = ({ navigation }) => {
 };
 
 
-export default DailyStockEntry;
+export default DailyPaymentEntry;
 
 
 // --------------------------------------------------
@@ -778,7 +578,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#F6F9FD",
-        paddingBottom: 40,
     },
 
     scrollContainer: {

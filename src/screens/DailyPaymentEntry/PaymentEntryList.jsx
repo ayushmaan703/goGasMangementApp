@@ -14,8 +14,8 @@ import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import CustomNavBar from "../../helper/CustomNavBar";
 import { useDispatch, useSelector } from "react-redux";
-import { getDailyStockEntry } from "../../store/slice/DailyStockEntry.slice"
 import { useIsFocused, useNavigation } from "@react-navigation/native";
+import { getDailyPayment } from "../../store/slice/DailyPayment.slice";
 
 const formatDate = (dateString) => {
     if (!dateString) return "";
@@ -71,15 +71,16 @@ const formatApiDate = (date) => {
     return `${day}-${month}-${year}`;
 };
 
-const EntryList = ({ navigation }) => {
+const PaymentEntryList = ({ navigation }) => {
 
     const isFocused = useIsFocused();
     const dispatch = useDispatch();
+    const stackNavigate = useNavigation()
     const currUser = useSelector(state => state.auth.userData);
-    const gasEntries = useSelector(state => state.dailyEntry.stockEntryList);
+    const gasEntries = useSelector(state => state.dailyPayment.paymentList);
 
     const comid = currUser?.Comid;
-    
+
     const [refreshing, setRefreshing] = useState(false);
     const [showFilter, setShowFilter] = useState(false);
     const [fromDate, setFromDate] = useState(new Date());
@@ -90,11 +91,12 @@ const EntryList = ({ navigation }) => {
 
     useEffect(() => {
         fetchEntries();
-    }, [fromDate, toDate, status, dispatch]);
+    }, [fromDate, toDate, status]);
 
     const fetchEntries = async () => {
+
         await dispatch(
-            getDailyStockEntry({
+            getDailyPayment({
                 FromDate: formatApiDate(fromDate),
                 Todate: formatApiDate(toDate),
                 PendingStatus: status,
@@ -156,6 +158,9 @@ const EntryList = ({ navigation }) => {
                                     navigation.navigate("DailyStockEntry", {
                                         entry: item,
                                         isEdit: true,
+                                        fromDate: formatApiDate(toDate),
+                                        toDate: formatApiDate(fromDate),
+                                        PendingStatus: status
                                     });
                                 }}
                             >
@@ -302,9 +307,9 @@ const EntryList = ({ navigation }) => {
 
     const onRefresh = async () => {
         setRefreshing(true);
-        fetchEntries()
-        try {
 
+        try {
+            fetchEntries()
         } finally {
             setRefreshing(false);
         }
@@ -321,9 +326,11 @@ const EntryList = ({ navigation }) => {
         <SafeAreaView style={styles.container}>
 
             <CustomNavBar
-                navName={"Daily Stock Entry Logs"}
-                subtitle={"View your gas transactions"}
+                navName={"Daily Payment Entry Logs"}
+                subtitle={"View your daily payments transactions"}
             />
+
+
             {/* FILTER BAR */}
 
             <View style={styles.filterBar}>
@@ -693,11 +700,11 @@ const EntryList = ({ navigation }) => {
                         </View>
 
                         <Text style={styles.emptyTitle}>
-                            No Stock Entries
+                            No Payment Entries
                         </Text>
 
                         <Text style={styles.emptyText}>
-                            Your daily stock entries will appear
+                            Your daily payment entries will appear
                             here.
                         </Text>
 
@@ -711,7 +718,7 @@ const EntryList = ({ navigation }) => {
 };
 
 
-export default EntryList;
+export default PaymentEntryList;
 
 
 // --------------------------------------------------

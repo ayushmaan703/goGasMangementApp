@@ -4,6 +4,7 @@ import CustomerSliceReducer from './slice/Customer.slice.js';
 import AdminSliceReducer from './slice/Admin.slice.js';
 import salesSliceReducer from './slice/Sales.slice.js';
 import dailyEntryReducer from './slice/DailyStockEntry.slice.js';
+import dailyPaymentReducer from './slice/DailyPayment.slice.js';
 
 export const store = configureStore({
   reducer: {
@@ -12,5 +13,6 @@ export const store = configureStore({
     admin: AdminSliceReducer,
     sales: salesSliceReducer,
     dailyEntry: dailyEntryReducer,
+    dailyPayment: dailyPaymentReducer,
   },
 });

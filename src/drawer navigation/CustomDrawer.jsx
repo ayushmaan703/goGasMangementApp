@@ -185,12 +185,28 @@ const CustomDrawer = (props) => {
                 <CustomBtn
                     title="Daily Stock Entry Logs"
                     icon="clipboard-list"
-
                     onPress={() => navigation.navigate("EntryList")}
                     isActive={activeButton === "Daily Stock Entry Logs"}
                     setActive={setActiveButton}
                     navigation={navigation}
                 />
+                <CustomBtn
+                    title="Daily Payment Entry"
+                    icon="money-bill-transfer"
+                    onPress={() => navigation.navigate("DailyPaymentEntry")}
+                    isActive={activeButton === "Daily Payment Entry"}
+                    setActive={setActiveButton}
+                    navigation={navigation}
+                />
+                <CustomBtn
+                    title="Daily Payment Entry Logs"
+                    icon="clock-rotate-left"
+                    onPress={() => navigation.navigate("PaymentEntryList")}
+                    isActive={activeButton === "Daily Payment Entry Logs"}
+                    setActive={setActiveButton}
+                    navigation={navigation}
+                />
+
             </DrawerContentScrollView>
 
             <View style={styles.footer}>
@@ -442,7 +458,7 @@ const styles = StyleSheet.create({
     footer: {
         backgroundColor: "#FFFFFF",
         paddingHorizontal: 16,
-        paddingTop:10,
+        paddingTop: 10,
         paddingBottom: 8,
         borderTopLeftRadius: 25,
         borderTopRightRadius: 25,
