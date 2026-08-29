@@ -8,9 +8,11 @@ const initialState = {
 
 export const getAllSalesPerson = createAsyncThunk(
   'getAllSalesPerson',
-  async () => {
+  async comid => {
     try {
-      const response = await axiosInstance.get(`/GetSalesPersonMaster?Comid=1`);
+      const response = await axiosInstance.get(
+        `/GetSalesPersonMaster?Comid=${comid}`,
+      );
       return response.data;
     } catch (error) {
       throw error;

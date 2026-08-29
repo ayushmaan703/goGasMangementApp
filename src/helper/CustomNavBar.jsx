@@ -3,10 +3,14 @@ import React from 'react'
 import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 const CustomNavBar = ({ navName, subtitle }) => {
     const navigation = useNavigation();
-    const drawerNavigation = navigation.getParent();
+    const drawerNavigation = useNavigation();
+    const currentUser = useSelector((state) => state.auth.userData);
+    const comName = currentUser?.CompanyName
+
     return (
         <View style={styles.header}>
 
@@ -24,7 +28,7 @@ const CustomNavBar = ({ navName, subtitle }) => {
 
                 <View style={styles.headerTitleContainer}>
                     <Text style={styles.headerTitle}>
-                        Go Gas
+                        {comName}
                     </Text>
 
                     <Text style={styles.headerSubtitle}>
@@ -98,7 +102,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         color: "#1E293B",
-        fontFamily:"Merriweather_24pt_SemiCondensed-SemiBold",
+        fontFamily: "Merriweather_24pt_SemiCondensed-SemiBold",
         letterSpacing: 0.5,
     },
 
@@ -106,7 +110,7 @@ const styles = StyleSheet.create({
         marginTop: 2,
         fontSize: 9,
         color: "#94A3B8",
-        fontFamily:  "Merriweather_24pt_SemiCondensed-Light",
+        fontFamily: "Merriweather_24pt_SemiCondensed-Light",
         letterSpacing: 0.3,
     },
 

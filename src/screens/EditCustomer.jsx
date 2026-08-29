@@ -26,6 +26,7 @@ const EditCustomer = ({ route }) => {
 
     const userData = useSelector(state => state.auth.userData)
     const customer = route?.params?.customer || {};
+    const comid = userData?.Comid
 
     const [form, setForm] = useState({
         CustomerName: customer?.CustomerName || "",
@@ -96,7 +97,8 @@ const EditCustomer = ({ route }) => {
                 LocatlityId: form.LocatlityId,
                 ContactPerson: form.ContactPerson.trim(),
                 ContactNo: form.MobileNo,
-                SalespersonId: form.SalespersonId
+                SalespersonId: form.SalespersonId,
+                comid: comid,
             };
 
             const res = await dispatch(editCustomer(payload));

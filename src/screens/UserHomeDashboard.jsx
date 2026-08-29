@@ -41,6 +41,8 @@ const UserHomeDashboard = () => {
   const localityList = useSelector((state) => state.customer.localityList) || [];
 
   const isAdmin = currentUser?.UserType === "Admin";
+  const comid = currentUser?.Comid
+  const comName = currentUser?.CompanyName
 
   const [search, setSearch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -202,11 +204,9 @@ const UserHomeDashboard = () => {
 
   useEffect(() => {
     const getfunction = async () => {
-      const res = await dispatch(getAllCustomers());
-      console.log(res);
-
-      await dispatch(getAllSalesPerson());
-      await dispatch(getLocality());
+      await dispatch(getAllCustomers(comid));
+      await dispatch(getAllSalesPerson(comid));
+      await dispatch(getLocality(comid));
     }
     getfunction()
   }, []);
@@ -329,9 +329,9 @@ const UserHomeDashboard = () => {
 
     try {
       await Promise.all([
-        dispatch(getAllCustomers()),
-        dispatch(getAllSalesPerson()),
-        dispatch(getLocality()),
+        dispatch(getAllCustomers(comid)),
+        dispatch(getAllSalesPerson(comid)),
+        dispatch(getLocality(comid)),
       ]);
     } finally {
       setRefreshing(false);
@@ -388,27 +388,27 @@ const UserHomeDashboard = () => {
 
         </View>
 
-        {isAdmin && (
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              activeFilterCount > 0 &&
-              styles.filterButtonActive,
-            ]}
-            activeOpacity={0.8}
-            onPress={() => setFilterVisible(true)}
-          >
-            <FontAwesome6 name="sliders" size={16} color={activeFilterCount > 0 ? "#FFFFFF" : "#4A90E2"}
-            />
-            {activeFilterCount > 0 && (
-              <View style={styles.filterBadge}>
-                <Text style={styles.filterBadgeText}>
-                  {activeFilterCount}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        )}
+
+        <TouchableOpacity
+          style={[
+            styles.filterButton,
+            activeFilterCount > 0 &&
+            styles.filterButtonActive,
+          ]}
+          activeOpacity={0.8}
+          onPress={() => setFilterVisible(true)}
+        >
+          <FontAwesome6 name="sliders" size={16} color={activeFilterCount > 0 ? "#FFFFFF" : "#4A90E2"}
+          />
+          {activeFilterCount > 0 && (
+            <View style={styles.filterBadge}>
+              <Text style={styles.filterBadgeText}>
+                {activeFilterCount}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
       </View>
 
       <View style={styles.resultsHeader}>
@@ -439,7 +439,8 @@ const UserHomeDashboard = () => {
 
       </View>
 
-      {isAdmin &&
+      {
+        // isAdmin &&
         activeFilterCount > 0 && (
           <View style={styles.activeChipsRow}>
 
@@ -602,51 +603,51 @@ const UserHomeDashboard = () => {
                 > */}
 
                 {/* STATUS */}
-                <Text style={styles.sectionLabel}>
+                {isAdmin && <> <Text style={styles.sectionLabel}>
                   Status
                 </Text>
 
-                <View style={styles.pillRow}>
-                  {["all", "Approved", "Pending"].map((item) => {
-                    const active =
-                      selectedStatus === item;
+                  <View style={styles.pillRow}>
+                    {["all", "Approved", "Pending"].map((item) => {
+                      const active =
+                        selectedStatus === item;
 
-                    return (
-                      <TouchableOpacity
-                        key={item}
-                        style={[
-                          styles.pill,
-                          active && styles.pillActive,
-                        ]}
-                        activeOpacity={0.8}
-                        onPress={() =>
-                          setSelectedStatus(item)
-                        }
-                      >
-                        {active && (
-                          <FontAwesome6
-                            name="check"
-                            size={9}
-                            color="#FFFFFF"
-                          />
-                        )}
-
-                        <Text
+                      return (
+                        <TouchableOpacity
+                          key={item}
                           style={[
-                            styles.pillText,
-                            active &&
-                            styles.pillTextActive,
+                            styles.pill,
+                            active && styles.pillActive,
                           ]}
+                          activeOpacity={0.8}
+                          onPress={() =>
+                            setSelectedStatus(item)
+                          }
                         >
-                          {item === "all"
-                            ? "All"
-                            : item}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
+                          {active && (
+                            <FontAwesome6
+                              name="check"
+                              size={9}
+                              color="#FFFFFF"
+                            />
+                          )}
 
+                          <Text
+                            style={[
+                              styles.pillText,
+                              active &&
+                              styles.pillTextActive,
+                            ]}
+                          >
+                            {item === "all"
+                              ? "All"
+                              : item}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </>}
 
                 {/* CONTACT PERSON */}
                 <Text style={styles.sectionLabel}>
@@ -898,97 +899,99 @@ const UserHomeDashboard = () => {
                 </View>
 
                 {/* SALES PERSON */}
-                <View style={styles.sectionHeaderRow}>
-                  <Text style={styles.sectionLabel}>
-                    Sales Person
-                  </Text>
-
-                  {selectedUser !== "all" && (
-                    <Text
-                      style={
-                        styles.selectedFilterLabel
-                      }
-                    >
-                      {selectedUserName}
+                {isAdmin && <>
+                  <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.sectionLabel}>
+                      Sales Person
                     </Text>
-                  )}
-                </View>
 
-                <View style={styles.dropdownBox}>
-                  <FlatList
-                    data={[
-                      {
-                        Id: "all",
-                        Name: "All Users",
-                      },
-                      ...salesPersonList,
-                    ]}
-                    keyExtractor={(item) => String(item.Id)}
-                    showsVerticalScrollIndicator={true}
-                    keyboardShouldPersistTaps="handled"
-                    nestedScrollEnabled={true}
-                    renderItem={({ item }) => {
-                      const active =
-                        String(selectedUser) === String(item.Id);
+                    {selectedUser !== "all" && (
+                      <Text
+                        style={
+                          styles.selectedFilterLabel
+                        }
+                      >
+                        {selectedUserName}
+                      </Text>
+                    )}
+                  </View>
 
-                      return (
-                        <TouchableOpacity
-                          style={[
-                            styles.userRow,
-                            active && styles.userRowActive,
-                          ]}
-                          activeOpacity={0.7}
-                          onPress={() =>
-                            setSelectedUser(String(item.Id))
-                          }
-                        >
-                          <View style={styles.userRowLeft}>
-                            <View
-                              style={[
-                                styles.userAvatar,
-                                active &&
-                                styles.userAvatarActive,
-                              ]}
-                            >
-                              <FontAwesome6
-                                name={
-                                  item.Id === "all"
-                                    ? "users"
-                                    : "user"
-                                }
-                                size={11}
-                                color={
-                                  active
-                                    ? "#FFFFFF"
-                                    : "#4A90E2"
-                                }
-                              />
+                  <View style={styles.dropdownBox}>
+                    <FlatList
+                      data={[
+                        {
+                          Id: "all",
+                          Name: "All Users",
+                        },
+                        ...salesPersonList,
+                      ]}
+                      keyExtractor={(item) => String(item.Id)}
+                      showsVerticalScrollIndicator={true}
+                      keyboardShouldPersistTaps="handled"
+                      nestedScrollEnabled={true}
+                      renderItem={({ item }) => {
+                        const active =
+                          String(selectedUser) === String(item.Id);
+
+                        return (
+                          <TouchableOpacity
+                            style={[
+                              styles.userRow,
+                              active && styles.userRowActive,
+                            ]}
+                            activeOpacity={0.7}
+                            onPress={() =>
+                              setSelectedUser(String(item.Id))
+                            }
+                          >
+                            <View style={styles.userRowLeft}>
+                              <View
+                                style={[
+                                  styles.userAvatar,
+                                  active &&
+                                  styles.userAvatarActive,
+                                ]}
+                              >
+                                <FontAwesome6
+                                  name={
+                                    item.Id === "all"
+                                      ? "users"
+                                      : "user"
+                                  }
+                                  size={11}
+                                  color={
+                                    active
+                                      ? "#FFFFFF"
+                                      : "#4A90E2"
+                                  }
+                                />
+                              </View>
+
+                              <Text
+                                style={[
+                                  styles.userRowText,
+                                  active &&
+                                  styles.userRowTextActive,
+                                ]}
+                                numberOfLines={1}
+                              >
+                                {item.Name}
+                              </Text>
                             </View>
 
-                            <Text
-                              style={[
-                                styles.userRowText,
-                                active &&
-                                styles.userRowTextActive,
-                              ]}
-                              numberOfLines={1}
-                            >
-                              {item.Name}
-                            </Text>
-                          </View>
-
-                          {active && (
-                            <FontAwesome6
-                              name="circle-check"
-                              size={15}
-                              color="#4A90E2"
-                            />
-                          )}
-                        </TouchableOpacity>
-                      );
-                    }}
-                  />
-                </View>
+                            {active && (
+                              <FontAwesome6
+                                name="circle-check"
+                                size={15}
+                                color="#4A90E2"
+                              />
+                            )}
+                          </TouchableOpacity>
+                        );
+                      }}
+                    />
+                  </View>
+                </>}
 
                 {/* Bottom breathing space */}
                 <View style={{ height: 15 }} />

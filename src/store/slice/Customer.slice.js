@@ -10,10 +10,24 @@ const initialState = {
   stateList: null,
 };
 
-export const getAllCustomers = createAsyncThunk('getAllCustomers', async () => {
+export const getAllCustomers = createAsyncThunk(
+  'getAllCustomers',
+  async comid => {
+    try {
+      const response = await axiosInstance.get(
+        `/GetCustomerMaster?Comid=${comid}&typ=0`,
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+);
+
+export const getLocality = createAsyncThunk('getLocality', async comid => {
   try {
     const response = await axiosInstance.get(
-      `/GetCustomerMaster?Comid=1&typ=0`,
+      `/GetLocalityMaster?Comid=${comid}`,
     );
     return response.data;
   } catch (error) {
@@ -21,18 +35,9 @@ export const getAllCustomers = createAsyncThunk('getAllCustomers', async () => {
   }
 });
 
-export const getLocality = createAsyncThunk('getLocality', async () => {
+export const getState = createAsyncThunk('getState', async comid => {
   try {
-    const response = await axiosInstance.get(`/GetLocalityMaster?Comid=1`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-});
-
-export const getState = createAsyncThunk('getState', async () => {
-  try {
-    const response = await axiosInstance.get(`/GetStateMaster?Comid=1`);
+    const response = await axiosInstance.get(`/GetStateMaster?Comid=${comid}`);
     return response.data;
   } catch (error) {
     throw error;
@@ -44,7 +49,7 @@ export const createCustomer = createAsyncThunk(
   async customerData => {
     try {
       const response = await axiosInstance.get(
-        `/AddAccount?AccountId=0&CustomerName=${customerData.CustomerName}&StateName=${customerData.StateName}&StateCode=${customerData.StateCode}&LocatlityId=${customerData.LocatlityId}&SalespersonId=${customerData.SalespersonId}&ContactPerson=${customerData.ContactPerson}&ContactNo=${customerData.MobileNo}&Comid=1`,
+        `/AddAccount?AccountId=0&CustomerName=${customerData.CustomerName}&StateName=${customerData.StateName}&StateCode=${customerData.StateCode}&LocatlityId=${customerData.LocatlityId}&SalespersonId=${customerData.SalespersonId}&ContactPerson=${customerData.ContactPerson}&ContactNo=${customerData.MobileNo}&Comid=${customerData.comid}`,
       );
       return response.data;
     } catch (error) {
@@ -58,7 +63,7 @@ export const editCustomer = createAsyncThunk(
   async customerData => {
     try {
       const response = await axiosInstance.get(
-        `/AddAccount?AccountId=${customerData.CustomerId}&CustomerName=${customerData.CustomerName}&StateName=${customerData.StateName}&StateCode=${customerData.StateCode}&LocatlityId=${customerData.LocatlityId}&SalespersonId=${customerData.SalespersonId}&ContactPerson=${customerData.ContactPerson}&ContactNo=${customerData.ContactNo}&Comid=1`,
+        `/AddAccount?AccountId=${customerData.CustomerId}&CustomerName=${customerData.CustomerName}&StateName=${customerData.StateName}&StateCode=${customerData.StateCode}&LocatlityId=${customerData.LocatlityId}&SalespersonId=${customerData.SalespersonId}&ContactPerson=${customerData.ContactPerson}&ContactNo=${customerData.ContactNo}&Comid=${customerData.comid}`,
       );
       return response.data;
     } catch (error) {
@@ -85,15 +90,12 @@ export const deleteCustomer = createAsyncThunk(
 export const togglePaidStatus = createAsyncThunk(
   'togglePaidStatus',
   async customerId => {
-
     try {
       const response = await axiosInstance.patch('/customer/togglePaidStatus', {
         params: { customerId },
       });
       return response.data;
     } catch (error) {
-
-
       Toast.show({
         type: 'customNotificationError',
         text1: error?.data || 'Error Occured',

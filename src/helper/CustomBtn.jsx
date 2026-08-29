@@ -45,7 +45,7 @@ const CustomBtn = ({
         >
           <FontAwesome6
             name={icon}
-            size={17}
+            size={12}
             color={
               isActive
                 ? "#FFFFFF"
@@ -89,24 +89,17 @@ const styles = StyleSheet.create({
 
   customButton: {
     position: "relative",
-
     width: "100%",
-
-    marginVertical: 5,
-
+    marginVertical: 2,
     paddingVertical: 8,
     paddingHorizontal: 8,
-
     borderRadius: 16,
-
     backgroundColor: "transparent",
-
     overflow: "hidden",
   },
 
   activeButton: {
     backgroundColor: "#EAF3FF",
-
     shadowColor: "#4A90E2",
     shadowOpacity: 0.08,
     shadowRadius: 8,
@@ -114,7 +107,6 @@ const styles = StyleSheet.create({
       width: 0,
       height: 3,
     },
-
     elevation: 2,
   },
 
@@ -142,9 +134,7 @@ const styles = StyleSheet.create({
 
   buttonContent: {
     flexDirection: "row",
-
     alignItems: "center",
-
     width: "100%",
   },
 
@@ -153,22 +143,17 @@ const styles = StyleSheet.create({
   // ==========================================
 
   iconContainer: {
-    width: 42,
-    height: 42,
-
+    width: 25,
+    height: 25,
     borderRadius: 13,
-
     backgroundColor: "#F0F6FF",
-
     justifyContent: "center",
     alignItems: "center",
-
     marginRight: 12,
   },
 
   activeIconContainer: {
     backgroundColor: "#4A90E2",
-
     shadowColor: "#4A90E2",
     shadowOpacity: 0.22,
     shadowRadius: 6,
@@ -176,7 +161,6 @@ const styles = StyleSheet.create({
       width: 0,
       height: 3,
     },
-
     elevation: 4,
   },
 
@@ -186,14 +170,9 @@ const styles = StyleSheet.create({
 
   buttonText: {
     flex: 1,
-
     fontSize: 14,
-
     color: "#475569",
-
-    fontFamily:
-      "Merriweather_24pt_SemiCondensed-SemiBold",
-
+    fontFamily:"Merriweather_24pt_SemiCondensed-SemiBold",
     letterSpacing: 0.3,
   },
 
@@ -208,14 +187,10 @@ const styles = StyleSheet.create({
   arrowContainer: {
     width: 26,
     height: 26,
-
     borderRadius: 13,
-
     backgroundColor: "#FFFFFF",
-
     justifyContent: "center",
     alignItems: "center",
-
     marginRight: 2,
   },
 });

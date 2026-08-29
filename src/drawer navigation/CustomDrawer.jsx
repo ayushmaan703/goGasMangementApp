@@ -166,15 +166,22 @@ const CustomDrawer = (props) => {
 
                 {currUser?.UserType === "Admin" && (
                     <CustomBtn
-                        title="Register App Users"
+                        title="Create Customer"
                         icon="user-plus"
                         onPress={() => navigation.navigate("Home", { screen: "CreateCustomer" })}
-                        isActive={activeButton === "Register App Users"}
+                        isActive={activeButton === "Create Customer"}
                         setActive={setActiveButton}
                         navigation={navigation}
                     />
                 )}
-
+                <CustomBtn
+                    title="Daily Stock Entry"
+                    icon="house"
+                    onPress={() => navigation.navigate("DailyStockEntry")}
+                    isActive={activeButton === "Daily Stock Entry"}
+                    setActive={setActiveButton}
+                    navigation={navigation}
+                />
             </DrawerContentScrollView>
 
             <View style={styles.footer}>

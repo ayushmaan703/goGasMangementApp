@@ -6,6 +6,7 @@ import CustomDrawer from './CustomDrawer';
 // import AdminCustomDrawer from '../admin screens/AdminCustomDrawer.jsx';
 import { useSelector } from 'react-redux';
 import RegisterAppUsers from '../screens/RegisterAppUsers';
+import DailyStockEntry from '../screens/DailyStockEntry/DailyStockEntry';
 
 const Drawer = createDrawerNavigator();
 
@@ -28,7 +29,7 @@ const DrawerNavigator = () => {
             }}
         >
             <Drawer.Screen name="Home" component={StackNavigator} />
-            {/* <Drawer.Screen name="RegisterAppUsers" component={RegisterAppUsers} /> */}
+            <Drawer.Screen name="DailyStockEntry" component={DailyStockEntry} />
             {/* <Drawer.Screen name="TaskHist" component={CompletedTaskDetails} /> */}
             {/* <Drawer.Screen name="expenses" component={Expenses} /> */}
         </Drawer.Navigator>

@@ -28,6 +28,8 @@ export const userLogin = createAsyncThunk(
           FCM: response.data[0].FCM,
           StateName: response.data[0].StateName,
           StateCode: response.data[0].StateCode,
+          Comid: response.data[0].Comid,
+          CompanyName: response.data[0].CompanyName,
         }),
         {
           service: 'userData',

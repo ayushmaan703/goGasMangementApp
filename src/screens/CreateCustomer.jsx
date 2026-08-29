@@ -28,6 +28,7 @@ const CreateCustomer = () => {
     const userData = useSelector((state) => state.auth.userData);
     const stateList = useSelector((state) => state.customer.stateList) || []
     const localityList = useSelector((state) => state.customer.localityList) || []
+    const comid = userData?.Comid
 
     const [form, setForm] = useState({
         CustomerName: "",
@@ -61,7 +62,7 @@ const CreateCustomer = () => {
 
     useEffect(() => {
         // dispatch(getState());
-        dispatch(getLocality());
+        dispatch(getLocality(comid));
     }, []);
 
     const handleStateSelect = state => {
@@ -159,8 +160,8 @@ const CreateCustomer = () => {
                 ContactPerson: form.ContactPerson.trim(),
                 MobileNo: form.MobileNo,
                 SalespersonId: form.SalespersonId,
+                comid: comid,
             };
-
             const res = await dispatch(createCustomer(payload));
             if (res.type === "createCustomer/fulfilled") {
                 Toast.show({
