@@ -10,6 +10,8 @@ else baseUrl = BACKEND_URL_LIVE;
 
 console.log(baseUrl);
 
-export default baseUrl;
+const GST_SLAB = Object.freeze([{ GSTNo: 5 }, { GSTNo: 18 }]);
+
+export { baseUrl, GST_SLAB };
 
 // export default baseUrl = 'http://103.175.22.11:8911/STKAPIdata.asmx';;

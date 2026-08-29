@@ -268,6 +268,31 @@ const CustomerDetails = ({ route }) => {
                         </Text>
                     </TouchableOpacity>
 
+
+                    {isAdmin && !isApproved &&
+                        <><View style={styles.quickDivider} />
+                            <TouchableOpacity
+                                style={styles.quickAction}
+                                activeOpacity={0.8}
+                                onPress={() => navigation.navigate("ApproveCustomer", { accountId: customerId })}
+                            >
+                                <View
+                                    style={[
+                                        styles.quickIcon,
+                                        {
+                                            backgroundColor: "#EAF3FF",
+                                        },
+                                    ]}
+                                >
+                                    <FontAwesome6 name="user-check" size={14} color="#4A90E2" />
+                                </View>
+
+                                <Text style={styles.quickText} >
+                                    Approve
+                                </Text>
+                            </TouchableOpacity>
+                        </>}
+
                 </View>
 
                 <Text style={styles.sectionTitle}>
@@ -373,9 +398,9 @@ const CustomerDetails = ({ route }) => {
 
                 <View style={styles.bottomSpace} />
 
-            </ScrollView>
+            </ScrollView >
 
-        </View>
+        </View >
     );
 };
 

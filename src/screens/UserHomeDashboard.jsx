@@ -603,51 +603,53 @@ const UserHomeDashboard = () => {
                 > */}
 
                 {/* STATUS */}
-                {isAdmin && <> <Text style={styles.sectionLabel}>
-                  Status
-                </Text>
+                {isAdmin &&
+                  <>
+                    <Text style={styles.sectionLabel}>
+                      Status
+                    </Text>
 
-                  <View style={styles.pillRow}>
-                    {["all", "Approved", "Pending"].map((item) => {
-                      const active =
-                        selectedStatus === item;
+                    <View style={styles.pillRow}>
+                      {["all", "Approved", "Pending"].map((item) => {
+                        const active =
+                          selectedStatus === item;
 
-                      return (
-                        <TouchableOpacity
-                          key={item}
-                          style={[
-                            styles.pill,
-                            active && styles.pillActive,
-                          ]}
-                          activeOpacity={0.8}
-                          onPress={() =>
-                            setSelectedStatus(item)
-                          }
-                        >
-                          {active && (
-                            <FontAwesome6
-                              name="check"
-                              size={9}
-                              color="#FFFFFF"
-                            />
-                          )}
-
-                          <Text
+                        return (
+                          <TouchableOpacity
+                            key={item}
                             style={[
-                              styles.pillText,
-                              active &&
-                              styles.pillTextActive,
+                              styles.pill,
+                              active && styles.pillActive,
                             ]}
+                            activeOpacity={0.8}
+                            onPress={() =>
+                              setSelectedStatus(item)
+                            }
                           >
-                            {item === "all"
-                              ? "All"
-                              : item}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </>}
+                            {active && (
+                              <FontAwesome6
+                                name="check"
+                                size={9}
+                                color="#FFFFFF"
+                              />
+                            )}
+
+                            <Text
+                              style={[
+                                styles.pillText,
+                                active &&
+                                styles.pillTextActive,
+                              ]}
+                            >
+                              {item === "all"
+                                ? "All"
+                                : item}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </>}
 
                 {/* CONTACT PERSON */}
                 <Text style={styles.sectionLabel}>

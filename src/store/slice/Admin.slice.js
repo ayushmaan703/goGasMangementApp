@@ -1,4 +1,4 @@
-import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '../../helper/AxiosInstance.js';
 
 const initialState = {
@@ -10,8 +10,10 @@ export const verifyCustomers = createAsyncThunk(
   'verifyCustomers',
   async data => {
     try {
-      const response = await axiosInstance.post('/admin/verifyCustomer', data);
-      return response.data.data;
+      const response = await axiosInstance.get(
+        `/AccountApproved?AccountId=${data.AccountId}&GSTNo=${data.GSTNo}&GstSlab=${data.GstSlab}&OpeningBal=${data.OpeningBal}`,
+      );
+      return response.data;
     } catch (error) {
       throw error;
     }
@@ -38,7 +40,6 @@ const adminSlice = createSlice({
       })
       .addCase(verifyCustomers.fulfilled, (state, action) => {
         state.loading = false;
-        state.customerList = action.payload;
       })
       .addCase(verifyCustomers.rejected, (state, action) => {
         state.loading = false;

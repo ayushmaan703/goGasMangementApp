@@ -10,6 +10,8 @@ import CreateCustomer from '../screens/CreateCustomer.jsx';
 import CustomerDetails from '../screens/CustomerDetails.jsx';
 import SplashScreen from '../helper/SplashScreen.jsx';
 import EditCustomer from '../screens/EditCustomer.jsx';
+import SubmitForm from '../screens/DailyStockEntry/SubmitForm.jsx';
+import ApproveCustomer from '../screens/ApproveCustomer.jsx';
 
 const Stack = createNativeStackNavigator();
 
@@ -40,6 +42,8 @@ const StackNavigator = () => {
                     <Stack.Screen name="CreateCustomer" component={CreateCustomer} />
                     <Stack.Screen name="EditCustomer" component={EditCustomer} />
                     <Stack.Screen name="CustomerDetails" component={CustomerDetails} />
+                    <Stack.Screen name="SubmitForm" component={SubmitForm} />
+                    <Stack.Screen name="ApproveCustomer" component={ApproveCustomer} />
                 </>
             ) : (
                 <Stack.Screen

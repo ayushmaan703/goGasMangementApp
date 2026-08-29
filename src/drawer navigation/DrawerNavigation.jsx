@@ -7,6 +7,7 @@ import CustomDrawer from './CustomDrawer';
 import { useSelector } from 'react-redux';
 import RegisterAppUsers from '../screens/RegisterAppUsers';
 import DailyStockEntry from '../screens/DailyStockEntry/DailyStockEntry';
+import EntryList from '../screens/DailyStockEntry/EntryList';
 
 const Drawer = createDrawerNavigator();
 
@@ -30,7 +31,7 @@ const DrawerNavigator = () => {
         >
             <Drawer.Screen name="Home" component={StackNavigator} />
             <Drawer.Screen name="DailyStockEntry" component={DailyStockEntry} />
-            {/* <Drawer.Screen name="TaskHist" component={CompletedTaskDetails} /> */}
+            <Drawer.Screen name="EntryList" component={EntryList} />
             {/* <Drawer.Screen name="expenses" component={Expenses} /> */}
         </Drawer.Navigator>
     );

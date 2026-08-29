@@ -176,9 +176,18 @@ const CustomDrawer = (props) => {
                 )}
                 <CustomBtn
                     title="Daily Stock Entry"
-                    icon="house"
+                    icon="box-open"
                     onPress={() => navigation.navigate("DailyStockEntry")}
                     isActive={activeButton === "Daily Stock Entry"}
+                    setActive={setActiveButton}
+                    navigation={navigation}
+                />
+                <CustomBtn
+                    title="Daily Stock Entry Logs"
+                    icon="clipboard-list"
+
+                    onPress={() => navigation.navigate("EntryList")}
+                    isActive={activeButton === "Daily Stock Entry Logs"}
                     setActive={setActiveButton}
                     navigation={navigation}
                 />

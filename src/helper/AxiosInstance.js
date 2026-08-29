@@ -62,7 +62,7 @@
 
 import axios from 'axios';
 import * as Keychain from 'react-native-keychain';
-import baseUrl from '../../Cosntants.js';
+import {baseUrl} from '../../Cosntants.js';
 
 const axiosInstance = axios.create({
   baseURL: baseUrl,
