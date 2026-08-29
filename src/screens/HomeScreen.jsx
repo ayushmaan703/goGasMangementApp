@@ -1,7 +1,7 @@
 import { Button, Modal, StyleSheet, Text, View, TextInput } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { changePassword } from '../store/slice/Auth.slice'
+import { changePassword, handleLogout, logoutUser } from '../store/slice/Auth.slice'
 import * as Yup from 'yup';
 import { Formik } from 'formik'
 import Toast from 'react-native-toast-message'
@@ -12,59 +12,64 @@ const HomeScreen = () => {
     const dispatch = useDispatch()
     const [passwordModalVisible, setPasswordModalVisible] = useState(false)
     const empDetails = useSelector((state) => state.auth.userData)
-    // const id = empDetails.EmpId
+    const id = empDetails.EmpId
 
-    // const passwordUpdateSchema = Yup.object().shape({
-    //     newPassword: Yup.string()
-    //         .min(6, 'Password must be at least 6 characters long'),
-    //     // .matches(/[0-9]/, 'Password must contain at least one number')
-    //     // .matches(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least one special character')
-    //     // .required('Password is required'),
-    //     confirmNewPassword: Yup.string()
-    //         .min(6, 'Password must be at least 6 characters long')
-    //     // .matches(/[0-9]/, 'Password must contain at least one number')
-    //     // .matches(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least one special character')
-    //     // .required('Password is required')
-    // });
 
-    // const handleChangePassword = async (values) => {
-    //     if (values.newPassword != values.confirmNewPassword) {
-    //         Toast.show({
-    //             type: 'customNotificationError',
-    //             text1: "Both passwords must be same",
-    //             visibilityTime: 1000
-    //         });
-    //     } else {
-    //         try {
-    //             const data = await dispatch(changePassword({ id, newPwd: values.newPassword }))
-    //             if (data.payload.Status === "Sucess") {
-    //                 Toast.show({
-    //                     type: 'customNotificationSuccess',
-    //                     text1: "Password Changed SucessFully",
-    //                     visibilityTime: 1000
-    //                 });
-    //             }
-    //         } catch (error) {
-    //             Toast.show({
-    //                 type: 'customNotificationError',
-    //                 text1: "error updating password",
-    //                 visibilityTime: 1000
-    //             });
-    //         }
-    //     }
-    // }
+    const passwordUpdateSchema = Yup.object().shape({
+        newPassword: Yup.string()
+            .min(6, 'Password must be at least 6 characters long'),
+        // .matches(/[0-9]/, 'Password must contain at least one number')
+        // .matches(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least one special character')
+        // .required('Password is required'),
+        confirmNewPassword: Yup.string()
+            .min(6, 'Password must be at least 6 characters long')
+        // .matches(/[0-9]/, 'Password must contain at least one number')
+        // .matches(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least one special character')
+        // .required('Password is required')
+    });
 
-    // useEffect(() => {
-    //     if (empDetails.flag == 0) {
-    //         setPasswordModalVisible(true);
-    //     }
-    // }, [empDetails.flag]);
+    const handleChangePassword = async (values) => {
+        if (values.newPassword != values.confirmNewPassword) {
+            Toast.show({
+                type: 'customNotificationError',
+                text1: "Both passwords must be same",
+                visibilityTime: 2000
+            });
+        } else {
+            try {
+                const data = await dispatch(changePassword({ id, newPwd: values.newPassword }))
+                console.log(data);
+
+                if (data.type === "changePassword/fulfilled" && data.payload[0].Status == "Sucess") {
+                    Toast.show({
+                        type: 'customNotificationSuccess',
+                        text1: "Please Login Again",
+                        visibilityTime: 3000
+                    });
+                    await handleLogout()
+                    dispatch(logoutUser())
+                }
+            } catch (error) {
+                Toast.show({
+                    type: 'customNotificationError',
+                    text1: "error updating password",
+                    visibilityTime: 1000
+                });
+            }
+        }
+    }
+
+    useEffect(() => {
+        if (empDetails.flag == 0) {
+            setPasswordModalVisible(true);
+        }
+    }, [empDetails.flag]);
 
     return (
         <>
             {/* {empDetails.UserType === "User" ? < UserHomeDashboard /> : <AdminHome />} */}
             < UserHomeDashboard />
-            {/* <View>
+            <View>
                 <Modal
                     animationType="slide"
                     transparent={true}
@@ -118,7 +123,7 @@ const HomeScreen = () => {
                                                 handleSubmit()
                                                 setPasswordModalVisible(false)
                                             }} />
-                                           
+
                                         </View>
                                     </View>
                                 )}
@@ -126,7 +131,7 @@ const HomeScreen = () => {
                         </View>
                     </View>
                 </Modal>
-            </View> */}
+            </View>
         </>
 
     )

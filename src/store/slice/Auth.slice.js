@@ -52,6 +52,19 @@ export const userLogin = createAsyncThunk(
   },
 );
 
+export const changePassword = createAsyncThunk(
+  'changePassword',
+  async ({ id, newPwd }) => {
+    try {
+      const response = await axiosInstance.get(
+        `/UpdateEmpPwd?EmpId=${id}&Pwd=${newPwd}`,
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+);
 export const handleLogout = async () => {
   try {
     await Keychain.resetGenericPassword({ service: 'userData' });
