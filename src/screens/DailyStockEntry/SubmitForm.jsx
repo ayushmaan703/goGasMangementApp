@@ -338,11 +338,11 @@ const SubmitForm = ({ navigation }) => {
                         )}
 
 
-                        {/* BALANCE CYCLE */}
+                        {/* BALANCE Cylinder */}
 
                         <InputField
                             icon="rotate"
-                            label="Balance Cycle"
+                            label="Balance Cylinder"
                             value={
                                 form.balanceCyc
                             }
@@ -353,7 +353,7 @@ const SubmitForm = ({ navigation }) => {
                                         value
                                     )
                             }
-                            placeholder="Enter balance cycle"
+                            placeholder="Enter balance cylinder"
                             keyboardType="numeric"
                         />
 

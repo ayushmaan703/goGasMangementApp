@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
     View,
     Text,
@@ -25,10 +25,12 @@ const CreateCustomer = () => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
 
+    const salesPersonList = useSelector((state) => state.sales.allSalesPersonList) || [];
     const userData = useSelector((state) => state.auth.userData);
     const stateList = useSelector((state) => state.customer.stateList) || []
     const localityList = useSelector((state) => state.customer.localityList) || []
     const comid = userData?.Comid
+    const isAdmin = userData?.UserType === "Admin";
 
     const [form, setForm] = useState({
         CustomerName: "",
@@ -46,11 +48,11 @@ const CreateCustomer = () => {
     // const [stateDropdown, setStateDropdown] = useState(false);
     // const [loadingStates, setLoadingStates] = useState(false);
 
+    const [selectedUser, setSelectedUser] = useState(userData?.EmpId);
     const [localities, setLocalities] = useState([]);
     const [localityDropdown, setLocalityDropdown] = useState(false);
     const [loadingLocalities, setLoadingLocalities] = useState(false);
     const [saving, setSaving] = useState(false);
-
 
 
     const updateField = (field, value) => {
@@ -159,11 +161,12 @@ const CreateCustomer = () => {
                 LocatlityId: form.LocatlityId,
                 ContactPerson: form.ContactPerson.trim(),
                 MobileNo: form.MobileNo,
-                SalespersonId: form.SalespersonId,
+                SalespersonId: selectedUser,
                 comid: comid,
             };
             const res = await dispatch(createCustomer(payload));
-            if (res.type === "createCustomer/fulfilled") {
+
+            if (res.type === "createCustomer/fulfilled" && res.payload[0].CustomerId) {
                 Toast.show({
                     type: "customNotificationSuccess",
                     text1: "Customer created successfully",
@@ -171,12 +174,28 @@ const CreateCustomer = () => {
                 setForm({
                     CustomerName: "",
                     Address: "",
-                    StateName: "",
-                    StateCode: "",
+                    StateName: userData?.StateName || "",
+                    StateCode: userData?.StateCode || "",
                     LocatlityId: "",
                     ContactPerson: "",
                     MobileNo: "",
-                    SalespersonId: "",
+                    SalespersonId: userData?.Id || userData?.EmpId || "",
+                })
+            } else {
+                const err = res.payload[0].Status
+                Toast.show({
+                    type: "customNotificationError",
+                    text1: err || "Error creating Customer",
+                });
+                setForm({
+                    CustomerName: "",
+                    Address: "",
+                    StateName: userData?.StateName || "",
+                    StateCode: userData?.StateCode || "",
+                    LocatlityId: "",
+                    ContactPerson: "",
+                    MobileNo: "",
+                    SalespersonId: userData?.Id || userData?.EmpId || "",
                 })
             }
         } catch (error) {
@@ -189,6 +208,12 @@ const CreateCustomer = () => {
         }
     };
 
+    const selectedUserName = useMemo(() => {
+
+        return (
+            salesPersonList.find((u) => u?.Id === selectedUser)?.Name
+        );
+    }, [selectedUser, salesPersonList]);
 
 
     return (
@@ -201,105 +226,198 @@ const CreateCustomer = () => {
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
             >
                 <KeyboardAwareScrollView
-                    contentContainerStyle={styles.scrollContainer}
+                    contentContainerStyle={styles.scrollContent}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                     enableOnAndroid={true}
                 >
-                    <ScrollView
-                        showsVerticalScrollIndicator={false}
-                        keyboardShouldPersistTaps="handled"
-                        contentContainerStyle={styles.scrollContent}
-                        nestedScrollEnabled={true}
 
-                    >
+                    <Text style={styles.sectionTitle}>    Customer Information </Text>
 
-                        <Text style={styles.sectionTitle}>    Customer Information </Text>
+                    <View style={styles.card}>
 
-                        <View style={styles.card}>
+                        <InputField
+                            icon="building"
+                            label="Customer Name"
+                            value={form.CustomerName}
+                            onChangeText={value => updateField("CustomerName", value)}
+                            placeholder="Enter customer name"
+                        />
 
-                            <InputField
-                                icon="building"
-                                label="Customer Name"
-                                value={form.CustomerName}
-                                onChangeText={value => updateField("CustomerName", value)}
-                                placeholder="Enter customer name"
-                            />
+                        {/* <InputField
+                            icon="location-dot"
+                            label="Address"
+                            value={form.Address}
+                            onChangeText={value => updateField("Address", value)}
+                            placeholder="Enter address"
+                            multiline
+                        /> */}
 
-                            {/* <InputField
-                                icon="location-dot"
-                                label="Address"
-                                value={form.Address}
-                                onChangeText={value => updateField("Address", value)}
-                                placeholder="Enter address"
-                                multiline
-                            /> */}
+                    </View>
 
-                        </View>
+                    <Text style={styles.sectionTitle}>    Location  </Text>
 
-                        <Text style={styles.sectionTitle}>    Location  </Text>
+                    <View style={styles.card}>
 
-                        <View style={styles.card}>
+                        {/* <Dropdown
+                            icon="map-location-dot"
+                            label="State"
+                            value={selectedState?.StateName || form.StateName}
+                            placeholder="Select state"
+                            open={stateDropdown}
+                            setOpen={setStateDropdown}
+                            data={stateList}
+                            onSelect={handleStateSelect}
+                            displayKey="StateName"
+                            loading={loadingStates}
+                        /> */}
+                        {/* <InputField
+                            icon="hashtag"
+                            label="State Code"
+                            value={form.StateCode}
+                            onChangeText={value => updateField("StateCode", value)}
+                            placeholder="Enter state code"
+                            disabled={true}
+                        /> */}
+                        <Dropdown
+                            icon="location-dot"
+                            label="Locality"
+                            value={selectedLocality?.Locality || ""}
+                            placeholder="Select locality"
+                            open={localityDropdown}
+                            setOpen={setLocalityDropdown}
+                            data={localityList}
+                            onSelect={handleLocalitySelect}
+                            displayKey="Locality"
+                            loading={loadingLocalities}
+                        />
 
-                            {/* <Dropdown
-                                icon="map-location-dot"
-                                label="State"
-                                value={selectedState?.StateName || form.StateName}
-                                placeholder="Select state"
-                                open={stateDropdown}
-                                setOpen={setStateDropdown}
-                                data={stateList}
-                                onSelect={handleStateSelect}
-                                displayKey="StateName"
-                                loading={loadingStates}
-                            /> */}
-                            {/* <InputField
-                                icon="hashtag"
-                                label="State Code"
-                                value={form.StateCode}
-                                onChangeText={value => updateField("StateCode", value)}
-                                placeholder="Enter state code"
-                                disabled={true}
-                            /> */}
-                            <Dropdown
-                                icon="location-dot"
-                                label="Locality"
-                                value={selectedLocality?.Locality || ""}
-                                placeholder="Select locality"
-                                open={localityDropdown}
-                                setOpen={setLocalityDropdown}
-                                data={localityList}
-                                onSelect={handleLocalitySelect}
-                                displayKey="Locality"
-                                loading={loadingLocalities}
-                            />
+                    </View>
 
-                        </View>
+                    <Text style={styles.sectionTitle}>  Contact Information  </Text>
 
-                        <Text style={styles.sectionTitle}>  Contact Information  </Text>
+                    <View style={styles.card}>
 
-                        <View style={styles.card}>
+                        <InputField
+                            icon="user-tie"
+                            label="Contact Person"
+                            value={form.ContactPerson}
+                            onChangeText={value => updateField("ContactPerson", value)}
+                            placeholder="Enter contact person"
+                        />
 
-                            <InputField
-                                icon="user-tie"
-                                label="Contact Person"
-                                value={form.ContactPerson}
-                                onChangeText={value => updateField("ContactPerson", value)}
-                                placeholder="Enter contact person"
-                            />
+                        <InputField
+                            icon="phone"
+                            label="Mobile Number"
+                            value={form.MobileNo}
+                            onChangeText={value => updateField("MobileNo", value.replace(/[^0-9]/g, ""))}
+                            placeholder="Enter mobile number"
+                            keyboardType="phone-pad"
+                            maxLength={10}
+                        />
 
-                            <InputField
-                                icon="phone"
-                                label="Mobile Number"
-                                value={form.MobileNo}
-                                onChangeText={value => updateField("MobileNo", value.replace(/[^0-9]/g, ""))}
-                                placeholder="Enter mobile number"
-                                keyboardType="phone-pad"
-                                maxLength={10}
-                            />
+                    </View>
 
-                        </View>
+                    <Text style={styles.sectionTitle}>Added by</Text>
+                    <View style={styles.card}>
+                        {isAdmin && <>
+                            <View style={styles.sectionHeaderRow}>
+                                <Text style={styles.sectionLabel}>
+                                    Sales Person
+                                </Text>
 
+                                {selectedUser !== "all" && (
+                                    <Text
+                                        style={
+                                            styles.selectedFilterLabel
+                                        }
+                                    >
+                                        {selectedUserName}
+                                    </Text>
+                                )}
+                            </View>
+
+                            {/*
+                                Replaced FlatList with a plain ScrollView + map().
+                                A FlatList (VirtualizedList) nested inside the outer
+                                KeyboardAwareScrollView (also a vertical ScrollView)
+                                triggers the "VirtualizedLists should never be nested
+                                inside plain ScrollViews with the same orientation"
+                                warning. This list is small and height-capped, so
+                                virtualization isn't needed here.
+                            */}
+                            <View style={styles.dropdownBox}>
+                                <ScrollView
+                                    showsVerticalScrollIndicator={true}
+                                    keyboardShouldPersistTaps="handled"
+                                    nestedScrollEnabled={true}
+                                >
+                                    {salesPersonList.map((item) => {
+                                        const active = String(selectedUser) === String(item.Id);
+
+                                        return (
+                                            <TouchableOpacity
+                                                key={String(item.Id)}
+                                                style={[
+                                                    styles.userRow,
+                                                    active && styles.userRowActive,
+                                                ]}
+                                                activeOpacity={0.7}
+                                                onPress={() =>
+                                                    setSelectedUser(String(item.Id))
+                                                }
+                                            >
+                                                <View style={styles.userRowLeft}>
+                                                    <View
+                                                        style={[
+                                                            styles.userAvatar,
+                                                            active &&
+                                                            styles.userAvatarActive,
+                                                        ]}
+                                                    >
+                                                        <FontAwesome6
+                                                            name={
+                                                                item.Id === "all"
+                                                                    ? "users"
+                                                                    : "user"
+                                                            }
+                                                            size={11}
+                                                            color={
+                                                                active
+                                                                    ? "#FFFFFF"
+                                                                    : "#4A90E2"
+                                                            }
+                                                        />
+                                                    </View>
+
+                                                    <Text
+                                                        style={[
+                                                            styles.userRowText,
+                                                            active &&
+                                                            styles.userRowTextActive,
+                                                        ]}
+                                                        numberOfLines={1}
+                                                    >
+                                                        {item.Name}
+                                                    </Text>
+                                                </View>
+
+                                                {active && (
+                                                    <FontAwesome6
+                                                        name="circle-check"
+                                                        size={15}
+                                                        color="#4A90E2"
+                                                    />
+                                                )}
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </ScrollView>
+                            </View>
+                        </>}
+                    </View>
+
+                    <View style={styles.bottomBtn}>
                         <TouchableOpacity
                             activeOpacity={0.85}
                             style={[
@@ -332,10 +450,9 @@ const CreateCustomer = () => {
                             <Text style={styles.cancelButtonText} >   Cancel </Text>
 
                         </TouchableOpacity>
+                    </View>
+                    <View style={styles.bottomSpace} />
 
-                        <View style={styles.bottomSpace} />
-
-                    </ScrollView>
                 </KeyboardAwareScrollView>
             </KeyboardAvoidingView>
 
@@ -357,12 +474,8 @@ const styles = StyleSheet.create({
         backgroundColor: "#F6F9FD",
     },
     scrollContent: {
-        padding: 16,
-        paddingBottom: 30,
-    },
-    scrollContainer: {
         flexGrow: 1,
-        position: "relative",
+        padding: 16,
         paddingBottom: 35,
     },
     sectionTitle: {
@@ -436,4 +549,114 @@ const styles = StyleSheet.create({
     bottomSpace: {
         height: 20,
     },
+    sectionHeaderRow: {
+        flexDirection: "row",
+
+        alignItems: "center",
+
+        justifyContent: "space-between",
+    },
+
+    sectionLabel: {
+        fontSize: 9,
+        color: "#64748B",
+        marginTop: 8,
+        marginBottom: 4,
+        fontFamily:
+            "Merriweather_24pt_SemiCondensed-SemiBold",
+        letterSpacing: 0.7,
+        textTransform: "uppercase",
+    },
+
+    selectedFilterLabel: {
+        fontSize: 8,
+
+        color: "#4A90E2",
+
+        marginTop: 14,
+        marginBottom: 7,
+
+        maxWidth: 150,
+
+        fontFamily:
+            "Merriweather_24pt_SemiCondensed-SemiBold",
+    },
+    // ====================================================
+    // DROPDOWN BOX
+    // ====================================================
+
+    dropdownBox: {
+        backgroundColor: "#F8FAFC",
+        borderRadius: 13,
+        borderWidth: 1,
+        borderColor: "#EEF2F6",
+        overflow: "hidden",
+        height: 145,
+    },
+
+
+    // ====================================================
+    // DROPDOWN ROWS
+    // ====================================================
+
+    userRow: {
+        minHeight: 43,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: "#EDF1F5",
+    },
+
+    userRowActive: {
+        backgroundColor: "#EAF3FF",
+    },
+
+    userRowLeft: {
+        flexDirection: "row",
+
+        alignItems: "center",
+
+        flex: 1,
+    },
+
+    userAvatar: {
+        width: 29,
+        height: 29,
+
+        borderRadius: 9,
+
+        backgroundColor: "#EAF3FF",
+
+        justifyContent: "center",
+        alignItems: "center",
+
+        marginRight: 9,
+    },
+
+    userAvatarActive: {
+        backgroundColor: "#4A90E2",
+    },
+
+    userRowText: {
+        flex: 1,
+
+        color: "#475569",
+
+        fontSize: 9,
+
+        fontFamily:
+            "Merriweather_24pt_SemiCondensed-Regular",
+    },
+
+    userRowTextActive: {
+        color: "#1D5FA7",
+
+        fontFamily:
+            "Merriweather_24pt_SemiCondensed-SemiBold",
+    },
+
+
 });

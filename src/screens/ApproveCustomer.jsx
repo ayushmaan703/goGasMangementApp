@@ -240,7 +240,7 @@ const ApproveCustomer = ({ navigation }) => {
                             value={form.gstNo}
                             onChangeText={value => updateField("gstNo", value)}
                             placeholder="Enter GST number"
-                            keyboardType="numeric"
+                            // keyboardType="numeric"
                         />
 
 

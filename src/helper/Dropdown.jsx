@@ -125,7 +125,7 @@ const Dropdown = ({
                             autoCapitalize="none"
                         />
 
-                        {search.length > 0 && (
+                        {search?.length > 0 && (
                             <TouchableOpacity
                                 onPress={() => setSearch("")}
                                 hitSlop={{
@@ -154,7 +154,7 @@ const Dropdown = ({
                         persistentScrollbar={true}
                         bounces={false}
                     >
-                        {filteredData.length === 0 ? (
+                        {filteredData?.length === 0 ? (
                             <View style={styles.emptyDropdown}>
 
                                 <FontAwesome6

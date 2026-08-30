@@ -237,11 +237,6 @@ const PaymentEntryList = ({ navigation }) => {
         0
     );
 
-
-    // ========================================================
-    // TABLE ROW
-    // ========================================================
-
     const renderEntry = (item) => {
 
         return (
@@ -390,93 +385,6 @@ const PaymentEntryList = ({ navigation }) => {
         );
 
     };
-
-
-    // ========================================================
-    // SUM ROW
-    // ========================================================
-
-    const renderSumRow = () => {
-
-        return (
-
-            <View style={styles.sumRow}>
-
-                {/* SUM */}
-
-                <View
-                    style={[
-                        styles.sumCell,
-                        styles.customerCell,
-                    ]}
-                >
-
-                    <Text style={styles.sumText}>
-                        SUM
-                    </Text>
-
-                </View>
-
-
-                {/* DATE */}
-
-                <View
-                    style={[
-                        styles.sumCell,
-                        styles.dateCell,
-                    ]}
-                />
-
-
-                {/* PAYMENT MODE */}
-
-                <View
-                    style={[
-                        styles.sumCell,
-                        styles.payCell,
-                    ]}
-                />
-
-
-                {/* AMOUNT */}
-
-                <View
-                    style={[
-                        styles.sumCell,
-                        styles.amountCell,
-                    ]}
-                >
-
-                    <Text style={styles.sumAmount}>
-                        ₹{totalAmount}
-                    </Text>
-
-                </View>
-
-
-                {/* EDIT */}
-
-                {status === 0 && (
-
-                    <View
-                        style={[
-                            styles.sumCell,
-                            styles.editCell,
-                        ]}
-                    />
-
-                )}
-
-            </View>
-
-        );
-
-    };
-
-
-    // ========================================================
-    // RETURN
-    // ========================================================
 
     return (
 
@@ -697,32 +605,7 @@ const PaymentEntryList = ({ navigation }) => {
                         <Text
                             style={styles.summaryValue}
                         >
-                            ₹
-                            {
-                                (
-                                    gasEntries || []
-                                )
-                                    .filter(
-                                        (item) =>
-                                            String(
-                                                item.PaymentMode ||
-                                                ""
-                                            ).toLowerCase() ===
-                                            "cash"
-                                    )
-                                    .reduce(
-                                        (
-                                            total,
-                                            item
-                                        ) =>
-                                            total +
-                                            Number(
-                                                item.Amount ||
-                                                0
-                                            ),
-                                        0
-                                    )
-                            }
+                            ₹{(gasEntries || []).filter((item) => String(item.paytype || "").toLowerCase() === "cash").reduce((total, item) => total + Number(item.Amount || 0), 0)}
                         </Text>
 
                     </View>
@@ -735,7 +618,7 @@ const PaymentEntryList = ({ navigation }) => {
                         <Text
                             style={styles.summaryLabel}
                         >
-                            OTHER
+                            UPI
                         </Text>
 
                         <Text
@@ -743,29 +626,7 @@ const PaymentEntryList = ({ navigation }) => {
                         >
                             ₹
                             {
-                                (
-                                    gasEntries || []
-                                )
-                                    .filter(
-                                        (item) =>
-                                            String(
-                                                item.PaymentMode ||
-                                                ""
-                                            ).toLowerCase() !==
-                                            "cash"
-                                    )
-                                    .reduce(
-                                        (
-                                            total,
-                                            item
-                                        ) =>
-                                            total +
-                                            Number(
-                                                item.Amount ||
-                                                0
-                                            ),
-                                        0
-                                    )
+                                (gasEntries || []).filter((item) => String(item.paytype || "").toLowerCase() === "upi").reduce((total, item) => total + Number(item.Amount || 0), 0)
                             }
                         </Text>
 

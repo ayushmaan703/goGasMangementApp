@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
     View,
     Text,
@@ -9,9 +9,10 @@ import {
 } from "react-native";
 
 import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
-import { useNavigation } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 import CustomNavBar from "../helper/CustomNavBar";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { getCustomers } from "../store/slice/Customer.slice";
 
 const DetailItem = ({
     icon,
@@ -68,26 +69,26 @@ const DetailItem = ({
 
 const CustomerDetails = ({ route }) => {
     const navigation = useNavigation();
+    const dispatch = useDispatch()
+    const isFocused = useIsFocused();
 
-    const customer = route?.params?.customer || {};
+    const customerId = route?.params?.customer?.CustomerId || {};
+    const customer = useSelector(state => state.customer.customerData) || {};
 
     const customerName = customer?.CustomerName || "Unnamed Customer";
-
     const contactNumber = customer?.ContactNo || "";
     const contactLocality = customer?.Locality || "";
     const contactPerson = customer?.ContactPerson || "Not Available";
     const status = customer?.Status || "Unknown";
     const salesperson = customer?.Salesperson || "Not Assigned";
-    const customerId = customer?.CustomerId || "Not Available";
+    // const customerId = customer?.CustomerId || "Not Available";
     const salespersonId = customer?.SalespersonId || "Not Available";
     const createdDate = customer?.Createddate || "Not Available";
     const isApproved = status?.toLowerCase() === "approved";
     const currentUser = useSelector((state) => state.auth.userData);
-    const isAdmin = currentUser?.UserType === "Admin";
 
-    // =====================================================
-    // CALL CUSTOMER
-    // =====================================================
+    const isAdmin = currentUser?.UserType === "Admin";
+    const comid = currentUser?.Comid
 
     const handleCall = () => {
         if (!contactNumber) return;
@@ -97,10 +98,6 @@ const CustomerDetails = ({ route }) => {
         );
     };
 
-    // =====================================================
-    // EDIT
-    // =====================================================
-
     const handleEdit = () => {
         navigation.navigate(
             "EditCustomer",
@@ -109,10 +106,6 @@ const CustomerDetails = ({ route }) => {
             }
         );
     };
-
-    // =====================================================
-    // STATUS COLOR
-    // =====================================================
 
     const getStatusColors = () => {
         switch (status?.toLowerCase()) {
@@ -152,9 +145,20 @@ const CustomerDetails = ({ route }) => {
         }
     };
 
-    const statusColors =
-        getStatusColors();
+    const statusColors = getStatusColors();
 
+    const fetch = async () => {
+        await dispatch(getCustomers({ comid, id: customerId }))
+    }
+    // useEffect(() => {
+    //     fetch()
+    // }, [])
+
+    useEffect(() => {
+        if (isFocused) {
+            fetch();
+        }
+    }, [isFocused]);
     return (
         <View style={styles.container}>
             <CustomNavBar navName="Customer Details" subtitle="Customer profile, status and information" />

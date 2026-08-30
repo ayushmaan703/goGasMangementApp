@@ -98,13 +98,15 @@ const CustomDrawer = (props) => {
                 </View> */}
 
                 <View style={styles.profileSection}>
-
-                    <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>
-                            {initials}
-                        </Text>
-                    </View>
-
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate("ProfilePage")}
+                    >
+                        <View style={styles.avatar}>
+                            <Text style={styles.avatarText}>
+                                {initials}
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
                     <View style={styles.profileInfo}>
 
                         <Text style={styles.welcomeText}>
@@ -122,9 +124,7 @@ const CustomDrawer = (props) => {
                             <View style={styles.onlineDot} />
 
                             <Text style={styles.roleText}>
-                                {currUser?.UserType === "Admin"
-                                    ? "Administrator"
-                                    : "Employee"}
+                                {currUser?.UserType}
                             </Text>
                         </View>
 
@@ -163,50 +163,47 @@ const CustomDrawer = (props) => {
                 />
 
                 {/* Register users */}
-
-                {currUser?.UserType === "Admin" && (
-                    <CustomBtn
-                        title="Create Customer"
-                        icon="user-plus"
-                        onPress={() => navigation.navigate("Home", { screen: "CreateCustomer" })}
-                        isActive={activeButton === "Create Customer"}
-                        setActive={setActiveButton}
-                        navigation={navigation}
-                    />
-                )}
                 <CustomBtn
+                    title="Create Customer"
+                    icon="user-plus"
+                    onPress={() => navigation.navigate("Home", { screen: "CreateCustomer" })}
+                    isActive={activeButton === "Create Customer"}
+                    setActive={setActiveButton}
+                    navigation={navigation}
+                />
+
+                {(currUser?.UserType == "User" || currUser?.UserType == "Admin") && <CustomBtn
                     title="Daily Stock Entry"
                     icon="arrow-right-arrow-left"
                     onPress={() => navigation.navigate("DailyStockEntry")}
                     isActive={activeButton === "Daily Stock Entry"}
                     setActive={setActiveButton}
                     navigation={navigation}
-                />
-                <CustomBtn
+                />}
+                {(currUser?.UserType == "User" || currUser?.UserType == "Admin") && <CustomBtn
                     title="Daily Stock Entry Logs"
                     icon="clipboard-list"
                     onPress={() => navigation.navigate("EntryList")}
                     isActive={activeButton === "Daily Stock Entry Logs"}
                     setActive={setActiveButton}
                     navigation={navigation}
-                />
-                <CustomBtn
+                />}
+                {currUser?.UserType == "Admin" && <CustomBtn
                     title="Daily Payment Entry"
                     icon="money-bill-transfer"
                     onPress={() => navigation.navigate("DailyPaymentEntry")}
                     isActive={activeButton === "Daily Payment Entry"}
                     setActive={setActiveButton}
                     navigation={navigation}
-                />
-                <CustomBtn
+                />}
+                {currUser?.UserType == "Admin" && <CustomBtn
                     title="Daily Payment Entry Logs"
                     icon="clock-rotate-left"
                     onPress={() => navigation.navigate("PaymentEntryList")}
                     isActive={activeButton === "Daily Payment Entry Logs"}
                     setActive={setActiveButton}
                     navigation={navigation}
-                />
-
+                />}
             </DrawerContentScrollView>
 
             <View style={styles.footer}>

@@ -292,7 +292,7 @@ const DailyPaymentEntry = ({ navigation }) => {
                     customerId: "",
                 });
                 setPaymentType("");
-                navigation.goBack()
+                navigation.navigate("PaymentEntryList")
             } else {
                 Toast.show({
                     type: "customNotificationError",
@@ -318,8 +318,8 @@ const DailyPaymentEntry = ({ navigation }) => {
                 date: getTodayDate(),
                 customerId: "",
             });
+            navigation.navigate("PaymentEntryList")
             setPaymentType("");
-
         } else {
             Toast.show({
                 type: "customNotificationError",
@@ -383,7 +383,7 @@ const DailyPaymentEntry = ({ navigation }) => {
                                     </Text>
                                 </View>
                             </View> */}
-                            
+
                             {/* CUSTOMER */}
                             <View style={styles.halfField}>
                                 <Dropdown

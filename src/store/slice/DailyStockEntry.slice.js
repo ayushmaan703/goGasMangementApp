@@ -78,6 +78,8 @@ export const submitDailyStockEntry = createAsyncThunk(
   },
 );
 
+
+
 const dailyEntrySlice = createSlice({
   name: 'dailyEntry',
   initialState,

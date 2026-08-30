@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import FontAwesome6Icon from "react-native-vector-icons/FontAwesome6";
 
-const InputField = ({
+const InputField = React.forwardRef(({
     icon,
     label,
     value,
@@ -17,7 +17,7 @@ const InputField = ({
     multiline = false,
     disabled = false,
     ...props
-}) => {
+}, ref) => {
     return (
         <View style={styles.inputWrapper}>
 
@@ -33,6 +33,7 @@ const InputField = ({
 
                 <TextInput
                     {...props}
+                    ref={ref}
                     value={value}
                     onChangeText={onChangeText}
                     placeholder={placeholder}
@@ -47,7 +48,9 @@ const InputField = ({
 
         </View>
     );
-};
+})
+
+InputField.displayName = "InputField";
 
 export default InputField;
 

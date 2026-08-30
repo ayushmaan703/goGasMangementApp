@@ -8,6 +8,7 @@ const initialState = {
   customerList: null,
   localityList: null,
   stateList: null,
+  customerData: null,
 };
 
 export const getAllCustomers = createAsyncThunk(
@@ -18,6 +19,20 @@ export const getAllCustomers = createAsyncThunk(
         `/GetCustomerMaster?Comid=${comid}&typ=0`,
       );
       return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+);
+
+export const getCustomers = createAsyncThunk(
+  'getCustomers',
+  async ({ comid, id }) => {
+    try {
+      const response = await axiosInstance.get(
+        `/GetCustomerMaster_CustomerWise?Comid=${comid}&typ=0&CustId=${id}`,
+      );
+      return response.data[0];
     } catch (error) {
       throw error;
     }
@@ -122,6 +137,16 @@ const customerSlice = createSlice({
       .addCase(getAllCustomers.rejected, (state, action) => {
         state.loading = false;
         state.customerList = null;
+      })
+      .addCase(getCustomers.pending, state => {
+        state.loading = true;
+      })
+      .addCase(getCustomers.fulfilled, (state, action) => {
+        state.loading = false;
+        state.customerData = action.payload;
+      })
+      .addCase(getCustomers.rejected, (state, action) => {
+        state.loading = false;
       })
       .addCase(getLocality.pending, state => {
         state.loading = true;

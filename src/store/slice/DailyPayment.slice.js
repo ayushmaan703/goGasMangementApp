@@ -63,6 +63,20 @@ export const submitDailyPayment = createAsyncThunk(
   },
 );
 
+export const adminApprovalDailySubmit = createAsyncThunk(
+  'adminApprovalDailySubmit',
+  async data => {
+    try {
+      const response = await axiosInstance.get(
+        `/DailyStockEntry_Confirm?transid=0&EntryId=${data.EntryId}&OrderDate=${data.OrderDate}&CustomerId=${data.CustomerId}&InQty=${data.InQty}&OutQty=${data.iOutQtytemwt}&Regulator=${data.Regulator}&Comid=${data.Comid}&Uid=${data.Uid}&itemwt=${data.itemwt}`,
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+);
+
 const dailyPaymentSlice = createSlice({
   name: 'dailyPayment',
   initialState,
@@ -105,6 +119,15 @@ const dailyPaymentSlice = createSlice({
         state.paymentList = action.payload;
       })
       .addCase(submitDailyPayment.rejected, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(adminApprovalDailySubmit.pending, state => {
+        state.loading = true;
+      })
+      .addCase(adminApprovalDailySubmit.fulfilled, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(adminApprovalDailySubmit.rejected, (state, action) => {
         state.loading = false;
       });
   },

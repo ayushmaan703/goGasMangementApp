@@ -435,7 +435,7 @@ const LoginScreen = () => {
                                                         styles.loginButtonText
                                                     }
                                                 >
-                                                    Login In
+                                                    Login 
                                                 </Text>
 
                                                 <View

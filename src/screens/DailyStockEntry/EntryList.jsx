@@ -328,7 +328,7 @@ const EntryList = ({ navigation }) => {
                     </Text>
 
 
-                    {!!status === 0 || (isAdmin && adminApprovalstatus == 0) && (
+                    {(status === 0 || (isAdmin && adminApprovalstatus == 0)) && (
 
                         <TouchableOpacity
                             style={styles.editIconButton}
@@ -1059,7 +1059,7 @@ const EntryList = ({ navigation }) => {
                                         styles.statusOptionTextActive,
                                     ]}
                                 >
-                                    Approved
+                                    Completed
                                 </Text>
 
                             </TouchableOpacity>

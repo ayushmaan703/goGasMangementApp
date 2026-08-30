@@ -310,7 +310,7 @@ const PaymentSubmitForm = ({ navigation }) => {
                             label="Total Amount"
                             value={form.TotalAmount}
                             onChangeText={value => updateField("TotalAmount", value)}
-                            placeholder="Enter balance cycle"
+                            placeholder="Enter total amount"
                             keyboardType="numeric"
                         />
 

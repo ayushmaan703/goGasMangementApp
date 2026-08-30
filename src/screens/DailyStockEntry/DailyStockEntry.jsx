@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     View,
     Text,
@@ -97,6 +97,12 @@ const DailyStockEntry = ({ navigation }) => {
 
     const route = useRoute();
     const dispatch = useDispatch();
+    const inRef = useRef(null);
+    const outRef = useRef(null);
+    const regulatorRef = useRef(null);
+    const balEmptyRef = useRef(null);
+    const amountRef = useRef(null);
+
     const { entry, isEdit } = route.params || {};
 
     const currUser = useSelector(state => state.auth.userData);
@@ -108,11 +114,11 @@ const DailyStockEntry = ({ navigation }) => {
     const [form, setForm] = useState({
         customer: "",
         paymode: "",
-        in: "0",
-        out: "0",
-        regulator: "0",
-        balEmpty: "0",
-        amount: "0",
+        in: "",
+        out: "",
+        regulator: "",
+        balEmpty: "",
+        amount: "",
         date: getTodayDate(),
         customerId: "",
     });
@@ -253,11 +259,11 @@ const DailyStockEntry = ({ navigation }) => {
             setForm({
                 customer: "",
                 paymode: "",
-                in: "0",
-                out: "0",
-                regulator: "0",
-                balEmpty: "0",
-                amount: "0",
+                in: "",
+                out: "",
+                regulator: "",
+                balEmpty: "",
+                amount: "",
                 date: getTodayDate(),
                 customerId: "",
             })
@@ -289,71 +295,23 @@ const DailyStockEntry = ({ navigation }) => {
         // PAYMENT MODE
         // ----------------------------------------------
 
-        const selectedPayment =
-            paymentMethodList?.find(
-                payment =>
-                    String(
-                        payment?.Name || ""
-                    )
-                        .trim()
-                        .toLowerCase() ===
-                    String(
-                        entry?.PaymentMode || ""
-                    )
-                        .trim()
-                        .toLowerCase()
-            );
+        const selectedPayment = paymentMethodList?.find(payment => String(payment?.Name || "")
+            .trim()
+            .toLowerCase() === String(entry?.PaymentMode || "").trim().toLowerCase()
+        );
 
 
-        // ----------------------------------------------
-        // FORM DATA
-        // ----------------------------------------------
 
         setForm({
-
-            customer:
-                selectedCustomer?.CustomerName ||
-                entry?.Customer ||
-                "",
-
-            customerId:
-                selectedCustomer?.CustomerId ||
-                "",
-
-            paymode:
-                selectedPayment?.Id || "",
-
-            in:
-                String(
-                    entry?.CycIn ?? ""
-                ),
-
-            out:
-                String(
-                    entry?.CycOut ?? ""
-                ),
-
-            regulator:
-                String(
-                    entry?.Regulator ?? ""
-                ),
-
-            balEmpty:
-                String(
-                    entry?.BalCyc ?? ""
-                ),
-
-            amount:
-                String(
-                    entry?.Amount ?? ""
-                ),
-
-            date:
-                entry?.OrderDate
-                    ? formatFormDate(
-                        entry.OrderDate
-                    )
-                    : getTodayDate(),
+            customer: selectedCustomer?.CustomerName || entry?.Customer || "",
+            customerId: selectedCustomer?.CustomerId || "",
+            paymode: selectedPayment?.Id || "",
+            in: String(entry?.CycIn ?? ""),
+            out: String(entry?.CycOut ?? ""),
+            regulator: String(entry?.Regulator ?? ""),
+            balEmpty: String(entry?.BalCyc ?? ""),
+            amount: String(entry?.Amount ?? ""),
+            date: entry?.OrderDate ? formatFormDate(entry.OrderDate) : getTodayDate(),
         });
 
 
@@ -369,7 +327,6 @@ const DailyStockEntry = ({ navigation }) => {
         customerList,
         paymentMethodList,
     ]);
-
 
     const handleAdd = async () => {
 
@@ -392,11 +349,11 @@ const DailyStockEntry = ({ navigation }) => {
             OrderDate: `${year}-${month}-${day}`,
             CustomerId: form.customerId,
             CycIn: form.in,
-            CycOut: form.out,
+            CycOut: form.out || "0",
             BalCyc: form.balEmpty,
-            Regulator: form.regulator,
+            Regulator: form.regulator || "0",
             PayMode: form.paymode || "0",
-            Amount: form.amount,
+            Amount: form.amount || "0",
             Comid: comid,
             Uid: currUser.EmpId,
             EntryId: entry?.EntryID,
@@ -416,14 +373,15 @@ const DailyStockEntry = ({ navigation }) => {
                 setForm({
                     customer: "",
                     paymode: "",
-                    in: "0",
-                    out: "0",
-                    regulator: "0",
-                    balEmpty: "0",
-                    amount: "0",
+                    in: "",
+                    out: "",
+                    regulator: "",
+                    balEmpty: "",
+                    amount: "",
                     date: getTodayDate(),
                     customerId: "",
                 });
+                navigation.navigate("EntryList")
                 setPaymentType("");
                 // navigation.goBack()
             } else {
@@ -438,8 +396,7 @@ const DailyStockEntry = ({ navigation }) => {
         }
 
         // CREATE
-        const res =
-            await dispatch(createDailyStockEntry(payload));
+        const res = await dispatch(createDailyStockEntry(payload));
         if (res.type === "createDailyStockEntry/fulfilled" && res.payload?.[0]?.EntryId) {
             Toast.show({
                 type: "customNotificationSuccess",
@@ -448,14 +405,15 @@ const DailyStockEntry = ({ navigation }) => {
             setForm({
                 customer: "",
                 paymode: "",
-                in: "0",
-                out: "0",
-                regulator: "0",
-                balEmpty: "0",
-                amount: "0",
+                in: "",
+                out: "",
+                regulator: "",
+                balEmpty: "",
+                amount: "",
                 date: getTodayDate(),
                 customerId: "",
             });
+            navigation.navigate("EntryList")
             setPaymentType("");
 
         } else {
@@ -579,6 +537,7 @@ const DailyStockEntry = ({ navigation }) => {
 
                                 <View style={styles.halfField}>
                                     <InputField
+                                        ref={inRef}
                                         icon="arrow-down"
                                         label="In"
                                         value={form.in}
@@ -587,11 +546,14 @@ const DailyStockEntry = ({ navigation }) => {
                                         }
                                         placeholder="Enter in quantity"
                                         keyboardType="numeric"
+                                        returnKeyType="next"
+                                        onSubmitEditing={() => outRef.current?.focus()}
                                     />
                                 </View>
 
                                 <View style={styles.halfField}>
                                     <InputField
+                                        ref={outRef}
                                         icon="arrow-up"
                                         label="Out"
                                         value={form.out}
@@ -600,6 +562,8 @@ const DailyStockEntry = ({ navigation }) => {
                                         }
                                         placeholder="Enter out quantity"
                                         keyboardType="numeric"
+                                        returnKeyType="next"
+                                        onSubmitEditing={() => regulatorRef.current?.focus()}
                                     />
                                 </View>
                             </View>
@@ -609,6 +573,7 @@ const DailyStockEntry = ({ navigation }) => {
 
                                 <View style={styles.halfField}>
                                     <InputField
+                                        ref={regulatorRef}
                                         icon="gauge"
                                         label="Regulator"
                                         value={form.regulator}
@@ -617,11 +582,14 @@ const DailyStockEntry = ({ navigation }) => {
                                         }
                                         placeholder="Enter regulator"
                                         keyboardType="numeric"
+                                        returnKeyType="next"
+                                        onSubmitEditing={() => balEmptyRef.current?.focus()}
                                     />
                                 </View>
 
                                 <View style={styles.halfField}>
                                     <InputField
+                                        ref={balEmptyRef}
                                         icon="box-open"
                                         label="Empty Balance"
                                         value={form.balEmpty}
@@ -630,6 +598,8 @@ const DailyStockEntry = ({ navigation }) => {
                                         }
                                         placeholder="Enter empty balance"
                                         keyboardType="numeric"
+                                        returnKeyType="next"
+                                        onSubmitEditing={() => amountRef.current?.focus()}
                                     />
                                 </View>
                             </View>
@@ -639,6 +609,7 @@ const DailyStockEntry = ({ navigation }) => {
                                 {/* AMOUNT */}
                                 <View style={styles.halfField}>
                                     <InputField
+                                        ref={amountRef}
                                         icon="indian-rupee-sign"
                                         label="Amount"
                                         value={form.amount}
@@ -647,6 +618,8 @@ const DailyStockEntry = ({ navigation }) => {
                                         }
                                         placeholder="Enter amount"
                                         keyboardType="decimal-pad"
+                                        returnKeyType="done"
+                                    // onSubmitEditing={() => outRef.current?.focus()}
                                     />
                                 </View>
                                 {/* PAYMENT */}
