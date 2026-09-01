@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
     View,
     Text,
@@ -12,7 +12,9 @@ import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import CustomNavBar from "../helper/CustomNavBar";
 import { useDispatch, useSelector } from "react-redux";
-import { getCustomers } from "../store/slice/Customer.slice";
+import { delCustomer, getCustomers } from "../store/slice/Customer.slice";
+import ConfirmModal from "../helper/ConfirmModal";
+import Toast from "react-native-toast-message";
 
 const DetailItem = ({
     icon,
@@ -74,6 +76,7 @@ const CustomerDetails = ({ route }) => {
 
     const customerId = route?.params?.customer?.CustomerId || {};
     const customer = useSelector(state => state.customer.customerData) || {};
+    const loading = useSelector(state => state.customer.loading) || false;
 
     const customerName = customer?.CustomerName || "Unnamed Customer";
     const contactNumber = customer?.ContactNo || "";
@@ -86,6 +89,8 @@ const CustomerDetails = ({ route }) => {
     const createdDate = customer?.Createddate || "Not Available";
     const isApproved = status?.toLowerCase() === "approved";
     const currentUser = useSelector((state) => state.auth.userData);
+
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const isAdmin = currentUser?.UserType === "Admin";
     const comid = currentUser?.Comid
@@ -144,6 +149,28 @@ const CustomerDetails = ({ route }) => {
                 };
         }
     };
+
+    const handleDelete = async () => {
+        const res = await dispatch(delCustomer({ comid, id: customerId }));
+        console.log(res);
+        if (res.type === 'deleteCustomer/rejected') {
+            Toast.show({
+                type: 'customNotificationError',
+                text1: res?.error?.message || 'Error Occured',
+                visibilityTime: 2000,
+            });
+            setShowDeleteModal(false);
+            return;
+        } else {
+            Toast.show({
+                type: 'customNotificationSuccess',
+                text1: 'Customer Deleted Successfully',
+                visibilityTime: 2000,
+            });
+            setShowDeleteModal(false);
+            navigation.goBack();
+        }
+    }
 
     const statusColors = getStatusColors();
 
@@ -296,7 +323,28 @@ const CustomerDetails = ({ route }) => {
                                 </Text>
                             </TouchableOpacity>
                         </>}
+                    <View style={styles.quickDivider} />
 
+                    <TouchableOpacity
+                        style={styles.quickAction}
+                        activeOpacity={0.8}
+                        onPress={() => setShowDeleteModal(true)}
+                    >
+                        <View
+                            style={[
+                                styles.quickIcon,
+                                {
+                                    backgroundColor: "#F0FDF4",
+                                },
+                            ]}
+                        >
+                            <FontAwesome6 name="trash" size={14} color="#DC2626" />
+                        </View>
+
+                        <Text style={styles.quickText} >
+                            Delete
+                        </Text>
+                    </TouchableOpacity>
                 </View>
 
                 <Text style={styles.sectionTitle}>
@@ -403,7 +451,15 @@ const CustomerDetails = ({ route }) => {
                 <View style={styles.bottomSpace} />
 
             </ScrollView >
-
+            <ConfirmModal
+                visible={showDeleteModal}
+                title="Delete Customer?"
+                message="Are you sure you want to delete this customer? This action cannot be undone."
+                confirmText="Delete"
+                onCancel={() => setShowDeleteModal(false)}
+                onConfirm={handleDelete}
+                loading={loading}
+            />
         </View >
     );
 };

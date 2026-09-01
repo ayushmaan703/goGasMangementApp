@@ -25,8 +25,11 @@ import {
 } from "@react-navigation/native";
 
 import {
+    delDailyPayment,
     getDailyPayment,
 } from "../../store/slice/DailyPayment.slice";
+import ConfirmModal from "../../helper/ConfirmModal";
+import Toast from "react-native-toast-message";
 
 
 // ============================================================
@@ -122,6 +125,9 @@ const PaymentEntryList = ({ navigation }) => {
     const gasEntries = useSelector(
         (state) => state.dailyPayment.paymentList
     );
+    const loading = useSelector(
+        (state) => state.dailyPayment.loading
+    );
 
     const comid = currUser?.Comid;
     const isAdmin = currUser?.UserType == "Admin"
@@ -150,6 +156,8 @@ const PaymentEntryList = ({ navigation }) => {
 
     const [status, setStatus] = useState(0);
     const [adminApprovalstatus, setAdminApprovalStatus] = useState(0);
+    const [customerId, setCustomerId] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     // ========================================================
     // FETCH
@@ -237,6 +245,28 @@ const PaymentEntryList = ({ navigation }) => {
         0
     );
 
+    const handleDelete = async () => {
+        const res = await dispatch(delDailyPayment({ comid, id: customerId }));
+        console.log(res);
+        if (res.type === 'deleteDailyPayment/rejected') {
+            Toast.show({
+                type: 'customNotificationError',
+                text1: res?.error?.message || 'Error Occured',
+                visibilityTime: 2000,
+            });
+            setShowDeleteModal(false);
+            return;
+        } else {
+            Toast.show({
+                type: 'customNotificationSuccess',
+                text1: 'Daily Payment Entry Deleted Successfully',
+                visibilityTime: 2000,
+            });
+            setShowDeleteModal(false);
+            navigation.goBack();
+        }
+    }
+
     const renderEntry = (item) => {
 
         return (
@@ -310,11 +340,89 @@ const PaymentEntryList = ({ navigation }) => {
                 </View>
 
 
+                <View
+                    style={[
+                        styles.cell,
+                        styles.amountCell,
+                    ]}
+                >
+                    <View style={styles.amountRow}>
+                        <Text style={styles.amountText}>
+                            ₹{item.Amount ?? 0}
+                        </Text>
+                        {!item.paytype && (
+                            <Text style={styles.entryText}>
+                                ( {item.paytype} )
+                            </Text>
+                        )}
+                    </View>
+
+                    <View style={styles.actionButtonsRow}>
+                        {/* Edit button */}
+                        {(status === 0 || (isAdmin)) && (
+                            <TouchableOpacity
+                                style={
+                                    styles.editIconButton
+                                }
+                                onPress={() => {
+                                    if (status === 1) {
+                                        navigation.navigate("Home", {
+                                            screen: "AdminApprovalAndEditPayment",
+                                            params: {
+                                                entry: item,
+                                                isApproved: adminApprovalstatus,
+                                            },
+                                        });
+                                    } else {
+                                        navigation.navigate("DailyPaymentEntry", {
+                                            entry: item,
+                                            isEdit: true,
+                                            fromDate:
+                                                formatApiDate(
+                                                    fromDate
+                                                ),
+                                            toDate:
+                                                formatApiDate(
+                                                    toDate
+                                                ),
+                                            PendingStatus:
+                                                status,
+                                        });
+                                    }
+
+
+                                }}
+                            >
+                                <FontAwesome6
+                                    name="pen-to-square"
+                                    size={12}
+                                    color="#4A90E2"
+                                />
+                            </TouchableOpacity>
+                        )}
+
+                        {/* Delete button */}
+                        {status === 0 && (
+                            <TouchableOpacity
+                                style={styles.deleteIconButton}
+                                onPress={() => { setShowDeleteModal(true); setCustomerId(item.EntryID); }}
+                            >
+                                <FontAwesome6
+                                    name="trash"
+                                    size={12}
+                                    color="#e24a4a"
+                                />
+                            </TouchableOpacity>)}
+                    </View>
+
+
+                </View>
+
                 {/* ==========================================
                     AMOUNT
                 ========================================== */}
 
-                <View
+                {/* <View
                     style={[
                         styles.cell,
                         styles.amountCell,
@@ -325,14 +433,14 @@ const PaymentEntryList = ({ navigation }) => {
                         ₹{item.Amount ?? 0}
                     </Text>
 
-                </View>
+                </View> */}
 
 
                 {/* ==========================================
                     EDIT
                 ========================================== */}
 
-                {!!status === 0 || (isAdmin) && (
+                {/* {!!status === 0 || (isAdmin) && (
 
                     <View
                         style={[
@@ -386,6 +494,60 @@ const PaymentEntryList = ({ navigation }) => {
                     </View>
 
                 )}
+
+                {status === 0 && (
+                    <View
+                        style={[
+                            styles.cell,
+                            styles.editCell,
+                        ]}
+                    >
+
+                        <TouchableOpacity
+                            style={
+                                styles.editIconButton
+                            }
+                            onPress={() => {
+                                if (status === 1) {
+                                    navigation.navigate("Home", {
+                                        screen: "AdminApprovalAndEditPayment",
+                                        params: {
+                                            entry: item,
+                                            isApproved: adminApprovalstatus,
+                                        },
+                                    });
+                                } else {
+                                    navigation.navigate("DailyPaymentEntry", {
+                                        entry: item,
+                                        isEdit: true,
+                                        fromDate:
+                                            formatApiDate(
+                                                fromDate
+                                            ),
+                                        toDate:
+                                            formatApiDate(
+                                                toDate
+                                            ),
+                                        PendingStatus:
+                                            status,
+                                    });
+                                }
+
+
+                            }}
+                        >
+
+                            <FontAwesome6
+                                name="pen-to-square"
+                                size={12}
+                                color="#4A90E2"
+                            />
+
+                        </TouchableOpacity>
+
+                    </View>
+
+                )} */}
 
             </View>
 
@@ -1339,7 +1501,15 @@ const PaymentEntryList = ({ navigation }) => {
                 </View>
 
             </Modal>
-
+            <ConfirmModal
+                visible={showDeleteModal}
+                title="Delete Payment?"
+                message="Are you sure you want to delete this payment? This action cannot be undone."
+                confirmText="Delete"
+                onCancel={() => setShowDeleteModal(false)}
+                onConfirm={handleDelete}
+                loading={loading}
+            />
         </SafeAreaView>
 
     );
@@ -1723,11 +1893,41 @@ const styles = StyleSheet.create({
     },
 
 
+    // amountCell: {
+    //     width: 50,
+    //     borderRightWidth: 0,
+    // },
     amountCell: {
-        width: 50,
+        width: 60,
         borderRightWidth: 0,
+        position: "relative",
+        flexDirection: "row",
+        justifyContent: "space-around",
+        gap: 10,
     },
-
+    actionButtonsRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8, // if RN version < 0.71, use marginRight/marginLeft trick below instead
+        marginTop: 4,
+    },
+    editIconButtonAmt: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#EAF2FE", // light blue bg to make it feel like a real button
+    },
+    deleteIconButton: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#FDEAEA", // light red bg
+    },
 
     editCell: {
         width: 30,

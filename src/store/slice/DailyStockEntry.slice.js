@@ -106,6 +106,20 @@ export const editAdminApprovalDailySubmit = createAsyncThunk(
   },
 );
 
+export const delDailyStockEntry = createAsyncThunk(
+  'delDailyStockEntry',
+  async ({ comid, id }) => {
+    try {
+      const res = await axiosInstance.get(
+        `/RemoveEntry?Comid=${comid}&DelId=${id}&type=2`,
+      );
+      return res.data;
+    } catch (err) {
+      throw err;
+    }
+  },
+);
+
 const dailyEntrySlice = createSlice({
   name: 'dailyEntry',
   initialState,
@@ -177,6 +191,15 @@ const dailyEntrySlice = createSlice({
         state.loading = false;
       })
       .addCase(editAdminApprovalDailySubmit.rejected, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(delDailyStockEntry.pending, state => {
+        state.loading = true;
+      })
+      .addCase(delDailyStockEntry.fulfilled, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(delDailyStockEntry.rejected, (state, action) => {
         state.loading = false;
       });
   },

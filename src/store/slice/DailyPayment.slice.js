@@ -91,6 +91,20 @@ export const editAdminApprovalPaymentSubmit = createAsyncThunk(
   },
 );
 
+export const delDailyPayment = createAsyncThunk(
+  'delDailyPayment',
+  async ({ comid, id }) => {
+    try {
+      const res = await axiosInstance.get(
+        `/RemoveEntry?Comid=${comid}&DelId=${id}&type=3`,
+      );
+      return res.data;
+    } catch (err) {
+      throw err;
+    }
+  },
+);
+
 const dailyPaymentSlice = createSlice({
   name: 'dailyPayment',
   initialState,
@@ -151,6 +165,15 @@ const dailyPaymentSlice = createSlice({
         state.loading = false;
       })
       .addCase(adminApprovalPaymentSubmit.rejected, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(delDailyPayment.pending, state => {
+        state.loading = true;
+      })
+      .addCase(delDailyPayment.fulfilled, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(delDailyPayment.rejected, (state, action) => {
         state.loading = false;
       });
   },

@@ -142,11 +142,11 @@ const AdminDashboard = ({ navigation, customers, stockEntries, gasEntries }) => 
           title="Today's Entries"
           value={todayEntries}
           color={COLORS.blue} />
-        <InfoRow
+        {/* <InfoRow
           icon="clock"
           title="Pending Approvals"
           value={pending}
-          color={COLORS.orange} />
+          color={COLORS.orange} /> */}
         <InfoRow
           icon="money-bill"
           title="Today's Collection"
@@ -254,7 +254,12 @@ const DeliveryDashboard = ({ navigation, user, customers, stockEntries }) => {
   const pending = stockEntries.filter(x => Number(x?.PendingStatus ?? x?.Pending ?? 0) === 0);
   const completed = stockEntries.filter(x => Number(x?.PendingStatus ?? x?.Pending ?? 0) === 1);
   const amount = stockEntries.reduce((s, x) => s + Number(x?.Amount || 0), 0);
-
+  const month = mine.filter(c => {
+    const d = new Date(c?.CreatedDate || c?.CreatedOn || c?.EntryDate);
+    const now = new Date();
+    return !Number.isNaN(d.getTime()) && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+  
   return (
     <View style={styles.content}>
       <SectionTitle title="MY OVERVIEW" />
@@ -269,7 +274,7 @@ const DeliveryDashboard = ({ navigation, user, customers, stockEntries }) => {
         <StatCard
           icon="user-plus"
           title="Created This Month"
-          value={mine.length}
+          value={month}
           subtitle="Customer records"
           color={COLORS.orange}
           bg={COLORS.orangeLight} />
@@ -279,8 +284,8 @@ const DeliveryDashboard = ({ navigation, user, customers, stockEntries }) => {
         icon="clipboard-list"
         title="TODAY'S STOCK ENTRY"
         status={pending.length ? "Pending" : completed.length ? "Completed" : "Not Created"}
-        subtitle={pending.length ? `${pending.length} entries not submitted` : `${completed.length} completed entries`}
-        color={pending.length ? COLORS.orange : COLORS.green}
+        subtitle={pending.length ? `${pending.length} entries not submitted` : `${completed.length} stock entries today`}
+        color={COLORS.orange}
         onPress={() => navigation.getParent()?.navigate("EntryList")}
       />
 

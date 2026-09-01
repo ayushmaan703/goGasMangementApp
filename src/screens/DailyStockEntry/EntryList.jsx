@@ -15,8 +15,10 @@ import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import CustomNavBar from "../../helper/CustomNavBar";
 import { useDispatch, useSelector } from "react-redux";
-import { getDailyStockEntry, } from "../../store/slice/DailyStockEntry.slice";
+import { delDailyStockEntry, getDailyStockEntry, } from "../../store/slice/DailyStockEntry.slice";
 import { useIsFocused, } from "@react-navigation/native";
+import ConfirmModal from "../../helper/ConfirmModal";
+import Toast from "react-native-toast-message";
 
 
 const formatDate = (dateString) => {
@@ -79,6 +81,7 @@ const EntryList = ({ navigation }) => {
     const dispatch = useDispatch();
     const currUser = useSelector((state) => state.auth.userData);
     const gasEntries = useSelector((state) => state.dailyEntry.stockEntryList);
+    const loading = useSelector((state) => state.dailyEntry.loading);
 
     const comid = currUser?.Comid;
     const isAdmin = currUser?.UserType == "Admin"
@@ -91,7 +94,8 @@ const EntryList = ({ navigation }) => {
     const [showToPicker, setShowToPicker] = useState(false);
     const [status, setStatus] = useState(0);
     const [adminApprovalstatus, setAdminApprovalStatus] = useState(0);
-
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [customerId, setCustomerId] = useState(null);
 
     useEffect(() => {
         fetchEntries();
@@ -168,6 +172,27 @@ const EntryList = ({ navigation }) => {
             amount: 0,
         }
     );
+
+    const handleDelete = async () => {
+        const res = await dispatch(delDailyStockEntry({ comid, id: customerId }));
+        if (res.type === 'deleteDailyStockEntry/rejected') {
+            Toast.show({
+                type: 'customNotificationError',
+                text1: res?.error?.message || 'Error Occured',
+                visibilityTime: 2000,
+            });
+            setShowDeleteModal(false);
+            return;
+        } else {
+            Toast.show({
+                type: 'customNotificationSuccess',
+                text1: 'Daily Stock Entry Deleted Successfully',
+                visibilityTime: 2000,
+            });
+            setShowDeleteModal(false);
+            navigation.goBack();
+        }
+    }
 
     const renderEntry = (item) => {
         return (
@@ -265,7 +290,7 @@ const EntryList = ({ navigation }) => {
                 </View> */}
 
 
-                {/* AMOUNT + EDIT */}
+                {/* AMOUNT + EDIT + DELETE   */}
 
                 <View
                     style={[
@@ -273,55 +298,66 @@ const EntryList = ({ navigation }) => {
                         styles.amountCell,
                     ]}
                 >
-
-                    <Text style={styles.amountText}>
-                        ₹{item.Amount ?? 0}
-                    </Text>
-                    {item.paytype && (
-                        <Text style={styles.entryText}>
-                            ( {item.paytype} )
+                    <View style={styles.amountRow}>
+                        <Text style={styles.amountText}>
+                            ₹{item.Amount ?? 0}
                         </Text>
-                    )}
+                        {item.paytype && (
+                            <Text style={styles.entryText}>
+                                ( {item.paytype} )
+                            </Text>
+                        )}
+                    </View>
 
-
-                    {(status === 0 || (isAdmin)) && (
-
-                        <TouchableOpacity
-                            style={styles.editIconButton}
-                            onPress={() => {
-                                if (status === 1) {
-                                    navigation.navigate("Home", {
-                                        screen: "AdminApprovalAndEdit",
-                                        params: {
+                    <View style={styles.actionButtonsRow}>
+                        {/* Edit button */}
+                        {(status === 0 || (isAdmin)) && (
+                            <TouchableOpacity
+                                style={styles.editIconButtonAmt}
+                                onPress={() => {
+                                    if (status === 1) {
+                                        navigation.navigate("Home", {
+                                            screen: "AdminApprovalAndEdit",
+                                            params: {
+                                                entry: item,
+                                                isApproved: adminApprovalstatus,
+                                            },
+                                        });
+                                    } else {
+                                        navigation.navigate("DailyStockEntry", {
                                             entry: item,
-                                            isApproved: adminApprovalstatus,
-                                        },
-                                    });
-                                } else {
-                                    navigation.navigate("DailyStockEntry", {
-                                        entry: item,
-                                        isEdit: true,
-                                    });
-                                }
-                            }}
-                        >
+                                            isEdit: true,
+                                        });
+                                    }
+                                }}
+                            >
+                                <FontAwesome6
+                                    name="pen-to-square"
+                                    size={12}
+                                    color="#4A90E2"
+                                />
+                            </TouchableOpacity>
+                        )}
 
-                            <FontAwesome6
-                                name="pen-to-square"
-                                size={12}
-                                color="#4A90E2"
-                            />
+                        {/* Delete button */}
+                        {status === 0 && (
+                            <TouchableOpacity
+                                style={styles.deleteIconButton}
+                                onPress={() => { setShowDeleteModal(true); setCustomerId(item.EntryID); }}
+                            >
+                                <FontAwesome6
+                                    name="trash"
+                                    size={12}
+                                    color="#e24a4a"
+                                />
+                            </TouchableOpacity>)}
+                    </View>
 
-                        </TouchableOpacity>
-
-                    )}
 
                 </View>
 
             </View >
-
         );
-
     };
 
 
@@ -1152,6 +1188,15 @@ const EntryList = ({ navigation }) => {
 
             </Modal>
 
+            <ConfirmModal
+                visible={showDeleteModal}
+                title="Delete Stock Entry?"
+                message="Are you sure you want to delete this entry? This action cannot be undone."
+                confirmText="Delete"
+                onCancel={() => setShowDeleteModal(false)}
+                onConfirm={handleDelete}
+                loading={loading}
+            />
         </SafeAreaView >
 
     );
@@ -1476,17 +1521,37 @@ const styles = StyleSheet.create({
     numberCell: { width: 42, },
     payCell: { width: 58 },
 
-
     amountCell: {
-        width: 70,
+        width: 60,
         borderRightWidth: 0,
         position: "relative",
-        // flexDirection: "row",
-        alignItems: "flex-start",
-        // justifyContent: "space-between",
-        // alignItems: "flex-start",
+        flexDirection: "row",
+        justifyContent: "space-around",
+        gap: 14,
     },
-
+    actionButtonsRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8, // if RN version < 0.71, use marginRight/marginLeft trick below instead
+        marginTop: 4,
+    },
+    editIconButtonAmt: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#EAF2FE", // light blue bg to make it feel like a real button
+    },
+    deleteIconButton: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#FDEAEA", // light red bg
+    },
 
     // ========================================================
     // VERTICAL TABLE

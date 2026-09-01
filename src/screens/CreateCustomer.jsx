@@ -317,10 +317,10 @@ const CreateCustomer = () => {
                         />
 
                     </View>
+                    {isAdmin && <>
+                        <Text style={styles.sectionTitle}>Added by</Text>
+                        <View style={styles.card}>
 
-                    <Text style={styles.sectionTitle}>Added by</Text>
-                    <View style={styles.card}>
-                        {isAdmin && <>
                             <View style={styles.sectionHeaderRow}>
                                 <Text style={styles.sectionLabel}>
                                     Sales Person
@@ -414,8 +414,8 @@ const CreateCustomer = () => {
                                     })}
                                 </ScrollView>
                             </View>
-                        </>}
-                    </View>
+                        </View>
+                    </>}
 
                     <View style={styles.bottomBtn}>
                         <TouchableOpacity

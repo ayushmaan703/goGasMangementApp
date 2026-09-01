@@ -87,39 +87,20 @@ export const editCustomer = createAsyncThunk(
   },
 );
 
-//these are old api
-export const deleteCustomer = createAsyncThunk(
-  'deleteCustomer',
-  async customerId => {
+export const delCustomer = createAsyncThunk(
+  'delCustomer',
+  async ({ comid, id }) => {
     try {
-      const response = await axiosInstance.delete('/customer/deleteCustomer', {
-        data: customerId,
-      });
-      return response.data;
-    } catch (error) {
-      throw error;
+      const res = await axiosInstance.get(
+        `/RemoveEntry?Comid=${comid}&DelId=${id}&type=1`,
+      );
+      return res.data;
+    } catch (err) {
+      throw err;
     }
   },
 );
 
-export const togglePaidStatus = createAsyncThunk(
-  'togglePaidStatus',
-  async customerId => {
-    try {
-      const response = await axiosInstance.patch('/customer/togglePaidStatus', {
-        params: { customerId },
-      });
-      return response.data;
-    } catch (error) {
-      Toast.show({
-        type: 'customNotificationError',
-        text1: error?.data || 'Error Occured',
-        visibilityTime: 1000,
-      });
-      throw error;
-    }
-  },
-);
 
 const customerSlice = createSlice({
   name: 'customer',
@@ -179,29 +160,15 @@ const customerSlice = createSlice({
       .addCase(editCustomer.rejected, (state, action) => {
         state.loading = false;
       })
-
-      //these are old api reducres
-      .addCase(deleteCustomer.pending, state => {
+      .addCase(delCustomer.pending, state => {
         state.loading = true;
       })
-      .addCase(deleteCustomer.fulfilled, (state, action) => {
-        state.loading = false;
-        state.customerList = state.customerList.filter(
-          customer => customer._id !== action.meta.arg,
-        );
-      })
-      .addCase(deleteCustomer.rejected, (state, action) => {
+      .addCase(delCustomer.fulfilled, (state, action) => {
         state.loading = false;
       })
-      .addCase(togglePaidStatus.pending, state => {
-        state.loading = true;
-      })
-      .addCase(togglePaidStatus.fulfilled, (state, action) => {
+      .addCase(delCustomer.rejected, (state, action) => {
         state.loading = false;
       })
-      .addCase(togglePaidStatus.rejected, (state, action) => {
-        state.loading = false;
-      });
   },
 });
 export default customerSlice.reducer;
