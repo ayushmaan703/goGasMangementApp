@@ -332,7 +332,7 @@ const PaymentEntryList = ({ navigation }) => {
                     EDIT
                 ========================================== */}
 
-                {!!status === 0 || (isAdmin && adminApprovalstatus == 0) && (
+                {!!status === 0 || (isAdmin) && (
 
                     <View
                         style={[
@@ -346,10 +346,16 @@ const PaymentEntryList = ({ navigation }) => {
                                 styles.editIconButton
                             }
                             onPress={() => {
-
-                                navigation.navigate(
-                                    "DailyPaymentEntry",
-                                    {
+                                if (status === 1) {
+                                    navigation.navigate("Home", {
+                                        screen: "AdminApprovalAndEditPayment",
+                                        params: {
+                                            entry: item,
+                                            isApproved: adminApprovalstatus,
+                                        },
+                                    });
+                                } else {
+                                    navigation.navigate("DailyPaymentEntry", {
                                         entry: item,
                                         isEdit: true,
                                         fromDate:
@@ -362,8 +368,9 @@ const PaymentEntryList = ({ navigation }) => {
                                             ),
                                         PendingStatus:
                                             status,
-                                    }
-                                );
+                                    });
+                                }
+
 
                             }}
                         >

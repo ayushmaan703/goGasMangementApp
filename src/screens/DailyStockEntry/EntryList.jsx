@@ -328,20 +328,25 @@ const EntryList = ({ navigation }) => {
                     </Text>
 
 
-                    {(status === 0 || (isAdmin && adminApprovalstatus == 0)) && (
+                    {(status === 0 || (isAdmin)) && (
 
                         <TouchableOpacity
                             style={styles.editIconButton}
                             onPress={() => {
-
-                                navigation.navigate(
-                                    "DailyStockEntry",
-                                    {
+                                if (status === 1) {
+                                    navigation.navigate("Home", {
+                                        screen: "AdminApprovalAndEdit",
+                                        params: {
+                                            entry: item,
+                                            isApproved: adminApprovalstatus,
+                                        },
+                                    });
+                                } else {
+                                    navigation.navigate("DailyStockEntry", {
                                         entry: item,
                                         isEdit: true,
-                                    }
-                                );
-
+                                    });
+                                }
                             }}
                         >
 
@@ -357,7 +362,7 @@ const EntryList = ({ navigation }) => {
 
                 </View>
 
-            </View>
+            </View >
 
         );
 

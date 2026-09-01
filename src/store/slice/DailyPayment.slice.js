@@ -63,12 +63,26 @@ export const submitDailyPayment = createAsyncThunk(
   },
 );
 
-export const adminApprovalDailySubmit = createAsyncThunk(
-  'adminApprovalDailySubmit',
+export const adminApprovalPaymentSubmit = createAsyncThunk(
+  'adminApprovalPaymentSubmit',
   async data => {
     try {
       const response = await axiosInstance.get(
-        `/DailyStockEntry_Confirm?transid=0&EntryId=${data.EntryId}&OrderDate=${data.OrderDate}&CustomerId=${data.CustomerId}&InQty=${data.InQty}&OutQty=${data.iOutQtytemwt}&Regulator=${data.Regulator}&Comid=${data.Comid}&Uid=${data.Uid}&itemwt=${data.itemwt}`,
+        `/DailyPaymentDetail_Confirm?transid=0&EntryId=${data.EntryId}&PayDate=${data.PayDate}&CustomerId=${data.CustomerId}&Comid=${data.Comid}&Uid=${data.Uid}&PayMode=${data.PayMode}&Amount=${data.Amount}`,
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+);
+
+export const editAdminApprovalPaymentSubmit = createAsyncThunk(
+  'editAdminApprovalPaymentSubmit',
+  async data => {
+    try {
+      const response = await axiosInstance.get(
+        `/DailyPaymentDetail_Confirm?transid=${data.transid}&EntryId=${data.EntryId}&PayDate=${data.PayDate}&CustomerId=${data.CustomerId}&Comid=${data.Comid}&Uid=${data.Uid}&PayMode=${data.PayMode}&Amount=${data.Amount}`,
       );
       return response.data;
     } catch (error) {
@@ -121,13 +135,22 @@ const dailyPaymentSlice = createSlice({
       .addCase(submitDailyPayment.rejected, (state, action) => {
         state.loading = false;
       })
-      .addCase(adminApprovalDailySubmit.pending, state => {
+      .addCase(editAdminApprovalPaymentSubmit.pending, state => {
         state.loading = true;
       })
-      .addCase(adminApprovalDailySubmit.fulfilled, (state, action) => {
+      .addCase(editAdminApprovalPaymentSubmit.fulfilled, (state, action) => {
         state.loading = false;
       })
-      .addCase(adminApprovalDailySubmit.rejected, (state, action) => {
+      .addCase(editAdminApprovalPaymentSubmit.rejected, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(adminApprovalPaymentSubmit.pending, state => {
+        state.loading = true;
+      })
+      .addCase(adminApprovalPaymentSubmit.fulfilled, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(adminApprovalPaymentSubmit.rejected, (state, action) => {
         state.loading = false;
       });
   },

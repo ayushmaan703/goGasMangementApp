@@ -13,6 +13,8 @@ import EditCustomer from '../screens/EditCustomer.jsx';
 import SubmitForm from '../screens/DailyStockEntry/SubmitForm.jsx';
 import ApproveCustomer from '../screens/ApproveCustomer.jsx';
 import PaymentSubmitForm from '../screens/DailyPaymentEntry/PaymentSubmitForm.jsx';
+import AdminApprovalAndEdit from '../screens/DailyStockEntry/AdminApprovalAndEdit.jsx';
+import AdminApprovalAndEditPayment from '../screens/DailyPaymentEntry/AdminApprovalAndEditPayment.jsx';
 
 const Stack = createNativeStackNavigator();
 
@@ -46,6 +48,8 @@ const StackNavigator = () => {
                     <Stack.Screen name="SubmitForm" component={SubmitForm} />
                     <Stack.Screen name="PaymentSubmitForm" component={PaymentSubmitForm} />
                     <Stack.Screen name="ApproveCustomer" component={ApproveCustomer} />
+                    <Stack.Screen name="AdminApprovalAndEdit" component={AdminApprovalAndEdit} />
+                    <Stack.Screen name="AdminApprovalAndEditPayment" component={AdminApprovalAndEditPayment} />
                 </>
             ) : (
                 <Stack.Screen

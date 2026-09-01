@@ -78,7 +78,33 @@ export const submitDailyStockEntry = createAsyncThunk(
   },
 );
 
+export const adminApprovalDailySubmit = createAsyncThunk(
+  'adminApprovalDailySubmit',
+  async data => {
+    try {
+      const response = await axiosInstance.get(
+        `/DailyStockEntry_Confirm?transid=0&EntryId=${data.EntryId}&OrderDate=${data.OrderDate}&CustomerId=${data.CustomerId}&InQty=${data.InQty}&OutQty=${data.OutQty}&Regulator=${data.Regulator}&Comid=${data.Comid}&Uid=${data.Uid}&itemwt=19.2`,
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+);
 
+export const editAdminApprovalDailySubmit = createAsyncThunk(
+  'editAdminApprovalDailySubmit',
+  async data => {
+    try {
+      const response = await axiosInstance.get(
+        `/DailyStockEntry_Confirm?transid=${data.transid}&EntryId=${data.EntryId}&OrderDate=${data.OrderDate}&CustomerId=${data.CustomerId}&InQty=${data.InQty}&OutQty=${data.iOutQtytemwt}&Regulator=${data.Regulator}&Comid=${data.Comid}&Uid=${data.Uid}&itemwt=19.2`,
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+);
 
 const dailyEntrySlice = createSlice({
   name: 'dailyEntry',
@@ -133,6 +159,24 @@ const dailyEntrySlice = createSlice({
         state.stockEntryList = action.payload;
       })
       .addCase(submitDailyStockEntry.rejected, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(adminApprovalDailySubmit.pending, state => {
+        state.loading = true;
+      })
+      .addCase(adminApprovalDailySubmit.fulfilled, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(adminApprovalDailySubmit.rejected, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(editAdminApprovalDailySubmit.pending, state => {
+        state.loading = true;
+      })
+      .addCase(editAdminApprovalDailySubmit.fulfilled, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(editAdminApprovalDailySubmit.rejected, (state, action) => {
         state.loading = false;
       });
   },
