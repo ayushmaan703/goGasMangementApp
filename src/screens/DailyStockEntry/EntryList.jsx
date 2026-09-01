@@ -11,23 +11,16 @@ import {
     RefreshControl,
     ScrollView,
 } from "react-native";
-
 import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
 import DateTimePicker from "@react-native-community/datetimepicker";
-
 import CustomNavBar from "../../helper/CustomNavBar";
-
 import { useDispatch, useSelector } from "react-redux";
+import { getDailyStockEntry, } from "../../store/slice/DailyStockEntry.slice";
+import { useIsFocused, } from "@react-navigation/native";
 
-import {
-    getDailyStockEntry,
-} from "../../store/slice/DailyStockEntry.slice";
-
-import {
-    useIsFocused,
-} from "@react-navigation/native";
 
 const formatDate = (dateString) => {
+
     if (!dateString) return "";
 
     const value = String(dateString).trim();
@@ -37,17 +30,11 @@ const formatDate = (dateString) => {
     // 8/27/2026 12:00:00 AM
     // 8/27/2026
 
-    const match = value.match(
-        /^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/
-    );
+    const match = value.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
 
     if (match) {
         const [, month, day, year] = match;
-
-        return `${String(day).padStart(2, "0")}/${String(month).padStart(
-            2,
-            "0"
-        )}/${year}`;
+        return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`;
     }
 
     const date = new Date(dateString);
@@ -56,15 +43,8 @@ const formatDate = (dateString) => {
         return dateString;
     }
 
-    return `${String(date.getDate()).padStart(2, "0")}/${String(
-        date.getMonth() + 1
-    ).padStart(2, "0")}/${date.getFullYear()}`;
+    return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
 };
-
-
-// ============================================================
-// API DATE FORMAT
-// ============================================================
 
 const formatApiDate = (date) => {
     if (!date) return null;
@@ -92,10 +72,6 @@ const formatApiDate = (date) => {
 };
 
 
-// ============================================================
-// COMPONENT
-// ============================================================
-
 const EntryList = ({ navigation }) => {
 
     const isFocused = useIsFocused();
@@ -117,10 +93,6 @@ const EntryList = ({ navigation }) => {
     const [adminApprovalstatus, setAdminApprovalStatus] = useState(0);
 
 
-    // ========================================================
-    // FETCH ENTRIES
-    // ========================================================
-
     useEffect(() => {
         fetchEntries();
     }, [
@@ -130,7 +102,6 @@ const EntryList = ({ navigation }) => {
         adminApprovalstatus,
         dispatch,
     ]);
-
 
     const fetchEntries = async () => {
 
@@ -146,7 +117,6 @@ const EntryList = ({ navigation }) => {
 
     };
 
-
     const onRefresh = async () => {
 
         setRefreshing(true);
@@ -158,7 +128,6 @@ const EntryList = ({ navigation }) => {
         }
 
     };
-
 
     useEffect(() => {
 
@@ -202,7 +171,6 @@ const EntryList = ({ navigation }) => {
 
     const renderEntry = (item) => {
         return (
-
             <View
                 key={item.EntryID}
                 style={styles.tableRow}
@@ -223,11 +191,7 @@ const EntryList = ({ navigation }) => {
                     >
                         {item.Customer || "-"}
                     </Text>
-
-                    <Text style={styles.entryText}>
-                        #{item.EntryID}
-                    </Text>
-
+                    <Text style={styles.entryText}>#{item.EntryID}</Text>
                 </View>
 
 
@@ -239,11 +203,7 @@ const EntryList = ({ navigation }) => {
                         styles.numberCell,
                     ]}
                 >
-
-                    <Text style={styles.numberText}>
-                        {item.CycIn ?? 0}
-                    </Text>
-
+                    <Text style={styles.numberText}> {item.CycIn ?? 0} </Text>
                 </View>
 
 
@@ -255,11 +215,7 @@ const EntryList = ({ navigation }) => {
                         styles.numberCell,
                     ]}
                 >
-
-                    <Text style={styles.numberText}>
-                        {item.CycOut ?? 0}
-                    </Text>
-
+                    <Text style={styles.numberText}>{item.CycOut ?? 0} </Text>
                 </View>
 
 
@@ -278,7 +234,6 @@ const EntryList = ({ navigation }) => {
 
                 </View> */}
 
-
                 {/* BAL EMPTY */}
 
                 <View
@@ -287,11 +242,7 @@ const EntryList = ({ navigation }) => {
                         styles.numberCell,
                     ]}
                 >
-
-                    <Text style={styles.numberText}>
-                        {item.BalCyc ?? 0}
-                    </Text>
-
+                    <Text style={styles.numberText}> {item.BalCyc ?? 0} </Text>
                 </View>
 
 
@@ -326,6 +277,11 @@ const EntryList = ({ navigation }) => {
                     <Text style={styles.amountText}>
                         ₹{item.Amount ?? 0}
                     </Text>
+                    {item.paytype && (
+                        <Text style={styles.entryText}>
+                            ( {item.paytype} )
+                        </Text>
+                    )}
 
 
                     {(status === 0 || (isAdmin)) && (
@@ -1512,9 +1468,7 @@ const styles = StyleSheet.create({
 
     customerCell: {
         width: 100,
-
         alignItems: "flex-start",
-
         paddingLeft: 7,
     },
 
@@ -1527,9 +1481,10 @@ const styles = StyleSheet.create({
         width: 70,
         borderRightWidth: 0,
         position: "relative",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
+        // flexDirection: "row",
+        alignItems: "flex-start",
+        // justifyContent: "space-between",
+        // alignItems: "flex-start",
     },
 
 
@@ -1577,10 +1532,9 @@ const styles = StyleSheet.create({
 
 
     entryText: {
-        fontSize: 7,
-
+        fontSize: 8.5,
+        fontWeight: "600",
         color: "#9AA2AD",
-
         marginTop: 1,
     },
 
@@ -1598,13 +1552,9 @@ const styles = StyleSheet.create({
 
     payText: {
         maxWidth: "100%",
-
         fontSize: 8.5,
-
         fontWeight: "500",
-
         color: "#555E6B",
-
         textAlign: "center",
     },
 

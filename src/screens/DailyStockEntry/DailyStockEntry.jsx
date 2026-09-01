@@ -166,72 +166,42 @@ const DailyStockEntry = ({ navigation }) => {
             Toast.show({
                 type: "customNotificationError",
                 text1: "Customer is required",
+                visibilityTime: 1000,
             });
 
             return false;
         }
 
 
-        if (!form.in || Number(form.in) == 0 || Number(form.in) < 1) {
+        if ((!form.in || Number(form.in) == 0 || Number(form.in) < 1) && (!form.regulator || !form.regulator.trim() || Number(form.regulator) == 0 || Number(form.regulator) < 1) && (!form.out || Number(form.out) == 0 || Number(form.out) < 1)) {
 
             Toast.show({
                 type: "customNotificationError",
-                text1: "In cannot be empty",
+                text1: "Either In, Out or Regulator must be greater than 0",
+                visibilityTime: 1000,
+
             });
 
             return false;
         }
-
-
-        // if (!form.out) {
-
-        //     Toast.show({
-        //         type: "customNotificationError",
-        //         text1: "Out cannot be empty",
-        //     });
-
-        //     return false;
-        // }
-
-
-        // if (!form.amount) {
-
-        //     Toast.show({
-        //         type: "customNotificationError",
-        //         text1: "Amount cannot be empty",
-        //     });
-
-        //     return false;
-        // }
-
 
         if (!form.balEmpty || Number(form.balEmpty) == 0 || Number(form.balEmpty) < 1) {
 
             Toast.show({
                 type: "customNotificationError",
                 text1: "Balance cannot be empty",
+                visibilityTime: 1000,
             });
 
             return false;
         }
-
-
-        // if (!form.regulator) {
-
-        //     Toast.show({
-        //         type: "customNotificationError",
-        //         text1: "Regulator cannot be empty",
-        //     });
-
-        //     return false;
-        // }
-
 
         if (!form.paymode && Number(form.amount) > 0) {
 
             Toast.show({
                 type: "customNotificationError",
                 text1: "Please select a paymode",
+                visibilityTime: 1000,
             });
 
             return false;
@@ -339,6 +309,7 @@ const DailyStockEntry = ({ navigation }) => {
             Toast.show({
                 type: "customNotificationError",
                 text1: "User information is missing",
+                visibilityTime: 1000,
             });
             return;
         }
@@ -369,6 +340,7 @@ const DailyStockEntry = ({ navigation }) => {
                 Toast.show({
                     type: "customNotificationSuccess",
                     text1: "Entry updated Successfully",
+                    visibilityTime: 1000,
                 });
                 setForm({
                     customer: "",
@@ -388,6 +360,7 @@ const DailyStockEntry = ({ navigation }) => {
                 Toast.show({
                     type: "customNotificationError",
                     text1: "Something went wrong",
+                    visibilityTime: 1000,
                 });
 
             }
@@ -401,6 +374,7 @@ const DailyStockEntry = ({ navigation }) => {
             Toast.show({
                 type: "customNotificationSuccess",
                 text1: "Entry created successfully",
+                visibilityTime: 1000,
             });
             setForm({
                 customer: "",
@@ -420,6 +394,7 @@ const DailyStockEntry = ({ navigation }) => {
             Toast.show({
                 type: "customNotificationError",
                 text1: "Something went wrong",
+                visibilityTime: 1000,
             });
 
         }

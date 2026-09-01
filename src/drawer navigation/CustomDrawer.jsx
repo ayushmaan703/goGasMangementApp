@@ -171,6 +171,15 @@ const CustomDrawer = (props) => {
                     setActive={setActiveButton}
                     navigation={navigation}
                 />
+                <CustomBtn
+                    title="Customer List"
+                    icon="user-group"
+                    // onPress={() => navigation.navigate("Home", { screen: "CustomerList" })}
+                    onPress={() => navigation.navigate("CustomerList")}
+                    isActive={activeButton === "Customer List"}
+                    setActive={setActiveButton}
+                    navigation={navigation}
+                />
 
                 {(currUser?.UserType == "User" || currUser?.UserType == "Admin") && <CustomBtn
                     title="Daily Stock Entry"

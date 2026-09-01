@@ -11,6 +11,7 @@ import EntryList from '../screens/DailyStockEntry/EntryList';
 import PaymentEntryList from '../screens/DailyPaymentEntry/PaymentEntryList';
 import DailyPaymentEntry from '../screens/DailyPaymentEntry/DailyPaymentEntry';
 import ProfilePage from '../screens/ProfilePage';
+import CustomerList from '../screens/CustomerList';
 
 const Drawer = createDrawerNavigator();
 
@@ -38,6 +39,7 @@ const DrawerNavigator = () => {
             <Drawer.Screen name="DailyPaymentEntry" component={DailyPaymentEntry} />
             <Drawer.Screen name="PaymentEntryList" component={PaymentEntryList} />
             <Drawer.Screen name="ProfilePage" component={ProfilePage} />
+            <Drawer.Screen name="CustomerList" component={CustomerList} />
         </Drawer.Navigator>
     );
 };
