@@ -17,6 +17,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
     adminApprovalDailySubmit,
     createDailyStockEntry,
+    editAdminApprovalDailySubmit,
     editDailyStockEntry,
     getDailyStockEntry,
     getPaymentMethod,
@@ -388,11 +389,15 @@ const AdminApprovalAndEdit = ({ navigation }) => {
                 Comid: comid,
                 Uid: currUser.EmpId,
                 EntryId: entry?.EntryID,
+                transid: entry?.transid,
             };
             let res
-            if (approveNow)
+            if (approveNow && isApproved == 0)
                 res = await dispatch(adminApprovalDailySubmit(payload));
-            else {
+            else if (isApproved == 1) {
+                res = await dispatch(editAdminApprovalDailySubmit(payload))
+            }
+            else if (!approveNow && isApproved == 0) {
                 if (!form.paymode && Number(form.amount) > 0) {
 
                     Toast.show({

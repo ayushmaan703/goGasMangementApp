@@ -27,10 +27,12 @@ import { getAllSalesPerson } from "../store/slice/Sales.slice";
 import CustomNavBar from "../helper/CustomNavBar";
 import { getLocality } from "../store/slice/Customer.slice";
 
-const CustomerList = () => {
+const CustomerList = ({ route }) => {
     const isFocused = useIsFocused();
     const dispatch = useDispatch();
     const navigation = useNavigation();
+
+    const status = route?.params?.status || "all";
 
     const drawerNavigation = navigation.getParent();
     // const customerList = useSelector( (state) => state.customer.customerList)||[];
@@ -45,7 +47,7 @@ const CustomerList = () => {
     const comName = currentUser?.CompanyName
 
     const [search, setSearch] = useState("");
-    const [selectedStatus, setSelectedStatus] = useState("all");
+    const [selectedStatus, setSelectedStatus] = useState(status);
     const [selectedPayment, setSelectedPayment] = useState("all");
     const [selectedUser, setSelectedUser] = useState("all");
     const [selectedLocality, setSelectedLocality] = useState("all");
@@ -220,12 +222,12 @@ const CustomerList = () => {
                 activeOpacity={0.82}
                 onPress={() =>
                     navigation.navigate(
-                        "CustomerDetails",
-                        {
+                        "Home", {
+                        screen: "CustomerDetails",
+                        params: {
                             customer: item,
-                        }
-                    )
-                }
+                        },
+                    })}
             >
                 {/* Left icon */}
 
@@ -540,7 +542,7 @@ const CustomerList = () => {
                     </View>
                 )}
             />
-            
+
             {/*  <TouchableOpacity
                 style={styles.fab}
                 activeOpacity={0.85}

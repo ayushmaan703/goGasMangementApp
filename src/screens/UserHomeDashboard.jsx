@@ -8,6 +8,7 @@ import CustomNavBar from "../helper/CustomNavBar";
 import { getAllCustomers } from "../store/slice/Customer.slice";
 import { getDailyStockEntry } from "../store/slice/DailyStockEntry.slice";
 import { COLORS, StatCard, SectionTitle, QuickAction, InfoRow, Card, StatusCard } from "./DashboardComponents";
+import { getDailyPayment } from "../store/slice/DailyPayment.slice";
 
 const apiDate = d => {
   const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
@@ -37,25 +38,57 @@ const SUBTITLES = {
   delivery: "your daily work overview at a glance",
 };
 
-// Note: Header is no longer rendered per-dashboard — it's rendered once,
-// outside the ScrollView, in UserHomeDashboard below.
-
-const AdminDashboard = ({ navigation, customers, stockEntries }) => {
+const AdminDashboard = ({ navigation, customers, stockEntries, gasEntries }) => {
   const total = customers.length;
   const todayCustomers = customers.filter(c => sameDay(c?.CreatedDate || c?.CreatedOn || c?.EntryDate)).length;
   const pending = customers.filter(c => c?.Status === "Pending").length;
   const approved = customers.filter(c => c?.Status === "Approved").length;
   const todayEntries = stockEntries.length;
-  const amount = stockEntries.reduce((s, x) => s + Number(x?.Amount || 0), 0);
+  const amount = (gasEntries || []).reduce(
+    (total, item) => {
+      return total + Number(
+        item.Amount || 0
+      );
+    }, 0
+  );
 
   return (
     <View style={styles.content}>
       <SectionTitle title="OVERVIEW" />
       <View style={styles.grid}>
-        <StatCard icon="users" title="Total Customers" value={total} subtitle={`${todayCustomers} created today`} color={COLORS.green} bg={COLORS.greenLight} />
-        <StatCard icon="clipboard-list" title="Today's Entries" value={todayEntries} subtitle="Stock transactions" color={COLORS.blue} bg={COLORS.blueLight} />
-        <StatCard icon="circle-check" title="Approved Customers" value={approved} subtitle="Approved records" color={COLORS.green} bg={COLORS.greenLight} />
-        <StatCard icon="clock" title="Pending Approvals" value={pending} subtitle="Needs attention" color={COLORS.orange} bg={COLORS.orangeLight} />
+        <StatCard
+          icon="users"
+          title="Total Customers"
+          value={total}
+          subtitle={`${todayCustomers} created today`}
+          color={COLORS.green}
+          bg={COLORS.greenLight}
+          onPress={() => navigation.navigate("CustomerList")}
+        />
+        <StatCard
+          icon="clock"
+          title="Pending Approvals"
+          value={pending}
+          subtitle="Needs attention"
+          color={COLORS.orange}
+          bg={COLORS.orangeLight}
+          onPress={() => navigation.navigate("CustomerList", { status: "Pending" })}
+        />
+        <StatCard
+          icon="clipboard-list"
+          title="Today's Entries"
+          value={todayEntries}
+          subtitle="Stock transactions"
+          color={COLORS.blue}
+          bg={COLORS.blueLight} />
+        <StatCard
+          icon="circle-check"
+          title="Approved Customers"
+          value={approved}
+          subtitle="Approved records"
+          color={COLORS.green}
+          bg={COLORS.greenLight} />
+
       </View>
 
       <Card style={styles.collection}>
@@ -64,30 +97,79 @@ const AdminDashboard = ({ navigation, customers, stockEntries }) => {
           <Text style={styles.collectionAmount}>₹{amount.toLocaleString("en-IN")}</Text>
           <Text style={styles.collectionSub}>From today's stock entries</Text>
         </View>
-        <View style={styles.collectionIcon}><FontAwesome6 name="indian-rupee-sign" size={22} color="#fff" /></View>
+        <View style={styles.collectionIcon}>
+          <FontAwesome6 name="indian-rupee-sign" size={22} color="#fff" />
+        </View>
       </Card>
 
       <SectionTitle title="QUICK ACTIONS" />
       <View style={styles.quickGrid}>
-        <QuickAction icon="user-plus" title="Add Customer" onPress={() => navigation.navigate("CreateCustomer")} color={COLORS.green} bg={COLORS.greenLight} />
-        <QuickAction icon="clipboard-list" title="Daily Entry" onPress={() => navigation.getParent()?.navigate("DailyStockEntry")} color={COLORS.blue} bg={COLORS.blueLight} />
-        {/* <QuickAction icon="user-check" title="Approvals" onPress={() => navigation.navigate("ApproveCustomer")} color={COLORS.orange} bg={COLORS.orangeLight} /> */}
-        <QuickAction icon="money-bill" title="Payments" onPress={() => navigation.getParent()?.navigate("PaymentEntryList")} color={COLORS.purple} bg={COLORS.purpleLight} />
+        <QuickAction
+          icon="user-plus"
+          title="Add Customer"
+          onPress={() => navigation.navigate("CreateCustomer")}
+          color={COLORS.green}
+          bg={COLORS.greenLight} />
+        <QuickAction
+          icon="clipboard-list"
+          title="Daily Entry Logs"
+          onPress={() => navigation.getParent()?.navigate("EntryList")}
+          color={COLORS.blue}
+          bg={COLORS.blueLight} />
+        <QuickAction
+          icon="money-bill-transfer"
+          title="Payment Entry"
+          onPress={() => navigation.getParent()?.navigate("DailyPaymentEntry")}
+          color={COLORS.orange}
+          bg={COLORS.orangeLight} />
+        <QuickAction
+          icon="money-bill"
+          title="Payments Logs"
+          onPress={() => navigation.getParent()?.navigate("PaymentEntryList")}
+          color={COLORS.purple}
+          bg={COLORS.purpleLight} />
       </View>
 
       <Card>
         <SectionTitle title="TODAY'S OVERVIEW" />
-        <InfoRow icon="user-plus" title="New Customers Today" value={todayCustomers} color={COLORS.green} />
-        <InfoRow icon="clipboard-list" title="Today's Entries" value={todayEntries} color={COLORS.blue} />
-        <InfoRow icon="clock" title="Pending Approvals" value={pending} color={COLORS.orange} />
-        <InfoRow icon="money-bill" title="Today's Collection" value={`₹${amount.toLocaleString("en-IN")}`} color={COLORS.purple} />
+        <InfoRow
+          icon="user-plus"
+          title="New Customers Today"
+          value={todayCustomers}
+          color={COLORS.green} />
+        <InfoRow
+          icon="clipboard-list"
+          title="Today's Entries"
+          value={todayEntries}
+          color={COLORS.blue} />
+        <InfoRow
+          icon="clock"
+          title="Pending Approvals"
+          value={pending}
+          color={COLORS.orange} />
+        <InfoRow
+          icon="money-bill"
+          title="Today's Collection"
+          value={`₹${amount.toLocaleString("en-IN")}`}
+          color={COLORS.purple} />
       </Card>
 
       <Card>
-        <SectionTitle title="STOCK ACTIVITY" action="View All" onPress={() => navigation.getParent()?.navigate("EntryList")} />
-        <InfoRow icon="arrow-down" title="Cylinders In" value={stockEntries.reduce((s, x) => s + Number(x?.CycIn || 0), 0)} color={COLORS.green} />
-        <InfoRow icon="arrow-up" title="Cylinders Out" value={stockEntries.reduce((s, x) => s + Number(x?.CycOut || 0), 0)} color={COLORS.orange} />
-        <InfoRow icon="box-open" title="Empty Balance" value={stockEntries.reduce((s, x) => s + Number(x?.BalCyc || 0), 0)} color={COLORS.blue} />
+        <SectionTitle
+          title="STOCK ACTIVITY"
+          action="View All"
+          onPress={() => navigation.getParent()?.navigate("EntryList")} />
+        <InfoRow
+          icon="arrow-down"
+          title="Cylinders In"
+          value={stockEntries.reduce((s, x) => s + Number(x?.CycIn || 0), 0)}
+          color={COLORS.green} />
+        <InfoRow
+          icon="arrow-up"
+          title="Cylinders Out"
+          value={stockEntries.reduce((s, x) => s + Number(x?.CycOut || 0), 0)}
+          color={COLORS.orange} />
+        {/* <InfoRow icon="box-open" title="Empty Balance" value={stockEntries.reduce((s, x) => s + Number(x?.BalCyc || 0), 0)} color={COLORS.blue} /> */}
       </Card>
     </View>
   );
@@ -106,13 +188,25 @@ const SalesDashboard = ({ navigation, user, customers }) => {
     <View style={styles.content}>
       <SectionTitle title="MY OVERVIEW" />
       <View style={styles.grid}>
-        <StatCard icon="users" title="My Customers" value={mine.length} subtitle="Created by me" color={COLORS.blue} bg={COLORS.blueLight} />
-        <StatCard icon="user-plus" title="Created This Month" value={month} subtitle="This month" color={COLORS.blue} bg={COLORS.blueLight} />
+        <StatCard
+          icon="users"
+          title="My Customers"
+          value={mine.length}
+          subtitle="Created by me"
+          color={COLORS.blue}
+          bg={COLORS.blueLight} />
+        <StatCard icon="user-plus"
+          title="Created This Month"
+          value={month}
+          subtitle="This month"
+          color={COLORS.blue}
+          bg={COLORS.blueLight} />
       </View>
 
       <Card>
         <View style={styles.bigMetricRow}>
-          <View style={[styles.bigMetricIcon, { backgroundColor: COLORS.blueLight }]}><FontAwesome6 name="user-check" size={21} color={COLORS.blue} /></View>
+          <View style={[styles.bigMetricIcon, { backgroundColor: COLORS.blueLight }]}>
+            <FontAwesome6 name="user-check" size={21} color={COLORS.blue} /></View>
           <View style={{ flex: 1 }}>
             <Text style={styles.metricLabel}>APPROVED CUSTOMERS</Text>
             <Text style={styles.metricValue}>{approved}</Text>
@@ -123,8 +217,18 @@ const SalesDashboard = ({ navigation, user, customers }) => {
 
       <SectionTitle title="QUICK ACTIONS" />
       <View style={styles.quickGrid}>
-        <QuickAction icon="user-plus" title="Add Customer" onPress={() => navigation.navigate("CreateCustomer")} color={COLORS.green} bg={COLORS.greenLight} />
-        <QuickAction icon="users" title="My Customers" onPress={() => navigation.navigate("Home")} color={COLORS.blue} bg={COLORS.blueLight} />
+        <QuickAction
+          icon="user-plus"
+          title="Add Customer"
+          onPress={() => navigation.navigate("CreateCustomer")}
+          color={COLORS.green}
+          bg={COLORS.greenLight} />
+        <QuickAction
+          icon="users"
+          title="My Customers"
+          onPress={() => navigation.navigate("CustomerList")}
+          color={COLORS.blue}
+          bg={COLORS.blueLight} />
       </View>
 
       <Card>
@@ -155,30 +259,77 @@ const DeliveryDashboard = ({ navigation, user, customers, stockEntries }) => {
     <View style={styles.content}>
       <SectionTitle title="MY OVERVIEW" />
       <View style={styles.grid}>
-        <StatCard icon="users" title="My Customers" value={mine.length} subtitle="Created by me" color={COLORS.orange} bg={COLORS.orangeLight} />
-        <StatCard icon="user-plus" title="Created This Month" value={mine.length} subtitle="Customer records" color={COLORS.orange} bg={COLORS.orangeLight} />
+        <StatCard
+          icon="users"
+          title="My Customers"
+          value={mine.length}
+          subtitle="Created by me"
+          color={COLORS.orange}
+          bg={COLORS.orangeLight} />
+        <StatCard
+          icon="user-plus"
+          title="Created This Month"
+          value={mine.length}
+          subtitle="Customer records"
+          color={COLORS.orange}
+          bg={COLORS.orangeLight} />
       </View>
 
-      <StatusCard icon="clipboard-list" title="TODAY'S STOCK ENTRY" status={pending.length ? "Pending" : completed.length ? "Completed" : "Not Created"} subtitle={pending.length ? `${pending.length} entries not submitted` : `${completed.length} completed entries`} color={pending.length ? COLORS.orange : COLORS.green} onPress={() => navigation.getParent()?.navigate("DailyStockEntry")} />
+      <StatusCard
+        icon="clipboard-list"
+        title="TODAY'S STOCK ENTRY"
+        status={pending.length ? "Pending" : completed.length ? "Completed" : "Not Created"}
+        subtitle={pending.length ? `${pending.length} entries not submitted` : `${completed.length} completed entries`}
+        color={pending.length ? COLORS.orange : COLORS.green}
+        onPress={() => navigation.getParent()?.navigate("EntryList")}
+      />
 
       <SectionTitle title="QUICK ACTIONS" />
       <View style={styles.quickGrid}>
-        <QuickAction icon="user-plus" title="Add Customer" onPress={() => navigation.navigate("CreateCustomer")} color={COLORS.green} bg={COLORS.greenLight} />
-        <QuickAction icon="clipboard-list" title="Daily Stock Entry" onPress={() => navigation.getParent()?.navigate("DailyStockEntry")} color={COLORS.orange} bg={COLORS.orangeLight} />
+        <QuickAction
+          icon="user-plus"
+          title="Add Customer"
+          onPress={() => navigation.navigate("CreateCustomer")}
+          color={COLORS.green}
+          bg={COLORS.greenLight} />
+        <QuickAction
+          icon="clipboard-list"
+          title="Daily Stock Entry"
+          onPress={() => navigation.getParent()?.navigate("DailyStockEntry")}
+          color={COLORS.orange}
+          bg={COLORS.orangeLight} />
       </View>
 
       <Card>
         <SectionTitle title="TODAY'S STOCK ENTRIES" />
-        <InfoRow icon="clock" title="Pending Entries" subtitle="Not submitted" value={pending.length} color={COLORS.orange} />
-        <InfoRow icon="circle-check" title="Completed Entries" subtitle="Submitted" value={completed.length} color={COLORS.green} />
-        <InfoRow icon="money-bill" title="Today's Amount" value={`₹${amount.toLocaleString("en-IN")}`} color={COLORS.purple} />
+        <InfoRow
+          icon="clock"
+          title="Pending Entries"
+          subtitle="Not submitted"
+          value={pending.length}
+          color={COLORS.orange} />
+        <InfoRow
+          icon="circle-check"
+          title="Completed Entries"
+          subtitle="Submitted"
+          value={completed.length}
+          color={COLORS.green} />
+        {/* <InfoRow icon="money-bill" title="Today's Amount" value={`₹${amount.toLocaleString("en-IN")}`} color={COLORS.purple} /> */}
       </Card>
 
       <Card>
         <SectionTitle title="STOCK SUMMARY" action="View All" onPress={() => navigation.getParent()?.navigate("EntryList")} />
-        <InfoRow icon="arrow-down" title="Cylinders In" value={stockEntries.reduce((s, x) => s + Number(x?.CycIn || 0), 0)} color={COLORS.green} />
-        <InfoRow icon="arrow-up" title="Cylinders Out" value={stockEntries.reduce((s, x) => s + Number(x?.CycOut || 0), 0)} color={COLORS.orange} />
-        <InfoRow icon="box-open" title="Empty Balance" value={stockEntries.reduce((s, x) => s + Number(x?.BalCyc || 0), 0)} color={COLORS.blue} />
+        <InfoRow
+          icon="arrow-down"
+          title="Cylinders In"
+          value={stockEntries.reduce((s, x) => s + Number(x?.CycIn || 0), 0)}
+          color={COLORS.green} />
+        <InfoRow
+          icon="arrow-up"
+          title="Cylinders Out"
+          value={stockEntries.reduce((s, x) => s + Number(x?.CycOut || 0), 0)}
+          color={COLORS.orange} />
+        {/* <InfoRow icon="box-open" title="Empty Balance" value={stockEntries.reduce((s, x) => s + Number(x?.BalCyc || 0), 0)} color={COLORS.blue} /> */}
       </Card>
 
       <View style={[styles.infoBanner, { backgroundColor: COLORS.orangeLight }]}>
@@ -199,22 +350,54 @@ const UserHomeDashboard = () => {
   const user = useSelector(state => state.auth.userData);
   const customersData = useSelector(state => state.customer.customerList);
   const stockData = useSelector(state => state.dailyEntry.stockEntryList);
+  const gasEntries = useSelector((state) => state.dailyPayment.paymentList);
   const customers = Array.isArray(customersData) ? customersData : [];
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!user?.Comid) return;
     await dispatch(getAllCustomers(user.Comid));
-    if (String(user?.UserType) === "Admin" || String(user?.UserType).toLowerCase().includes("delivery")) {
+    if (String(user?.UserType) === "Admin" || String(user?.UserType).toLowerCase().includes("user")) {
       const d = new Date();
-      await dispatch(getDailyStockEntry({ Comid: user.Comid, FromDate: apiDate(d), Todate: apiDate(d), PendingStatus: 0, AdminApproval: 0 }));
+      await dispatch(getDailyStockEntry({
+        Comid: user.Comid,
+        FromDate: apiDate(d),
+        Todate: apiDate(d),
+        PendingStatus: 0,
+        AdminApproval: 0
+      }));
+    }
+    if (String(user?.UserType).toLowerCase().includes("admin")) {
+      const d = new Date();
+      await dispatch(
+        getDailyPayment({
+          FromDate: apiDate(d),
+          Todate: apiDate(d),
+          PendingStatus: 0,
+          Comid: user.Comid,
+          AdminApproval: 0,
+        })
+      );
     }
   }, [dispatch, user?.Comid, user?.UserType]);
 
-  useEffect(() => { fetchData() }, [fetchData]);
-  useEffect(() => { if (focused) fetchData() }, [focused]);
+  useEffect(() => {
+    fetchData()
+  }, [fetchData]);
 
-  const onRefresh = async () => { setRefreshing(true); try { await fetchData() } finally { setRefreshing(false) } };
+  useEffect(() => {
+    if (focused) fetchData()
+  }, [focused]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchData()
+    } finally {
+      setRefreshing(false)
+    }
+  };
+
   const entries = Array.isArray(stockData) ? stockData : [];
 
   const role = roleOf(user);
@@ -228,7 +411,7 @@ const UserHomeDashboard = () => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.blue} />}
         contentContainerStyle={{ paddingBottom: 30 }}
       >
-        {role === "admin" && <AdminDashboard navigation={navigation} customers={customers} stockEntries={entries} />}
+        {role === "admin" && <AdminDashboard navigation={navigation} customers={customers} stockEntries={entries} gasEntries={gasEntries} />}
         {role === "sales" && <SalesDashboard navigation={navigation} user={user} customers={customers} />}
         {role === "delivery" && <DeliveryDashboard navigation={navigation} user={user} customers={customers} stockEntries={entries} />}
       </ScrollView>
@@ -237,24 +420,123 @@ const UserHomeDashboard = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bg },
-  content: { paddingHorizontal: 16, marginTop: 16 },
-  grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
-  quickGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginBottom: 8 },
-  collection: { backgroundColor: COLORS.green, flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 17 },
-  collectionLeft: { flex: 1 },
-  collectionLabel: { fontSize: 9, color: "#D8F5E4", fontWeight: "700", letterSpacing: .6 },
-  collectionAmount: { fontSize: 26, color: "#fff", fontWeight: "900", marginTop: 4 },
-  collectionSub: { fontSize: 9, color: "#D8F5E4", marginTop: 2 },
-  collectionIcon: { width: 50, height: 50, borderRadius: 15, backgroundColor: "rgba(255,255,255,.16)", alignItems: "center", justifyContent: "center" },
-  bigMetricRow: { flexDirection: "row", alignItems: "center" },
-  bigMetricIcon: { width: 50, height: 50, borderRadius: 15, alignItems: "center", justifyContent: "center", marginRight: 12 },
-  metricLabel: { fontSize: 9, color: COLORS.muted, fontWeight: "700", letterSpacing: .5 },
-  metricValue: { fontSize: 26, color: COLORS.text, fontWeight: "900", marginTop: 2 },
-  metricSub: { fontSize: 9, color: COLORS.muted },
-  infoBanner: { borderRadius: 16, padding: 14, flexDirection: "row", alignItems: "center", marginTop: 2 },
-  bannerTitle: { fontSize: 12, fontWeight: "800", color: "#24599A" },
-  bannerText: { fontSize: 10, lineHeight: 15, color: COLORS.muted, marginTop: 3 },
+  container:
+  {
+    flex: 1,
+    backgroundColor: COLORS.bg
+  },
+  content:
+  {
+    paddingHorizontal: 16,
+    marginTop: 16
+  },
+  grid:
+  {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between"
+  },
+  quickGrid:
+  {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginBottom: 8
+  },
+  collection:
+  {
+    backgroundColor: COLORS.green,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center", padding: 17
+  },
+  collectionLeft:
+  {
+    flex: 1
+  },
+  collectionLabel:
+  {
+    fontSize: 9,
+    color: "#D8F5E4",
+    fontWeight: "700",
+    letterSpacing: .6
+  },
+  collectionAmount:
+  {
+    fontSize: 26,
+    color: "#fff",
+    fontWeight: "900",
+    marginTop: 4
+  },
+  collectionSub:
+  {
+    fontSize: 9,
+    color: "#D8F5E4",
+    marginTop: 2
+  },
+  collectionIcon:
+  {
+    width: 50,
+    height: 50,
+    borderRadius: 15,
+    backgroundColor: "rgba(255,255,255,.16)",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  bigMetricRow:
+  {
+    flexDirection: "row",
+    alignItems: "center"
+  },
+  bigMetricIcon:
+  {
+    width: 50,
+    height: 50,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12
+  },
+  metricLabel:
+  {
+    fontSize: 9,
+    color: COLORS.muted,
+    fontWeight: "700",
+    letterSpacing: .5
+  },
+  metricValue:
+  {
+    fontSize: 26,
+    color: COLORS.text,
+    fontWeight: "900",
+    marginTop: 2
+  },
+  metricSub:
+  {
+    fontSize: 9,
+    color: COLORS.muted
+  },
+  infoBanner:
+  {
+    borderRadius: 16,
+    padding: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2
+  },
+  bannerTitle:
+  {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#24599A"
+  },
+  bannerText:
+  {
+    fontSize: 10,
+    lineHeight: 15,
+    color: COLORS.muted,
+    marginTop: 3
+  },
 });
 
 export default UserHomeDashboard;

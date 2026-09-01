@@ -25,7 +25,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Toast from "react-native-toast-message";
 import { useRoute } from "@react-navigation/native";
-import { adminApprovalPaymentSubmit, editDailyPayment } from "../../store/slice/DailyPayment.slice";
+import { adminApprovalPaymentSubmit, editAdminApprovalPaymentSubmit, editDailyPayment } from "../../store/slice/DailyPayment.slice";
 
 const getTodayDate = () => {
     const today = new Date();
@@ -106,8 +106,6 @@ const AdminApprovalAndEditPayment = ({ navigation }) => {
     const amountRef = useRef(null);
 
     const { entry, isApproved } = route.params || {};
-    console.log(entry);
-
     // ----------------------------------------------------------
     // APPROVAL STATE
     // This screen used to be driven by a hardcoded `isEdit` flag.
@@ -336,16 +334,20 @@ const AdminApprovalAndEditPayment = ({ navigation }) => {
                 Comid: comid,
                 Uid: currUser.EmpId,
                 EntryId: entry?.EntryID,
+                transid: entry?.transid,
             };
             let res
-            if (approveNow)
+            if (approveNow && isApproved == 0)
                 res = await dispatch(adminApprovalPaymentSubmit(payload));
-            else {
+            else if (isApproved == 1) {
+                res = await dispatch(editAdminApprovalPaymentSubmit(payload))
+            }
+            else if (!approveNow && isApproved == 0) {
                 if (!form.paymode && Number(form.amount) > 0) {
-
                     Toast.show({
                         type: "customNotificationError",
                         text1: "Please select a paymode",
+                        visibilityTime: 2000
                     });
 
                     return;
