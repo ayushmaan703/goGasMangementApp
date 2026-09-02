@@ -458,7 +458,6 @@ const EntryList = ({ navigation }) => {
                 {/* SUBMIT */}
 
                 {status === 0 && (
-
                     <TouchableOpacity
                         style={styles.submitIconButton}
                         onPress={() => {
@@ -479,9 +478,7 @@ const EntryList = ({ navigation }) => {
                             color="#FFFFFF"
                         />
 
-                    </TouchableOpacity>
-
-                )}
+                    </TouchableOpacity> )}
 
             </View>
 
@@ -763,8 +760,7 @@ const EntryList = ({ navigation }) => {
 
                             {/* DATA */}
 
-                            {gasEntries &&
-                                gasEntries.length > 0 ? (
+                            {gasEntries && gasEntries.length > 0 ? (
 
                                 gasEntries.map((item) =>
                                     renderEntry(item)

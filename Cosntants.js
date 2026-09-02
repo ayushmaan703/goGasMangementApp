@@ -3,12 +3,12 @@ import { BACKEND_URL_LIVE } from '@env';
 import { DEV_ENV } from '@env';
 
 let baseUrl;
-console.log(DEV_ENV);
+// console.log(DEV_ENV);
 
 if (DEV_ENV == 'dev') baseUrl = BACKEND_URL_DEMO;
 else baseUrl = BACKEND_URL_LIVE;
 
-console.log(baseUrl);
+// console.log(baseUrl);
 
 const GST_SLAB = Object.freeze([{ GSTNo: 5 }, { GSTNo: 18 }]);
 

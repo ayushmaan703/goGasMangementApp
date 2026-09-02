@@ -152,7 +152,7 @@ const CustomerDetails = ({ route }) => {
 
     const handleDelete = async () => {
         const res = await dispatch(delCustomer({ comid, id: customerId }));
-        console.log(res);
+
         if (res.type === 'deleteCustomer/rejected') {
             Toast.show({
                 type: 'customNotificationError',

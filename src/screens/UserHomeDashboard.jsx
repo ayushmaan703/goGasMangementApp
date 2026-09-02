@@ -368,8 +368,8 @@ const UserHomeDashboard = () => {
         Comid: user.Comid,
         FromDate: apiDate(d),
         Todate: apiDate(d),
-        PendingStatus: 0,
-        AdminApproval: 0
+        PendingStatus: 2,
+        AdminApproval: 2
       }));
     }
     if (String(user?.UserType).toLowerCase().includes("admin")) {
@@ -378,9 +378,9 @@ const UserHomeDashboard = () => {
         getDailyPayment({
           FromDate: apiDate(d),
           Todate: apiDate(d),
-          PendingStatus: 0,
+          PendingStatus: 2,
           Comid: user.Comid,
-          AdminApproval: 0,
+          AdminApproval: 2,
         })
       );
     }

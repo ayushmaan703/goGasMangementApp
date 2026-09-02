@@ -247,7 +247,7 @@ const PaymentEntryList = ({ navigation }) => {
 
     const handleDelete = async () => {
         const res = await dispatch(delDailyPayment({ comid, id: customerId }));
-        console.log(res);
+
         if (res.type === 'deleteDailyPayment/rejected') {
             Toast.show({
                 type: 'customNotificationError',

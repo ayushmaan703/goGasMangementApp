@@ -106,7 +106,6 @@ const AdminApprovalAndEdit = ({ navigation }) => {
     const amountRef = useRef(null);
 
     const { entry, isApproved } = route.params || {};
-    console.log(entry);
 
     // ----------------------------------------------------------
     // APPROVAL STATE
