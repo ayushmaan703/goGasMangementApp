@@ -197,7 +197,7 @@ const CustomDrawer = (props) => {
                     setActive={setActiveButton}
                     navigation={navigation}
                 />}
-                {currUser?.UserType == "Admin" && <CustomBtn
+                {currUser?.UserType == "User" || currUser?.UserType == "Admin" && <CustomBtn
                     title="Daily Payment Entry"
                     icon="money-bill-transfer"
                     onPress={() => navigation.navigate("DailyPaymentEntry")}
