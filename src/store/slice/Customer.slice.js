@@ -101,6 +101,20 @@ export const delCustomer = createAsyncThunk(
   },
 );
 
+export const pinCustomer = createAsyncThunk(
+  'pinCustomer',
+  async ({ comid, id, Pinned }) => {
+    try {
+      const res = await axiosInstance.get(
+        `/UpdatePinnedCustomer?Comid=${comid}&Customerid=${id}&Pinned=${Pinned}`,
+      );
+      return res.data;
+    } catch (err) {
+      throw err;
+    }
+  },
+);
+
 const customerSlice = createSlice({
   name: 'customer',
   initialState,
@@ -167,7 +181,16 @@ const customerSlice = createSlice({
       })
       .addCase(delCustomer.rejected, (state, action) => {
         state.loading = false;
-      });
+      })
+      .addCase(pinCustomer.pending, state => {
+        state.loading = true;
+      })
+      .addCase(pinCustomer.fulfilled, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(pinCustomer.rejected, (state, action) => {
+        state.loading = false;
+      }); 
   },
 });
 export default customerSlice.reducer;

@@ -35,7 +35,7 @@ const CreateCustomer = () => {
     const localityList = useSelector((state) => state.customer.localityList) || []
     const comid = userData?.Comid
     const isAdmin = userData?.UserType === "Admin";
-console.log(salesPersonList);
+    console.log(salesPersonList);
 
     const [form, setForm] = useState({
         CustomerName: "",
@@ -282,93 +282,93 @@ console.log(salesPersonList);
                     enableOnAndroid={true}
                 >
 
-                    <Text style={styles.sectionTitle}>    Customer Information </Text>
+                    <Text style={styles.sectionTitle}>
+                        Customer Image
+                    </Text>
 
-                    <View style={styles.card}>
-                        <Text style={styles.sectionTitle}>
-                            Customer Image
-                        </Text>
+                    <View style={styles.imageCard}>
 
-                        <View style={styles.imageCard}>
+                        {selectedImage?.uri ? (
+                            <View style={styles.imagePreviewContainer}>
 
-                            {selectedImage?.uri ? (
-                                <View style={styles.imagePreviewContainer}>
+                                <Image
+                                    source={{ uri: selectedImage.uri }}
+                                    style={styles.imagePreview}
+                                />
 
-                                    <Image
-                                        source={{ uri: selectedImage.uri }}
-                                        style={styles.imagePreview}
-                                    />
+                                <View style={styles.imageActions}>
 
-                                    <View style={styles.imageActions}>
-
-                                        <TouchableOpacity
-                                            style={styles.changeImageButton}
-                                            onPress={handlePickImage}
-                                            activeOpacity={0.8}
-                                        >
-                                            <FontAwesome6
-                                                name="pen"
-                                                size={12}
-                                                color="#4A90E2"
-                                            />
-
-                                            <Text style={styles.changeImageText}>
-                                                Change Image
-                                            </Text>
-                                        </TouchableOpacity>
-
-                                        <TouchableOpacity
-                                            style={styles.removeImageButton}
-                                            onPress={handleRemoveImage}
-                                            activeOpacity={0.8}
-                                        >
-                                            <FontAwesome6
-                                                name="trash"
-                                                size={12}
-                                                color="#EF4444"
-                                            />
-
-                                            <Text style={styles.removeImageText}>
-                                                Remove
-                                            </Text>
-                                        </TouchableOpacity>
-
-                                    </View>
-
-                                </View>
-                            ) : (
-                                <TouchableOpacity
-                                    style={styles.uploadImageButton}
-                                    onPress={handlePickImage}
-                                    activeOpacity={0.8}
-                                >
-                                    <View style={styles.uploadIconContainer}>
+                                    <TouchableOpacity
+                                        style={styles.changeImageButton}
+                                        onPress={handlePickImage}
+                                        activeOpacity={0.8}
+                                    >
                                         <FontAwesome6
-                                            name="cloud-arrow-up"
-                                            size={22}
+                                            name="pen"
+                                            size={12}
                                             color="#4A90E2"
                                         />
-                                    </View>
 
-                                    <View style={styles.uploadTextContainer}>
-                                        <Text style={styles.uploadTitle}>
-                                            Upload Customer Image
+                                        <Text style={styles.changeImageText}>
+                                            Change Image
                                         </Text>
+                                    </TouchableOpacity>
 
-                                        <Text style={styles.uploadSubtitle}>
-                                            JPG, PNG or WEBP
+                                    <TouchableOpacity
+                                        style={styles.removeImageButton}
+                                        onPress={handleRemoveImage}
+                                        activeOpacity={0.8}
+                                    >
+                                        <FontAwesome6
+                                            name="trash"
+                                            size={12}
+                                            color="#EF4444"
+                                        />
+
+                                        <Text style={styles.removeImageText}>
+                                            Remove
                                         </Text>
-                                    </View>
+                                    </TouchableOpacity>
 
+                                </View>
+
+                            </View>
+                        ) : (
+                            <TouchableOpacity
+                                style={styles.uploadImageButton}
+                                onPress={handlePickImage}
+                                activeOpacity={0.8}
+                            >
+                                <View style={styles.uploadIconContainer}>
                                     <FontAwesome6
-                                        name="chevron-right"
-                                        size={13}
-                                        color="#94A3B8"
+                                        name="cloud-arrow-up"
+                                        size={22}
+                                        color="#4A90E2"
                                     />
-                                </TouchableOpacity>
-                            )}
+                                </View>
 
-                        </View>
+                                <View style={styles.uploadTextContainer}>
+                                    <Text style={styles.uploadTitle}>
+                                        Upload Customer Image
+                                    </Text>
+
+                                    <Text style={styles.uploadSubtitle}>
+                                        JPG, PNG or WEBP
+                                    </Text>
+                                </View>
+
+                                <FontAwesome6
+                                    name="chevron-right"
+                                    size={13}
+                                    color="#94A3B8"
+                                />
+                            </TouchableOpacity>
+                        )}
+
+                    </View>
+                    <Text style={styles.sectionTitle}>    Customer Information </Text>
+                    <View style={styles.card}>
+
                         <InputField
                             icon="building"
                             label="Customer Name"

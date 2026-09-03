@@ -72,7 +72,7 @@ const AdminDashboard = ({ navigation, customers, stockEntries, gasEntries }) => 
           subtitle="Needs attention"
           color={COLORS.orange}
           bg={COLORS.orangeLight}
-          onPress={() => navigation.navigate("CustomerList", { status: "Pending" })}
+          onPress={() => navigation.navigate("CustomerList", { status: "Pending", fromDashboard: true, })}
         />
         <StatCard
           icon="clipboard-list"
@@ -259,7 +259,7 @@ const DeliveryDashboard = ({ navigation, user, customers, stockEntries }) => {
     const now = new Date();
     return !Number.isNaN(d.getTime()) && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).length;
-  
+
   return (
     <View style={styles.content}>
       <SectionTitle title="MY OVERVIEW" />

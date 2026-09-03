@@ -15,7 +15,7 @@ import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import CustomNavBar from "../helper/CustomNavBar";
 import { useDispatch, useSelector } from "react-redux";
-import { delCustomer, getCustomers } from "../store/slice/Customer.slice";
+import { delCustomer, getCustomers, pinCustomer } from "../store/slice/Customer.slice";
 import ConfirmModal from "../helper/ConfirmModal";
 import Toast from "react-native-toast-message";
 
@@ -91,8 +91,10 @@ const CustomerDetails = ({ route }) => {
     const salespersonId = customer?.SalespersonId || "Not Available";
     const createdDate = customer?.Createddate || "Not Available";
     const customerImage = customer?.custImg || "";
+    const pinStatus = customer?.Pinned || 0;
     const isApproved = status?.toLowerCase() === "approved";
     const currentUser = useSelector((state) => state.auth.userData);
+console.log(pinStatus);
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showImageModal, setShowImageModal] = useState(false);
@@ -177,20 +179,37 @@ const CustomerDetails = ({ route }) => {
         }
     }
 
+    const handlePinCustomer = async () => {
+        const res = await dispatch(pinCustomer({ comid, id: customerId, Pinned: pinStatus == 1 ? 0 : 1 }));
+        console.log(res);
+        if (res.type === 'pinCustomer/fulfilled' && res.payload[0].Status === "Sucess") {
+            Toast.show({
+                type: 'customNotificationSuccess',
+                text1: pinStatus == 1 ? 'Customer Un-pinned Successfully' : 'Customer Pinned Successfully',
+                visibilityTime: 2000,
+            });
+            await fetch();
+        } else {
+            Toast.show({
+                type: 'customNotificationError',
+                text1: res?.error?.message || 'Error Pinning Customer',
+                visibilityTime: 2000,
+            });
+        }
+    }
+
     const statusColors = getStatusColors();
 
     const fetch = async () => {
         await dispatch(getCustomers({ comid, id: customerId }))
     }
-    // useEffect(() => {
-    //     fetch()
-    // }, [])
 
     useEffect(() => {
         if (isFocused) {
             fetch();
         }
     }, [isFocused]);
+
     return (
         <View style={styles.container}>
             <CustomNavBar navName="Customer Details" subtitle="Customer profile, status and information" />
@@ -365,7 +384,7 @@ const CustomerDetails = ({ route }) => {
                             style={[
                                 styles.quickIcon,
                                 {
-                                    backgroundColor: "#F0FDF4",
+                                    backgroundColor: "#fdf2f0",
                                 },
                             ]}
                         >
@@ -374,6 +393,27 @@ const CustomerDetails = ({ route }) => {
 
                         <Text style={styles.quickText} >
                             Delete
+                        </Text>
+                    </TouchableOpacity>
+                    <View style={styles.quickDivider} />
+                    <TouchableOpacity
+                        style={styles.quickAction}
+                        activeOpacity={0.8}
+                        onPress={() => { handlePinCustomer(); }}
+                    >
+                        <View
+                            style={[
+                                styles.quickIcon,
+                                {
+                                    backgroundColor: "#EAF3FF",
+                                },
+                            ]}
+                        >
+                            <FontAwesome6 name="thumbtack" size={14} color="#4A90E2" />
+                        </View>
+
+                        <Text style={styles.quickText} >
+                            {pinStatus == 1 ? "Un-pin" : "Pin"}
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -750,11 +790,8 @@ const styles = StyleSheet.create({
 
     statusText: {
         fontSize: 10,
-
         marginLeft: 6,
-
-        fontFamily:
-            "Merriweather_24pt_SemiCondensed-SemiBold",
+        fontFamily: "Merriweather_24pt_SemiCondensed-SemiBold",
     },
 
     // =========================================================
@@ -763,20 +800,13 @@ const styles = StyleSheet.create({
 
     quickActions: {
         flexDirection: "row",
-
-        height: 70,
-
+        height: 60,
         backgroundColor: "#FFFFFF",
-
         borderRadius: 19,
-
         marginTop: 12,
-
         borderWidth: 1,
         borderColor: "#EDF1F6",
-
         alignItems: "center",
-
         shadowColor: "#1E293B",
         shadowOpacity: 0.035,
         shadowRadius: 7,
@@ -784,38 +814,30 @@ const styles = StyleSheet.create({
             width: 0,
             height: 3,
         },
-
         elevation: 2,
     },
 
     quickAction: {
         flex: 1,
-
         alignItems: "center",
         justifyContent: "center",
-
-        flexDirection: "row",
+        gap: 1,
+        // flexDirection: "row",
     },
 
     quickIcon: {
-        width: 34,
-        height: 34,
-
+        width: 30,
+        height: 30,
         borderRadius: 11,
-
         alignItems: "center",
         justifyContent: "center",
-
-        marginRight: 8,
+        // marginRight: 8,
     },
 
     quickText: {
-        fontSize: 10,
-
+        fontSize: 7,
         color: "#475569",
-
-        fontFamily:
-            "Merriweather_24pt_SemiCondensed-SemiBold",
+        fontFamily: "Merriweather_24pt_SemiCondensed-SemiBold",
     },
 
     quickDivider: {

@@ -13,6 +13,7 @@ import {
     RefreshControl,
     ActivityIndicator,
     ScrollView,
+    Image,
 } from "react-native";
 
 import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
@@ -117,7 +118,7 @@ const CustomerList = ({ route }) => {
 
     const filteredCustomers = useMemo(() => {
         const searchText = search.trim().toLowerCase();
-        return customerList.filter((customer) => {
+        const filtered = customerList.filter((customer) => {
             const name = customer?.CustomerName?.toLowerCase() || "";
             const contact = String(customer?.ContactNo || "");
             const matchesSearch = name.includes(searchText) || contact.includes(searchText);
@@ -168,6 +169,12 @@ const CustomerList = ({ route }) => {
                 matchesContactPerson &&
                 matchesContactNo
             );
+        });
+        return filtered.sort((a, b) => {
+            const aPinned = String(a?.Pinned) === "1";
+            const bPinned = String(b?.Pinned) === "1";
+
+            return Number(bPinned) - Number(aPinned);
         });
     }, [
         customerList,
@@ -232,23 +239,47 @@ const CustomerList = ({ route }) => {
                 {/* Left icon */}
 
                 <View style={styles.customerAvatar}>
-                    <FontAwesome6
-                        name="building"
-                        size={17}
-                        color="#4A90E2"
-                    />
+                    {item?.custImg ? (
+                        <Image
+                            source={{ uri: item.custImg }}
+                            style={styles.customerImage}
+                        />
+                    ) : (
+                        <FontAwesome6
+                            name="building"
+                            size={17}
+                            color="#4A90E2"
+                        />
+                    )}
                 </View>
 
                 {/* Customer information */}
 
                 <View style={styles.customerDetails}>
-                    <Text
+                    {/* <Text
                         style={styles.customerName}
                         numberOfLines={1}
                     >
                         {item?.CustomerName || "-"}
-                    </Text>
+                    </Text> */}
+                    <View style={styles.customerNameRow}>
+                        <Text
+                            style={styles.customerName}
+                            numberOfLines={1}
+                        >
+                            {item?.CustomerName || "-"}
+                        </Text>
 
+                        {String(item?.Pinned) === "1" && (
+                            <FontAwesome6
+                                name="thumbtack"
+                                size={10}
+                                color="#4A90E2"
+                                solid
+                                style={styles.pinnedIcon}
+                            />
+                        )}
+                    </View>
                     <View style={styles.infoRow}>
                         <FontAwesome6
                             name="phone"
@@ -341,9 +372,16 @@ const CustomerList = ({ route }) => {
     };
 
     useEffect(() => {
-        if (isFocused) {
-            onRefresh();
+        if (!isFocused) {
+            resetFilters();
+            return;
         }
+
+        if (route?.params?.fromDashboard) {
+            setSelectedStatus(route?.params?.status || "all");
+            navigation.setParams({ fromDashboard: false, });
+        }
+        onRefresh();
     }, [isFocused]);
 
 
@@ -1333,18 +1371,26 @@ const styles = StyleSheet.create({
 
         minWidth: 0,
     },
-
+    customerImage: {
+        width: "100%",
+        height: "100%",
+        borderRadius: 14,
+    },
     customerName: {
         fontSize: 14,
-
         color: "#1E293B",
-
-        marginBottom: 5,
-
-        fontFamily:
-            "Merriweather_24pt_SemiCondensed-SemiBold",
+        // marginBottom: 5,
+        fontFamily: "Merriweather_24pt_SemiCondensed-SemiBold",
+    },
+    customerNameRow: {
+        flexDirection: "row",
+        alignItems: "center",
     },
 
+    pinnedIcon: {
+        marginLeft: 7,
+        transform: [{ rotate: "0deg" }],
+    },
     infoRow: {
         flexDirection: "row",
         alignItems: "center",
@@ -1902,5 +1948,4 @@ const styles = StyleSheet.create({
         fontFamily:
             "Merriweather_24pt_SemiCondensed-SemiBold",
     },
-
 });
