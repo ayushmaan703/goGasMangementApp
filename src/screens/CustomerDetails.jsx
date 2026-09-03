@@ -6,6 +6,9 @@ import {
     ScrollView,
     TouchableOpacity,
     Linking,
+    Image,
+    Modal,
+    Pressable,
 } from "react-native";
 
 import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
@@ -87,10 +90,12 @@ const CustomerDetails = ({ route }) => {
     // const customerId = customer?.CustomerId || "Not Available";
     const salespersonId = customer?.SalespersonId || "Not Available";
     const createdDate = customer?.Createddate || "Not Available";
+    const customerImage = customer?.custImg || "";
     const isApproved = status?.toLowerCase() === "approved";
     const currentUser = useSelector((state) => state.auth.userData);
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showImageModal, setShowImageModal] = useState(false);
 
     const isAdmin = currentUser?.UserType === "Admin";
     const comid = currentUser?.Comid
@@ -195,9 +200,35 @@ const CustomerDetails = ({ route }) => {
                 contentContainerStyle={styles.scrollContent}
             >
                 <View style={styles.heroCard}>
-                    <View style={styles.customerAvatar}>
-                        <FontAwesome6 name="building" size={25} color="#4A90E2" />
-                    </View>
+                    {customerImage ? (
+                        <TouchableOpacity
+                            activeOpacity={0.85}
+                            onPress={() => setShowImageModal(true)}
+                        >
+                            <View style={styles.customerAvatarImageWrapper}>
+                                <Image
+                                    source={{ uri: customerImage }}
+                                    style={styles.customerAvatarImage}
+                                />
+
+                                <View style={styles.imageViewBadge}>
+                                    <FontAwesome6
+                                        name="expand"
+                                        size={10}
+                                        color="#FFFFFF"
+                                    />
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    ) : (
+                        <View style={styles.customerAvatar}>
+                            <FontAwesome6
+                                name="building"
+                                size={25}
+                                color="#4A90E2"
+                            />
+                        </View>
+                    )}
                     <Text
                         style={styles.customerName}
                         numberOfLines={2}
@@ -460,6 +491,36 @@ const CustomerDetails = ({ route }) => {
                 onConfirm={handleDelete}
                 loading={loading}
             />
+            <Modal
+                visible={showImageModal}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setShowImageModal(false)}
+            >
+                <View style={styles.imageModalContainer}>
+
+                    {/* Close button */}
+                    <Pressable
+                        style={styles.imageModalClose}
+                        onPress={() => setShowImageModal(false)}
+                    >
+                        <FontAwesome6 name="xmark" size={18} color="#FFFFFF" />
+                    </Pressable>
+
+                    {/* Full Image */}
+                    <Pressable
+                        style={styles.fullImageWrapper}
+                        onPress={() => setShowImageModal(false)}
+                    >
+                        <Image
+                            source={{ uri: customerImage }}
+                            style={styles.fullCustomerImage}
+                            resizeMode="contain"
+                        />
+                    </Pressable>
+
+                </View>
+            </Modal>
         </View >
     );
 };
@@ -603,7 +664,34 @@ const styles = StyleSheet.create({
 
         marginBottom: 13,
     },
+    customerAvatarImageWrapper: {
+        width: 90,
+        height: 90,
+        borderRadius: 28,
+        overflow: "hidden",
+        marginBottom: 13,
+        backgroundColor: "#F1F5F9",
+        borderWidth: 2,
+        borderColor: "#EAF3FF",
+        position: "relative",
+    },
 
+    customerAvatarImage: {
+        width: "100%",
+        height: "100%",
+    },
+
+    imageViewBadge: {
+        position: "absolute",
+        right: 6,
+        bottom: 6,
+        width: 24,
+        height: 24,
+        borderRadius: 8,
+        backgroundColor: "rgba(0, 0, 0, 0.55)",
+        alignItems: "center",
+        justifyContent: "center",
+    },
     customerName: {
         fontSize: 22,
 
@@ -922,5 +1010,40 @@ const styles = StyleSheet.create({
 
     bottomSpace: {
         height: 30,
+    },
+    // =========================================================
+    // FULL IMAGE MODAL
+    // =========================================================
+
+    imageModalContainer: {
+        flex: 1,
+        backgroundColor: "rgba(0, 0, 0, 0.95)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    fullImageWrapper: {
+        width: "100%",
+        height: "100%",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    fullCustomerImage: {
+        width: "100%",
+        height: "85%",
+    },
+
+    imageModalClose: {
+        position: "absolute",
+        top: 45,
+        right: 20,
+        width: 42,
+        height: 42,
+        borderRadius: 14,
+        backgroundColor: "rgba(255, 255, 255, 0.15)",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 10,
     },
 });

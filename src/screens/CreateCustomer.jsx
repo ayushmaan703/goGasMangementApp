@@ -9,6 +9,7 @@ import {
     KeyboardAvoidingView,
     Platform,
     ScrollView,
+    Image,
 } from "react-native";
 
 import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
@@ -20,6 +21,9 @@ import Dropdown from "../helper/Dropdown";
 import { useDispatch, useSelector } from "react-redux";
 import { createCustomer, getLocality, getState } from "../store/slice/Customer.slice";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { pickImage } from "../helper/ImagePicker.js";
+import { uploadImage } from "../services/Cloudinary.js";
+import { getAllSalesPerson } from "../store/slice/Sales.slice.js";
 
 const CreateCustomer = () => {
     const navigation = useNavigation();
@@ -31,6 +35,7 @@ const CreateCustomer = () => {
     const localityList = useSelector((state) => state.customer.localityList) || []
     const comid = userData?.Comid
     const isAdmin = userData?.UserType === "Admin";
+console.log(salesPersonList);
 
     const [form, setForm] = useState({
         CustomerName: "",
@@ -53,7 +58,8 @@ const CreateCustomer = () => {
     const [localityDropdown, setLocalityDropdown] = useState(false);
     const [loadingLocalities, setLoadingLocalities] = useState(false);
     const [saving, setSaving] = useState(false);
-
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [uploadingImage, setUploadingImage] = useState(false);
 
     const updateField = (field, value) => {
         setForm(prev => ({
@@ -65,6 +71,7 @@ const CreateCustomer = () => {
     useEffect(() => {
         // dispatch(getState());
         dispatch(getLocality(comid));
+        dispatch(getAllSalesPerson(comid));
     }, []);
 
     const handleStateSelect = state => {
@@ -148,12 +155,20 @@ const CreateCustomer = () => {
     };
 
     const handleCreate = async () => {
-
         if (!validateForm()) {
             return;
         }
+
         try {
             setSaving(true);
+
+            let imageUrl = null;
+            if (selectedImage) {
+                setUploadingImage(true);
+                imageUrl = await uploadImage(selectedImage);
+                setUploadingImage(false);
+            }
+
             const payload = {
                 CustomerName: form.CustomerName.trim(),
                 StateName: form.StateName,
@@ -163,14 +178,20 @@ const CreateCustomer = () => {
                 MobileNo: form.MobileNo,
                 SalespersonId: selectedUser,
                 comid: comid,
+                custImg: imageUrl,
             };
+
             const res = await dispatch(createCustomer(payload));
 
-            if (res.type === "createCustomer/fulfilled" && res.payload[0].CustomerId) {
+            if (
+                res.type === "createCustomer/fulfilled" &&
+                res.payload[0].CustomerId
+            ) {
                 Toast.show({
                     type: "customNotificationSuccess",
                     text1: "Customer created successfully",
                 });
+
                 setForm({
                     CustomerName: "",
                     Address: "",
@@ -180,13 +201,19 @@ const CreateCustomer = () => {
                     ContactPerson: "",
                     MobileNo: "",
                     SalespersonId: userData?.Id || userData?.EmpId || "",
-                })
+                });
+
+                // Clear selected image
+                setSelectedImage(null);
+
             } else {
-                const err = res.payload[0].Status
+                const err = res.payload[0].Status;
+
                 Toast.show({
                     type: "customNotificationError",
                     text1: err || "Error creating Customer",
                 });
+
                 setForm({
                     CustomerName: "",
                     Address: "",
@@ -196,14 +223,19 @@ const CreateCustomer = () => {
                     ContactPerson: "",
                     MobileNo: "",
                     SalespersonId: userData?.Id || userData?.EmpId || "",
-                })
+                });
+
+                setSelectedImage(null);
             }
+
         } catch (error) {
             Toast.show({
                 type: "customNotificationError",
-                text1: error?.response?.data?.message || "Unable to create customer",
+                text1: error?.message || "Unable to create customer",
             });
+
         } finally {
+            setUploadingImage(false);
             setSaving(false);
         }
     };
@@ -215,6 +247,24 @@ const CreateCustomer = () => {
         );
     }, [selectedUser, salesPersonList]);
 
+    const handleRemoveImage = () => {
+        setSelectedImage(null);
+    };
+
+    const handlePickImage = async () => {
+        try {
+            const image = await pickImage();
+
+            if (image) {
+                setSelectedImage(image);
+            }
+        } catch (error) {
+            Toast.show({
+                type: "customNotificationError",
+                text1: error?.message || "Unable to select image",
+            });
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -235,7 +285,90 @@ const CreateCustomer = () => {
                     <Text style={styles.sectionTitle}>    Customer Information </Text>
 
                     <View style={styles.card}>
+                        <Text style={styles.sectionTitle}>
+                            Customer Image
+                        </Text>
 
+                        <View style={styles.imageCard}>
+
+                            {selectedImage?.uri ? (
+                                <View style={styles.imagePreviewContainer}>
+
+                                    <Image
+                                        source={{ uri: selectedImage.uri }}
+                                        style={styles.imagePreview}
+                                    />
+
+                                    <View style={styles.imageActions}>
+
+                                        <TouchableOpacity
+                                            style={styles.changeImageButton}
+                                            onPress={handlePickImage}
+                                            activeOpacity={0.8}
+                                        >
+                                            <FontAwesome6
+                                                name="pen"
+                                                size={12}
+                                                color="#4A90E2"
+                                            />
+
+                                            <Text style={styles.changeImageText}>
+                                                Change Image
+                                            </Text>
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={styles.removeImageButton}
+                                            onPress={handleRemoveImage}
+                                            activeOpacity={0.8}
+                                        >
+                                            <FontAwesome6
+                                                name="trash"
+                                                size={12}
+                                                color="#EF4444"
+                                            />
+
+                                            <Text style={styles.removeImageText}>
+                                                Remove
+                                            </Text>
+                                        </TouchableOpacity>
+
+                                    </View>
+
+                                </View>
+                            ) : (
+                                <TouchableOpacity
+                                    style={styles.uploadImageButton}
+                                    onPress={handlePickImage}
+                                    activeOpacity={0.8}
+                                >
+                                    <View style={styles.uploadIconContainer}>
+                                        <FontAwesome6
+                                            name="cloud-arrow-up"
+                                            size={22}
+                                            color="#4A90E2"
+                                        />
+                                    </View>
+
+                                    <View style={styles.uploadTextContainer}>
+                                        <Text style={styles.uploadTitle}>
+                                            Upload Customer Image
+                                        </Text>
+
+                                        <Text style={styles.uploadSubtitle}>
+                                            JPG, PNG or WEBP
+                                        </Text>
+                                    </View>
+
+                                    <FontAwesome6
+                                        name="chevron-right"
+                                        size={13}
+                                        color="#94A3B8"
+                                    />
+                                </TouchableOpacity>
+                            )}
+
+                        </View>
                         <InputField
                             icon="building"
                             label="Customer Name"
@@ -426,10 +559,10 @@ const CreateCustomer = () => {
                                 styles.saveButtonDisabled,
                             ]}
                             onPress={handleCreate}
-                            disabled={saving}
+                            disabled={saving || uploadingImage}
                         >
 
-                            {saving ? (
+                            {(saving || uploadingImage) ? (
                                 <ActivityIndicator size="small" color="#FFFFFF" />
                             ) : (
                                 <>
@@ -657,6 +790,114 @@ const styles = StyleSheet.create({
         fontFamily:
             "Merriweather_24pt_SemiCondensed-SemiBold",
     },
+    imageCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 20,
+        padding: 15,
+        borderWidth: 1,
+        borderColor: "#EDF1F6",
+        shadowColor: "#1E293B",
+        shadowOpacity: 0.035,
+        shadowRadius: 7,
+        shadowOffset: {
+            width: 0,
+            height: 3,
+        },
+        elevation: 2,
+    },
 
+    uploadImageButton: {
+        minHeight: 78,
+        borderRadius: 15,
+        backgroundColor: "#F8FAFC",
+        borderWidth: 1,
+        borderColor: "#E5EDF7",
+        borderStyle: "dashed",
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 14,
+    },
+
+    uploadIconContainer: {
+        width: 44,
+        height: 44,
+        borderRadius: 13,
+        backgroundColor: "#EAF3FF",
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 12,
+    },
+
+    uploadTextContainer: {
+        flex: 1,
+    },
+
+    uploadTitle: {
+        fontSize: 10,
+        color: "#334155",
+        fontFamily:
+            "Merriweather_24pt_SemiCondensed-SemiBold",
+    },
+
+    uploadSubtitle: {
+        fontSize: 8,
+        color: "#94A3B8",
+        marginTop: 4,
+        fontFamily:
+            "Merriweather_24pt_SemiCondensed-Regular",
+    },
+
+    imagePreviewContainer: {
+        alignItems: "center",
+    },
+
+    imagePreview: {
+        width: 150,
+        height: 150,
+        borderRadius: 15,
+        backgroundColor: "#F1F5F9",
+    },
+
+    imageActions: {
+        flexDirection: "row",
+        marginTop: 12,
+        gap: 10,
+    },
+
+    changeImageButton: {
+        height: 38,
+        paddingHorizontal: 14,
+        borderRadius: 11,
+        backgroundColor: "#EAF3FF",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    changeImageText: {
+        color: "#4A90E2",
+        fontSize: 9,
+        marginLeft: 7,
+        fontFamily:
+            "Merriweather_24pt_SemiCondensed-SemiBold",
+    },
+
+    removeImageButton: {
+        height: 38,
+        paddingHorizontal: 14,
+        borderRadius: 11,
+        backgroundColor: "#FEF2F2",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    removeImageText: {
+        color: "#EF4444",
+        fontSize: 9,
+        marginLeft: 7,
+        fontFamily:
+            "Merriweather_24pt_SemiCondensed-SemiBold",
+    },
 
 });

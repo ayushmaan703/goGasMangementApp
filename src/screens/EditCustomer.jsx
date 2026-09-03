@@ -2,13 +2,15 @@ import React, { useEffect, useState } from "react";
 import {
     View,
     Text,
-    TextInput,
     StyleSheet,
     TouchableOpacity,
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
+    Image,
+    Modal,
+    Pressable,
 } from "react-native";
 import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
 import { useNavigation } from "@react-navigation/native";
@@ -19,7 +21,8 @@ import { useDispatch, useSelector } from "react-redux";
 import InputField from "../helper/InputField";
 import Dropdown from "../helper/Dropdown";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { logger } from "react-native-reanimated/lib/typescript/common";
+import { pickImage } from "../helper/ImagePicker.js";
+import { uploadImage } from "../services/Cloudinary.js";
 
 const EditCustomer = ({ route }) => {
     const navigation = useNavigation();
@@ -28,6 +31,7 @@ const EditCustomer = ({ route }) => {
     const userData = useSelector(state => state.auth.userData)
     const customer = route?.params?.customer || {};
     const comid = userData?.Comid
+    const existingImageUrl = customer?.custImg || "";
 
     const [form, setForm] = useState({
         CustomerName: customer?.CustomerName || "",
@@ -51,6 +55,12 @@ const EditCustomer = ({ route }) => {
     const [localityDropdown, setLocalityDropdown] = useState(false);
     const [loadingLocalities, setLoadingLocalities] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [imageRemoved, setImageRemoved] = useState(false);
+    const [showImageModal, setShowImageModal] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
+
+    const previewImage = selectedImage?.uri || (!imageRemoved ? existingImageUrl : "");
 
     const updateField = (field, value) => {
         setForm(prev => ({
@@ -89,6 +99,7 @@ const EditCustomer = ({ route }) => {
     const handleSave = async () => {
         try {
             setSaving(true);
+
             const payload = {
                 CustomerId: customer?.CustomerId,
                 CustomerName: form.CustomerName.trim(),
@@ -100,24 +111,74 @@ const EditCustomer = ({ route }) => {
                 ContactNo: form.MobileNo,
                 SalespersonId: form.SalespersonId,
                 comid: comid,
+                custImg: existingImageUrl
             };
 
+            if (selectedImage) {
+                setUploadingImage(true);
+                const imageData = await uploadImage(selectedImage);
+                payload.custImg = imageData || null;
+                setUploadingImage(false);
+            }
+
             const res = await dispatch(editCustomer(payload));
+
             if (res.type === "editCustomer/fulfilled") {
                 Toast.show({
                     type: "customNotificationSuccess",
                     text1: "Customer updated successfully",
                 });
+
                 navigation.goBack();
+            } else {
+                Toast.show({
+                    type: "customNotificationError",
+                    text1:
+                        res?.payload?.message ||
+                        res?.error?.message ||
+                        "Unable to update customer",
+                });
+            }
+
+        } catch (error) {
+            Toast.show({
+                type: "customNotificationError",
+                text1:
+                    error?.message ||
+                    error?.response?.data?.message ||
+                    "Unable to update customer",
+            });
+
+        } finally {
+            setUploadingImage(false);
+            setSaving(false);
+        }
+    };
+
+    const handlePickImage = async () => {
+        try {
+            const image = await pickImage();
+
+            if (image) {
+                setSelectedImage(image);
+                setImageRemoved(false);
             }
         } catch (error) {
             Toast.show({
                 type: "customNotificationError",
-                text1: error?.response?.data?.message || "Unable to update customer",
+                text1: error?.message || "Unable to select image",
             });
+        }
+    };
 
-        } finally {
-            setSaving(false);
+    const handleRemoveImage = () => {
+        setSelectedImage(null);
+        setImageRemoved(true);
+    };
+
+    const handleOpenImage = () => {
+        if (previewImage) {
+            setShowImageModal(true);
         }
     };
 
@@ -147,7 +208,120 @@ const EditCustomer = ({ route }) => {
                         nestedScrollEnabled={true}
 
                     >
+                        <Text style={styles.sectionTitle}>
+                            Customer Image
+                        </Text>
 
+                        <View style={styles.imageCard}>
+                            {previewImage ? (
+                                <View style={styles.imagePreviewContainer}>
+
+                                    <TouchableOpacity
+                                        activeOpacity={0.9}
+                                        onPress={handleOpenImage}
+                                    >
+                                        <View style={styles.imagePreviewWrapper}>
+
+                                            <Image
+                                                source={{ uri: previewImage }}
+                                                style={styles.imagePreview}
+                                            />
+
+                                            <View style={styles.imageExpandBadge}>
+                                                <FontAwesome6
+                                                    name="expand"
+                                                    size={11}
+                                                    color="#FFFFFF"
+                                                />
+                                            </View>
+
+                                        </View>
+                                    </TouchableOpacity>
+
+                                    <Text style={styles.imageHint}>
+                                        Tap image to view full size
+                                    </Text>
+
+                                    <View style={styles.imageActions}>
+
+                                        {/* CHANGE */}
+
+                                        <TouchableOpacity
+                                            style={styles.changeImageButton}
+                                            onPress={handlePickImage}
+                                            activeOpacity={0.8}
+                                            disabled={saving}
+                                        >
+                                            <FontAwesome6
+                                                name="pen"
+                                                size={12}
+                                                color="#4A90E2"
+                                            />
+
+                                            <Text style={styles.changeImageText}>
+                                                Change Image
+                                            </Text>
+                                        </TouchableOpacity>
+
+
+                                        {/* REMOVE */}
+
+                                        {/* <TouchableOpacity
+                                            style={styles.removeImageButton}
+                                            onPress={handleRemoveImage}
+                                            activeOpacity={0.8}
+                                            disabled={saving}
+                                        >
+                                            <FontAwesome6
+                                                name="trash"
+                                                size={12}
+                                                color="#EF4444"
+                                            />
+
+                                            <Text style={styles.removeImageText}>
+                                                Remove
+                                            </Text>
+                                        </TouchableOpacity> */}
+
+                                    </View>
+                                </View>
+
+                            ) : (
+
+                                <TouchableOpacity
+                                    style={styles.uploadImageButton}
+                                    onPress={handlePickImage}
+                                    activeOpacity={0.8}
+                                    disabled={saving}
+                                >
+
+                                    <View style={styles.uploadIconContainer}>
+                                        <FontAwesome6
+                                            name="cloud-arrow-up"
+                                            size={22}
+                                            color="#4A90E2"
+                                        />
+                                    </View>
+
+                                    <View style={styles.uploadTextContainer}>
+                                        <Text style={styles.uploadTitle}>
+                                            Upload Customer Image
+                                        </Text>
+
+                                        <Text style={styles.uploadSubtitle}>
+                                            JPG, PNG or WEBP
+                                        </Text>
+                                    </View>
+
+                                    <FontAwesome6
+                                        name="chevron-right"
+                                        size={13}
+                                        color="#94A3B8"
+                                    />
+
+                                </TouchableOpacity>
+                            )}
+                        </View>
                         <Text style={styles.sectionTitle}>
                             Customer Information
                         </Text>
@@ -172,6 +346,10 @@ const EditCustomer = ({ route }) => {
                             /> */}
 
                         </View>
+
+                        {/* CUSTOMER IMAGE */}
+
+
 
                         {/* LOCATION */}
 
@@ -255,9 +433,9 @@ const EditCustomer = ({ route }) => {
                                 styles.saveButtonDisabled,
                             ]}
                             onPress={handleSave}
-                            disabled={saving}
+                            disabled={saving || uploadingImage}
                         >
-                            {saving ? (
+                            {(saving || uploadingImage) ? (
                                 <ActivityIndicator
                                     size="small"
                                     color="#FFFFFF"
@@ -307,7 +485,45 @@ const EditCustomer = ({ route }) => {
                     </ScrollView>
                 </KeyboardAwareScrollView>
             </KeyboardAvoidingView>
+            {/* FULL IMAGE MODAL */}
 
+            <Modal
+                visible={showImageModal}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setShowImageModal(false)}
+            >
+                <View style={styles.imageModalContainer}>
+
+                    {/* CLOSE */}
+
+                    <Pressable
+                        style={styles.imageModalClose}
+                        onPress={() => setShowImageModal(false)}
+                    >
+                        <FontAwesome6
+                            name="xmark"
+                            size={18}
+                            color="#FFFFFF"
+                        />
+                    </Pressable>
+
+
+                    {/* IMAGE */}
+
+                    <Pressable
+                        style={styles.fullImageWrapper}
+                        onPress={() => setShowImageModal(false)}
+                    >
+                        <Image
+                            source={{ uri: previewImage }}
+                            style={styles.fullCustomerImage}
+                            resizeMode="contain"
+                        />
+                    </Pressable>
+
+                </View>
+            </Modal>
         </View >
     );
 };
@@ -418,5 +634,233 @@ const styles = StyleSheet.create({
 
     bottomSpace: {
         height: 20,
+    },
+    // =========================================================
+    // CUSTOMER IMAGE
+    // =========================================================
+
+    imageCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 20,
+        padding: 15,
+        borderWidth: 1,
+        borderColor: "#EDF1F6",
+
+        shadowColor: "#1E293B",
+        shadowOpacity: 0.035,
+        shadowRadius: 7,
+        shadowOffset: {
+            width: 0,
+            height: 3,
+        },
+
+        elevation: 2,
+    },
+
+    uploadImageButton: {
+        minHeight: 82,
+        borderRadius: 15,
+
+        backgroundColor: "#F8FAFC",
+
+        borderWidth: 1,
+        borderColor: "#E5EDF7",
+        borderStyle: "dashed",
+
+        flexDirection: "row",
+        alignItems: "center",
+
+        paddingHorizontal: 14,
+    },
+
+    uploadIconContainer: {
+        width: 44,
+        height: 44,
+
+        borderRadius: 13,
+
+        backgroundColor: "#EAF3FF",
+
+        justifyContent: "center",
+        alignItems: "center",
+
+        marginRight: 12,
+    },
+
+    uploadTextContainer: {
+        flex: 1,
+    },
+
+    uploadTitle: {
+        fontSize: 10,
+        color: "#334155",
+
+        fontFamily:
+            "Merriweather_24pt_SemiCondensed-SemiBold",
+    },
+
+    uploadSubtitle: {
+        fontSize: 8,
+        color: "#94A3B8",
+
+        marginTop: 4,
+
+        fontFamily:
+            "Merriweather_24pt_SemiCondensed-Regular",
+    },
+
+    imagePreviewContainer: {
+        alignItems: "center",
+    },
+
+    imagePreviewWrapper: {
+        width: 170,
+        height: 170,
+
+        borderRadius: 18,
+
+        overflow: "hidden",
+
+        backgroundColor: "#F1F5F9",
+
+        borderWidth: 1,
+        borderColor: "#E2E8F0",
+
+        position: "relative",
+    },
+
+    imagePreview: {
+        width: "100%",
+        height: "100%",
+    },
+
+    imageExpandBadge: {
+        position: "absolute",
+
+        right: 8,
+        bottom: 8,
+
+        width: 28,
+        height: 28,
+
+        borderRadius: 9,
+
+        backgroundColor: "rgba(0, 0, 0, 0.55)",
+
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    imageHint: {
+        fontSize: 8,
+        color: "#94A3B8",
+
+        marginTop: 7,
+
+        fontFamily:
+            "Merriweather_24pt_SemiCondensed-Light",
+    },
+
+    imageActions: {
+        flexDirection: "row",
+
+        marginTop: 12,
+
+        gap: 10,
+    },
+
+    changeImageButton: {
+        height: 38,
+
+        paddingHorizontal: 14,
+
+        borderRadius: 11,
+
+        backgroundColor: "#EAF3FF",
+
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    changeImageText: {
+        color: "#4A90E2",
+
+        fontSize: 9,
+
+        marginLeft: 7,
+
+        fontFamily:
+            "Merriweather_24pt_SemiCondensed-SemiBold",
+    },
+
+    removeImageButton: {
+        height: 38,
+
+        paddingHorizontal: 14,
+
+        borderRadius: 11,
+
+        backgroundColor: "#FEF2F2",
+
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    removeImageText: {
+        color: "#EF4444",
+
+        fontSize: 9,
+
+        marginLeft: 7,
+
+        fontFamily:
+            "Merriweather_24pt_SemiCondensed-SemiBold",
+    },
+
+    // =========================================================
+    // FULL IMAGE MODAL
+    // =========================================================
+
+    imageModalContainer: {
+        flex: 1,
+
+        backgroundColor: "rgba(0, 0, 0, 0.95)",
+
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    fullImageWrapper: {
+        width: "100%",
+        height: "100%",
+
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    fullCustomerImage: {
+        width: "100%",
+        height: "85%",
+    },
+
+    imageModalClose: {
+        position: "absolute",
+
+        top: 45,
+        right: 20,
+
+        width: 42,
+        height: 42,
+
+        borderRadius: 14,
+
+        backgroundColor: "rgba(255, 255, 255, 0.15)",
+
+        alignItems: "center",
+        justifyContent: "center",
+
+        zIndex: 10,
     },
 });

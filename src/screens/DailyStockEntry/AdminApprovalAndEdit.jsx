@@ -178,27 +178,38 @@ const AdminApprovalAndEdit = ({ navigation }) => {
 
     const validateForm = () => {
 
-        if (!form.customer.trim()) {
+        // if (!form.customer.trim()) {
+
+        //     Toast.show({
+        //         type: "customNotificationError",
+        //         text1: "Customer is required",
+        //     });
+
+        //     return false;
+        // }
+
+
+        // if (!form.in || Number(form.in) == 0 || Number(form.in) < 1) {
+
+        //     Toast.show({
+        //         type: "customNotificationError",
+        //         text1: "In cannot be empty",
+        //     });
+
+        //     return false;
+        // }
+
+        if ((!form.in || Number(form.in) == 0 || Number(form.in) < 1) && (!form.regulator || !form.regulator.trim() || Number(form.regulator) == 0 || Number(form.regulator) < 1) && (!form.out || Number(form.out) == 0 || Number(form.out) < 1)) {
 
             Toast.show({
                 type: "customNotificationError",
-                text1: "Customer is required",
+                text1: "Either In, Out or Regulator must be greater than 0",
+                visibilityTime: 1000,
+
             });
 
             return false;
         }
-
-
-        if (!form.in || Number(form.in) == 0 || Number(form.in) < 1) {
-
-            Toast.show({
-                type: "customNotificationError",
-                text1: "In cannot be empty",
-            });
-
-            return false;
-        }
-
 
         // if (!form.out) {
 
@@ -222,15 +233,15 @@ const AdminApprovalAndEdit = ({ navigation }) => {
         // }
 
 
-        if (!form.balEmpty || Number(form.balEmpty) == 0 || Number(form.balEmpty) < 1) {
+        // if (!form.balEmpty || Number(form.balEmpty) == 0 || Number(form.balEmpty) < 1) {
 
-            Toast.show({
-                type: "customNotificationError",
-                text1: "Balance cannot be empty",
-            });
+        //     Toast.show({
+        //         type: "customNotificationError",
+        //         text1: "Balance cannot be empty",
+        //     });
 
-            return false;
-        }
+        //     return false;
+        // }
 
 
         // if (!form.regulator) {
@@ -365,6 +376,7 @@ const AdminApprovalAndEdit = ({ navigation }) => {
             Toast.show({
                 type: "customNotificationError",
                 text1: "User information is missing",
+                visibilityTime: 2000,
             });
             return;
         }
@@ -381,7 +393,7 @@ const AdminApprovalAndEdit = ({ navigation }) => {
                 OutQty: form.out || "0",
                 CycIn: form.in,
                 CycOut: form.out || "0",
-                BalCyc: form.balEmpty,
+                BalCyc: form.balEmpty || "0",
                 Regulator: form.regulator || "0",
                 PayMode: form.paymode || "0",
                 Amount: form.amount || "0",
@@ -402,6 +414,7 @@ const AdminApprovalAndEdit = ({ navigation }) => {
                     Toast.show({
                         type: "customNotificationError",
                         text1: "Please select a paymode",
+                        visibilityTime: 2000,
                     });
 
                     return;
@@ -412,7 +425,8 @@ const AdminApprovalAndEdit = ({ navigation }) => {
             if (res.type === "adminApprovalDailySubmit/fulfilled" && res.payload?.[0]?.transId && approveNow) {
                 Toast.show({
                     type: "customNotificationSuccess",
-                    text1: "Entry approved successfully"
+                    text1: "Entry approved successfully",
+                    visibilityTime: 2000,
                 });
                 navigation.navigate("EntryList");
             }
@@ -420,12 +434,15 @@ const AdminApprovalAndEdit = ({ navigation }) => {
                 Toast.show({
                     type: "customNotificationSuccess",
                     text1: "Entry updated successfully",
+                    visibilityTime: 2000,
                 });
                 navigation.navigate("EntryList");
             } else {
+                const err = res.payload?.[0]?.status || res.payload?.[0]?.message || "Something went wrong";
                 Toast.show({
                     type: "customNotificationError",
-                    text1: "Something went wrong",
+                    text1: err,
+                    visibilityTime: 2000,
                 });
             }
         } finally {

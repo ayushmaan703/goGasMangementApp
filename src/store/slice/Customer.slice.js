@@ -64,7 +64,7 @@ export const createCustomer = createAsyncThunk(
   async customerData => {
     try {
       const response = await axiosInstance.get(
-        `/AddAccount?AccountId=0&CustomerName=${customerData.CustomerName}&StateName=${customerData.StateName}&StateCode=${customerData.StateCode}&LocatlityId=${customerData.LocatlityId}&SalespersonId=${customerData.SalespersonId}&ContactPerson=${customerData.ContactPerson}&ContactNo=${customerData.MobileNo}&Comid=${customerData.comid}`,
+        `/AddAccount?AccountId=0&CustomerName=${customerData.CustomerName}&StateName=${customerData.StateName}&StateCode=${customerData.StateCode}&LocatlityId=${customerData.LocatlityId}&SalespersonId=${customerData.SalespersonId}&ContactPerson=${customerData.ContactPerson}&ContactNo=${customerData.MobileNo}&Comid=${customerData.comid}&custImg=${customerData.custImg}`,
       );
       return response.data;
     } catch (error) {
@@ -78,7 +78,7 @@ export const editCustomer = createAsyncThunk(
   async customerData => {
     try {
       const response = await axiosInstance.get(
-        `/AddAccount?AccountId=${customerData.CustomerId}&CustomerName=${customerData.CustomerName}&StateName=${customerData.StateName}&StateCode=${customerData.StateCode}&LocatlityId=${customerData.LocatlityId}&SalespersonId=${customerData.SalespersonId}&ContactPerson=${customerData.ContactPerson}&ContactNo=${customerData.ContactNo}&Comid=${customerData.comid}`,
+        `/AddAccount?AccountId=${customerData.CustomerId}&CustomerName=${customerData.CustomerName}&StateName=${customerData.StateName}&StateCode=${customerData.StateCode}&LocatlityId=${customerData.LocatlityId}&SalespersonId=${customerData.SalespersonId}&ContactPerson=${customerData.ContactPerson}&ContactNo=${customerData.ContactNo}&Comid=${customerData.comid}&custImg=${customerData.custImg}`,
       );
       return response.data;
     } catch (error) {
@@ -100,7 +100,6 @@ export const delCustomer = createAsyncThunk(
     }
   },
 );
-
 
 const customerSlice = createSlice({
   name: 'customer',
@@ -168,7 +167,7 @@ const customerSlice = createSlice({
       })
       .addCase(delCustomer.rejected, (state, action) => {
         state.loading = false;
-      })
+      });
   },
 });
 export default customerSlice.reducer;

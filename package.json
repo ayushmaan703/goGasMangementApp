@@ -24,6 +24,7 @@
     "react-native": "0.87.0",
     "react-native-gesture-handler": "^3.2.1",
     "react-native-image-picker": "^8.2.1",
+    "react-native-image-resizer": "^1.4.5",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-keychain": "^10.0.0",
     "react-native-linear-gradient": "^2.8.3",

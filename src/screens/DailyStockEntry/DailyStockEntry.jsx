@@ -185,16 +185,16 @@ const DailyStockEntry = ({ navigation }) => {
             return false;
         }
 
-        if (!form.balEmpty || Number(form.balEmpty) == 0 || Number(form.balEmpty) < 1) {
+        // if (!form.balEmpty || Number(form.balEmpty) == 0 || Number(form.balEmpty) < 1) {
 
-            Toast.show({
-                type: "customNotificationError",
-                text1: "Balance cannot be empty",
-                visibilityTime: 1000,
-            });
+        //     Toast.show({
+        //         type: "customNotificationError",
+        //         text1: "Balance cannot be empty",
+        //         visibilityTime: 1000,
+        //     });
 
-            return false;
-        }
+        //     return false;
+        // }
 
         if (!form.paymode && Number(form.amount) > 0) {
 
@@ -299,11 +299,23 @@ const DailyStockEntry = ({ navigation }) => {
     ]);
 
     const handleAdd = async () => {
-
-        if (!validateForm()) {
-            return;
+        if (!isEdit) {
+            if (!validateForm()) {
+                return;
+            }
         }
+        if (isEdit) {
+            if (!form.paymode && Number(form.amount) > 0) {
 
+                Toast.show({
+                    type: "customNotificationError",
+                    text1: "Please select a paymode",
+                    visibilityTime: 1000,
+                });
+
+                return;
+            }
+        }
 
         if (!comid || !currUser?.EmpId) {
             Toast.show({
@@ -321,7 +333,7 @@ const DailyStockEntry = ({ navigation }) => {
             CustomerId: form.customerId,
             CycIn: form.in,
             CycOut: form.out || "0",
-            BalCyc: form.balEmpty,
+            BalCyc: form.balEmpty || "0",
             Regulator: form.regulator || "0",
             PayMode: form.paymode || "0",
             Amount: form.amount || "0",
