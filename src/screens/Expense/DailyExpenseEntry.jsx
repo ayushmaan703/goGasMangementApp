@@ -1,0 +1,662 @@
+import React, { useEffect, useRef, useState } from "react";
+import {
+    View,
+    Text,
+    StyleSheet,
+    ScrollView,
+    TouchableOpacity,
+    ActivityIndicator,
+    KeyboardAvoidingView,
+    Platform,
+} from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome6";
+import InputField from "../../helper/InputField";
+import Dropdown from "../../helper/Dropdown";
+import CustomNavBar from "../../helper/CustomNavBar";
+import { useDispatch, useSelector } from "react-redux";
+import {
+    createDailyStockEntry,
+    editDailyStockEntry,
+    getDailyStockEntry,
+    getPaymentMethod,
+} from "../../store/slice/DailyStockEntry.slice";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import Toast from "react-native-toast-message";
+import { useRoute } from "@react-navigation/native";
+import { addDailyExpense, editDailyExpense, getExpenseMaster } from "../../store/slice/Expence.slice";
+
+const getTodayDate = () => {
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, "0");
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const year = today.getFullYear();
+
+    return `${day}/${month}/${year}`;
+};
+
+const getDateObject = (dateString) => {
+    if (!dateString) {
+        return new Date();
+    }
+
+    // Already a Date object
+    if (dateString instanceof Date) {
+        return dateString;
+    }
+
+    const value = String(dateString).trim();
+
+    // ---------------------------------------------
+    // DB / API FORMAT
+    // 8/28/2026 12:00:00 AM
+    // ---------------------------------------------
+    if (value.includes(" ")) {
+        const datePart = value.split(" ")[0];
+
+        const [month, day, year] =
+            datePart.split("/").map(Number);
+
+        return new Date(
+            year,
+            month - 1,
+            day
+        );
+    }
+
+    if (value.includes("/")) {
+        const [day, month, year] =
+            value.split("/").map(Number);
+
+        return new Date(
+            year,
+            month - 1,
+            day
+        );
+    }
+
+    return new Date();
+};
+
+const formatFormDate = (dateString) => {
+    const date = getDateObject(dateString);
+
+    const day = String(
+        date.getDate()
+    ).padStart(2, "0");
+
+    const month = String(
+        date.getMonth() + 1
+    ).padStart(2, "0");
+
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
+};
+
+const DailyExpenseEntry = ({ navigation }) => {
+
+    const route = useRoute();
+    const dispatch = useDispatch();
+    const inRef = useRef(null);
+    const outRef = useRef(null);
+    const regulatorRef = useRef(null);
+    const balEmptyRef = useRef(null);
+    const amountRef = useRef(null);
+
+    const { entry, isEdit } = route.params || {};
+
+    const currUser = useSelector(state => state.auth.userData);
+    const paymentMethodList = useSelector(state => state.dailyEntry.paymentMethodList);
+    const expenseMasterList = useSelector(state => state.expense.expenseMaster);
+    const loading = useSelector(state => state.expense.loading);
+    const comid = currUser?.Comid;
+
+    const [form, setForm] = useState({
+        PayDate: getTodayDate(),
+        ExpenceId: '',
+        amount: '',
+        paymode: '',
+    });
+
+    const [expenseDropdown, setExpenseDropdown] = useState(false);
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [customerDropdown, setCustomerDropdown] = useState(false);
+    const [paymentDropdown, setPaymentDropdown] = useState(false);
+    const [paymentType, setPaymentType] = useState("");
+
+
+    const updateField = (field, value) => {
+
+        setForm(prev => ({
+            ...prev,
+            [field]: value,
+        }));
+
+    };
+
+    const handleCusotmerSelect = customer => {
+
+        setForm(prev => ({
+            ...prev,
+            customerId: customer?.CustomerId || "",
+            customer: customer?.CustomerName || "",
+        }));
+
+        setCustomerDropdown(false);
+    };
+
+    const handlePaymentSelect = payment => {
+
+        setForm(prev => ({
+            ...prev,
+            paymode: payment?.Id || "",
+        }));
+        setPaymentType(payment?.Name || "");
+        setPaymentDropdown(false);
+    };
+
+    const validateForm = () => {
+
+        if (!form.paymode && Number(form.amount) > 0) {
+
+            Toast.show({
+                type: "customNotificationError",
+                text1: "Please select a paymode",
+                visibilityTime: 2000,
+            });
+            return false;
+        }
+        return true;
+
+        if (!form.amount || Number(form.amount) <= 0) {
+            Toast.show({
+                type: "customNotificationError",
+                text1: "Please enter a valid amount",
+                visibilityTime: 2000,
+            });
+            return false;
+        }
+
+        if (!form.ExpenceId) {
+
+            Toast.show({
+                type: "customNotificationError",
+                text1: "Please select a expense type",
+                visibilityTime: 2000,
+            });
+            return false;
+        }
+        return true;
+    };
+
+    useEffect(() => {
+
+        const fetchPaymentMethods = async () => {
+            if (!comid) {
+                return;
+            }
+            await dispatch(getPaymentMethod(comid));
+            await dispatch(getExpenseMaster(comid));
+        };
+        fetchPaymentMethods();
+
+    }, [comid]);
+
+    useEffect(() => {
+
+        if (!isEdit || !entry) {
+            setForm({
+                PayDate: getTodayDate(),
+                ExpenceId: '',
+                amount: '',
+                paymode: '',
+            })
+            return;
+        }
+
+        const selectedPayment = paymentMethodList?.find(payment => String(payment?.Name || "")
+            .trim()
+            .toLowerCase() === String(entry?.PaymentMode || "").trim().toLowerCase()
+        );
+        const selectedExpenseType = expenseMasterList?.find(expense => String(expense?.Name || "").trim().toLowerCase() ===
+            String(entry?.Customer || "").trim().toLowerCase()
+        );
+
+        setForm({
+            ExpenceId: selectedExpenseType?.Id || "",
+            paymode: selectedPayment?.Id || "",
+            amount: entry?.Amount || "",
+            PayDate: entry?.payDate ? formatFormDate(entry.payDate) : getTodayDate(),
+        });
+
+        setPaymentType(selectedPayment?.Name || entry?.PaymentMode || "");
+
+    }, [
+        isEdit,
+        entry,
+        paymentMethodList,
+    ]);
+
+    const handleAdd = async () => {
+        if (!isEdit) {
+            if (!validateForm()) {
+                return;
+            }
+        }
+        if (isEdit) {
+            if (!form.paymode && Number(form.amount) > 0) {
+
+                Toast.show({
+                    type: "customNotificationError",
+                    text1: "Please select a paymode",
+                    visibilityTime: 2000,
+                });
+
+                return;
+            }
+        }
+
+        if (!comid || !currUser?.EmpId) {
+            Toast.show({
+                type: "customNotificationError",
+                text1: "User information is missing",
+                visibilityTime: 2000,
+            });
+            return;
+        }
+
+        const [day, month, year] = form.PayDate.split("/");
+        const payload = {
+            EntryId: entry?.EntryID,
+            PayDate: `${year}-${month}-${day}`,
+            ExpenceId: form.ExpenceId || "",
+            Amount: form.amount || "0",
+            Comid: comid,
+            Uid: currUser.EmpId,
+            PayMode: form.paymode || "0",
+        };
+
+        if (isEdit) {
+            const res = await dispatch(editDailyExpense(payload))
+
+            if (res.type === "editDailyExpense/fulfilled" && res.payload?.[0]?.EntryId) {
+                Toast.show({
+                    type: "customNotificationSuccess",
+                    text1: "Entry updated Successfully",
+                    visibilityTime: 2000,
+                });
+                setForm({
+                    PayDate: getTodayDate(),
+                    ExpenceId: '',
+                    amount: '',
+                    paymode: '',
+                });
+                navigation.navigate("ExpenseEntryList")
+                setPaymentType("");
+            } else {
+                Toast.show({
+                    type: "customNotificationError",
+                    text1: "Something went wrong",
+                    visibilityTime: 2000,
+                });
+
+            }
+
+            return;
+        }
+
+        const res = await dispatch(addDailyExpense(payload));
+        if (res.type === "addDailyExpense/fulfilled" && res.payload?.[0]?.EntryId) {
+            Toast.show({
+                type: "customNotificationSuccess",
+                text1: "Entry created successfully",
+                visibilityTime: 2000,
+            });
+            setForm({
+                PayDate: getTodayDate(),
+                ExpenceId: '',
+                Amount: '',
+                PayMode: '',
+            });
+            navigation.navigate("ExpenseEntryList")
+            setPaymentType("");
+
+        } else {
+            Toast.show({
+                type: "customNotificationError",
+                text1: "Something went wrong",
+                visibilityTime: 2000,
+            });
+
+        }
+    };
+
+    return (
+        <>
+            <KeyboardAvoidingView
+                style={styles.container}
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+            >
+                {/* HEADER */}
+                <CustomNavBar
+                    navName={isEdit ? "Edit Daily Expense Entry" : "Daily Expense Entry"}
+                    subtitle={isEdit ? "Update the pending expense entry" : "Enter daily expense entry for customer"}
+                />
+                <KeyboardAwareScrollView
+                    contentContainerStyle={styles.scrollContainer}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                    enableOnAndroid={true}
+                >
+
+                    <ScrollView
+                        contentContainerStyle={styles.content}
+                        keyboardShouldPersistTaps="handled"
+                        showsVerticalScrollIndicator={false}
+                        nestedScrollEnabled={true}
+                    >
+
+                        <View style={styles.section}>
+
+                            {/* <View style={styles.row}> */}
+
+                            <View style={styles.halfField}>
+
+                                {/* <View style={styles.dateContainer}> */}
+                                <Text style={styles.inputLabel}>
+                                    Date
+                                </Text>
+
+                                <TouchableOpacity
+                                    style={styles.dateField}
+                                    onPress={() => setShowDatePicker(true)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Icon name="calendar" size={15} color="#777" />
+                                    <Text style={[styles.dateValue, !form.PayDate && styles.placeholder]}  >
+                                        {form.PayDate || "Select date"}
+                                    </Text>
+                                </TouchableOpacity>
+                                {/* </View> */}
+                            </View>
+
+                            <View style={styles.halfField}>
+                                <Dropdown
+                                    icon="receipt"
+                                    label="Expense Type"
+                                    value={expenseMasterList?.find(item => String(item?.Id) === String(form.ExpenceId))?.Name || ""}
+                                    placeholder="Select expense type"
+                                    open={expenseDropdown}
+                                    setOpen={setExpenseDropdown}
+                                    data={expenseMasterList || []}
+                                    onSelect={expense => {
+                                        setForm(prev => ({
+                                            ...prev,
+                                            ExpenceId: expense?.Id || "",
+                                        }));
+                                        setExpenseDropdown(false);
+                                    }}
+                                    displayKey="Name"
+                                />
+                            </View>
+
+                            {/* </View> */}
+
+
+                            {/* <View style={styles.row}> */}
+
+                            <View style={styles.halfField}>
+                                <Dropdown
+                                    icon="wallet"
+                                    label="Pay Mode"
+                                    value={paymentType}
+                                    placeholder="Select payment mode"
+                                    open={paymentDropdown}
+                                    setOpen={setPaymentDropdown}
+                                    data={paymentMethodList}
+                                    onSelect={handlePaymentSelect}
+                                    displayKey="Name"
+                                />
+                            </View>
+
+                            <View style={styles.halfField}>
+                                <InputField
+                                    ref={amountRef}
+                                    icon="indian-rupee-sign"
+                                    label="Amount"
+                                    value={form.amount}
+                                    onChangeText={value => updateField("amount", value)}
+                                    placeholder="Enter amount"
+                                    keyboardType="decimal-pad"
+                                    returnKeyType="done"
+                                />
+                            </View>
+
+                            {/* </View> */}
+
+
+                        </View>
+
+                        {showDatePicker && (
+                            <DateTimePicker
+                                value={getDateObject(form.PayDate)}
+                                mode="date"
+                                display="default"
+                                onChange={(event, selectedDate) => {
+                                    setShowDatePicker(false);
+                                    if (selectedDate) {
+                                        const day = String(selectedDate.getDate()).padStart(2, "0");
+                                        const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+                                        const year = selectedDate.getFullYear();
+                                        updateField("PayDate", `${day}/${month}/${year}`);
+                                    }
+                                }}
+                            />
+                        )}
+
+                        <TouchableOpacity
+                            style={[
+                                styles.addButton,
+                                loading && styles.disabledButton,
+                            ]}
+                            onPress={handleAdd}
+                            disabled={loading}
+                            activeOpacity={0.8}
+                        >
+                            {loading ? (
+                                <ActivityIndicator color="#fff" />
+                            ) : (<>
+                                <Icon
+                                    name={isEdit ? "pen-to-square" : "plus"}
+                                    size={16}
+                                    color="#fff"
+                                />
+                                <Text style={styles.addButtonText}>
+                                    {isEdit ? "Update Expense" : "Add Expense"}
+                                </Text>
+                            </>)}
+                        </TouchableOpacity>
+
+                    </ScrollView>
+                </KeyboardAwareScrollView>
+            </KeyboardAvoidingView >
+        </>
+    );
+};
+
+
+export default DailyExpenseEntry;
+
+const styles = StyleSheet.create({
+
+    // =========================
+    // MAIN
+    // =========================
+
+    container: {
+        flex: 1,
+        backgroundColor: "#F6F9FD",
+        paddingBottom: 40,
+    },
+
+    scrollContainer: {
+        flexGrow: 1,
+        paddingBottom: 30,
+    },
+
+    content: {
+        paddingHorizontal: 16,
+        paddingTop: 10,
+        paddingBottom: 30,
+    },
+
+
+    // =========================
+    // SECTION CARD
+    // =========================
+
+    section: {
+        backgroundColor: "#fff",
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 16,
+
+        elevation: 1,
+
+        shadowColor: "#000",
+        shadowOpacity: 0.04,
+        shadowRadius: 5,
+
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+    },
+
+    sectionHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 18,
+    },
+
+    sectionIcon: {
+        width: 30,
+        height: 30,
+        borderRadius: 8,
+
+        backgroundColor: "#EAF3FF",
+
+        alignItems: "center",
+        justifyContent: "center",
+
+        marginRight: 10,
+    },
+
+    sectionTitle: {
+        color: "#252B35",
+        fontSize: 16,
+        fontWeight: "700",
+    },
+
+    sectionSubtitle: {
+        color: "#7A8493",
+        fontSize: 11,
+        marginTop: 2,
+    },
+
+
+    // =========================
+    // TWO COLUMN GRID
+    // =========================
+
+    row: {
+        flexDirection: "row",
+        gap: 12,
+        alignItems: "flex-start",
+        marginBottom: 0,
+        marginTop: 3,
+    },
+    halfField: {
+        flex: 1,
+        minWidth: 0,
+    },
+
+
+    // =========================
+    // DATE
+    // =========================
+
+    inputLabel: {
+        fontSize: 8,
+        color: "#64748B",
+        marginBottom: 4,
+        marginLeft: 2,
+        fontFamily: "Merriweather_24pt_SemiCondensed-SemiBold",
+    },
+
+    dateField: {
+        height: 51,
+        gap: 10,
+        minHeight: 51,
+        borderRadius: 14,
+        backgroundColor: "#F8FAFC",
+        borderWidth: 1,
+        borderColor: "#E6EBF2",
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 9,
+    },
+
+    dateValue: {
+        flex: 1,
+        fontSize: 15,
+        color: "#222",
+    },
+
+    placeholder: {
+        color: "#999",
+    },
+
+
+    // =========================
+    // SUBMIT BUTTON
+    // =========================
+
+    addButton: {
+        height: 54,
+
+        borderRadius: 14,
+
+        backgroundColor: "#4A90E2",
+
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+
+        gap: 9,
+
+        marginTop: 4,
+
+        elevation: 3,
+
+        shadowColor: "#000",
+        shadowOpacity: 0.12,
+        shadowRadius: 5,
+
+        shadowOffset: {
+            width: 0,
+            height: 3,
+        },
+    },
+
+    addButtonText: {
+        color: "#fff",
+        fontSize: 16,
+        fontWeight: "700",
+    },
+
+    disabledButton: {
+        opacity: 0.7,
+    },
+});

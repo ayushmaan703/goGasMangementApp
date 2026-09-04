@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
 
         color: "#64748B",
 
-        marginBottom: 6,
+        marginBottom: 4,
 
         marginLeft: 2,
 

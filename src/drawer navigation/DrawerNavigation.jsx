@@ -12,6 +12,9 @@ import PaymentEntryList from '../screens/DailyPaymentEntry/PaymentEntryList';
 import DailyPaymentEntry from '../screens/DailyPaymentEntry/DailyPaymentEntry';
 import ProfilePage from '../screens/ProfilePage';
 import CustomerList from '../screens/CustomerList';
+import DailyExpenseEntry from '../screens/Expense/DailyExpenseEntry';
+import ExpenseEntryList from '../screens/Expense/ExpenseEntryList';
+import ApproveCustomerOrder from '../screens/OrderingCutomer/ApproveCustomerOrder';
 
 const Drawer = createDrawerNavigator();
 
@@ -40,6 +43,9 @@ const DrawerNavigator = () => {
             <Drawer.Screen name="PaymentEntryList" component={PaymentEntryList} />
             <Drawer.Screen name="ProfilePage" component={ProfilePage} />
             <Drawer.Screen name="CustomerList" component={CustomerList} />
+            <Drawer.Screen name="ExpenseEntry" component={DailyExpenseEntry} />
+            <Drawer.Screen name="ExpenseEntryList" component={ExpenseEntryList} />
+            <Drawer.Screen name="ApproveCustomerOrder" component={ApproveCustomerOrder} />
         </Drawer.Navigator>
     );
 };

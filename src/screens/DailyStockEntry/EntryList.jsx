@@ -478,7 +478,7 @@ const EntryList = ({ navigation }) => {
                             color="#FFFFFF"
                         />
 
-                    </TouchableOpacity> )}
+                    </TouchableOpacity>)}
 
             </View>
 
@@ -1450,6 +1450,7 @@ const styles = StyleSheet.create({
         borderColor: "#C9D0D8",
         borderRadius: 7,
         overflow: "hidden",
+        marginBottom: 50
     },
 
 
@@ -1461,6 +1462,7 @@ const styles = StyleSheet.create({
     table: {
         width: "100%",
         flex: 1,
+
     },
 
 
@@ -1470,12 +1472,11 @@ const styles = StyleSheet.create({
 
     tableHeader: {
         height: 34,
-
         flexDirection: "row",
         backgroundColor: "#F1F4F7",
-
         borderBottomWidth: 1,
         borderBottomColor: "#BFC6CE",
+
     },
 
 
@@ -1555,6 +1556,7 @@ const styles = StyleSheet.create({
 
     verticalTableScroll: {
         flex: 1,
+        // marginBottom: 20
     },
 
 

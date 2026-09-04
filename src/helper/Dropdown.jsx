@@ -229,13 +229,14 @@ export default Dropdown;
 const styles = StyleSheet.create({
 
     inputWrapper: {
-        marginBottom: 14,
+          marginVertical: 8,
     },
 
     inputLabel: {
-        fontSize: 10,
+        fontSize: 8,
         color: "#475569",
-        marginBottom: 6,
+        marginBottom: 4,
+        marginLeft: 2,
         fontFamily:
             "Merriweather_24pt_SemiCondensed-SemiBold",
     },

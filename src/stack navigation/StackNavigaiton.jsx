@@ -15,6 +15,11 @@ import ApproveCustomer from '../screens/ApproveCustomer.jsx';
 import PaymentSubmitForm from '../screens/DailyPaymentEntry/PaymentSubmitForm.jsx';
 import AdminApprovalAndEdit from '../screens/DailyStockEntry/AdminApprovalAndEdit.jsx';
 import AdminApprovalAndEditPayment from '../screens/DailyPaymentEntry/AdminApprovalAndEditPayment.jsx';
+import ExpenseSubmitForm from '../screens/Expense/ExpenseSubmitForm.jsx';
+import ExpenseAdminApprovalAndEdit from '../screens/Expense/ExpenseAdminApprovalAndEdit.jsx';
+import CustomerOrderDetails from '../screens/OrderingCutomer/CustomerOrderDetails.jsx';
+import CustomerOrderForm from '../screens/OrderingCutomer/CustomerOrderForm.jsx';
+import CustomerOrderList from '../screens/OrderingCutomer/CustomerOrderList.jsx';
 
 const Stack = createNativeStackNavigator();
 
@@ -46,10 +51,15 @@ const StackNavigator = () => {
                     <Stack.Screen name="EditCustomer" component={EditCustomer} />
                     <Stack.Screen name="CustomerDetails" component={CustomerDetails} />
                     <Stack.Screen name="SubmitForm" component={SubmitForm} />
+                    <Stack.Screen name="ExpenseSubmitForm" component={ExpenseSubmitForm} />
                     <Stack.Screen name="PaymentSubmitForm" component={PaymentSubmitForm} />
                     <Stack.Screen name="ApproveCustomer" component={ApproveCustomer} />
                     <Stack.Screen name="AdminApprovalAndEdit" component={AdminApprovalAndEdit} />
                     <Stack.Screen name="AdminApprovalAndEditPayment" component={AdminApprovalAndEditPayment} />
+                    <Stack.Screen name="ExpenseAdminApprovalAndEdit" component={ExpenseAdminApprovalAndEdit} />
+                    <Stack.Screen name="CustomerOrderList" component={CustomerOrderList} />
+                    <Stack.Screen name="CustomerOrderForm" component={CustomerOrderForm} />
+                    <Stack.Screen name="CustomerOrderDetails" component={CustomerOrderDetails} />
                 </>
             ) : (
                 <Stack.Screen

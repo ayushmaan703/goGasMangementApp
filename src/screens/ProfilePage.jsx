@@ -105,7 +105,7 @@ const ProfilePage = ({ navigation }) => {
                             {user.Emp}
                         </Text>
 
-                        <View style={styles.roleRow}>
+                        {!user.UserType == "Customer" && <View style={styles.roleRow}>
                             <FontAwesome6Icon
                                 name="user-shield"
                                 size={11}
@@ -115,10 +115,10 @@ const ProfilePage = ({ navigation }) => {
                             <Text style={styles.role}>
                                 {user.UserType}
                             </Text>
-                        </View>
+                        </View>}
 
                         <Text style={styles.employeeId}>
-                            Employee ID: {user.EmpId}
+                            {user.UserType == "Customer" ? "Customer ID" : "Employee ID"}: {user.EmpId}
                         </Text>
                     </View>
 
@@ -155,7 +155,7 @@ const ProfilePage = ({ navigation }) => {
 
 
                 {/* COMPANY INFORMATION */}
-                <View style={styles.section}>
+                {!user.UserType == "Customer" && <View style={styles.section}>
 
                     <Text style={styles.sectionTitle}>
                         Company Information
@@ -195,7 +195,7 @@ const ProfilePage = ({ navigation }) => {
 
                     </View>
 
-                </View>
+                </View>}
 
 
                 {/* ACCOUNT INFORMATION */}
@@ -209,17 +209,17 @@ const ProfilePage = ({ navigation }) => {
 
                         <InfoRow
                             icon="user"
-                            label="Employee ID"
+                            label={user.UserType == "Customer" ? "Customer ID" : "Employee ID"}
                             value={user.EmpId}
                         />
 
                         <View style={styles.divider} />
 
-                        <InfoRow
+                        {!user.UserType == "Customer" && <InfoRow
                             icon="user-shield"
                             label="Account Type"
                             value={user.UserType}
-                        />
+                        />}
 
                         <View style={styles.divider} />
 

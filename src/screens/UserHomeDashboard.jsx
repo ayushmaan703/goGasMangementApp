@@ -9,6 +9,7 @@ import { getAllCustomers } from "../store/slice/Customer.slice";
 import { getDailyStockEntry } from "../store/slice/DailyStockEntry.slice";
 import { COLORS, StatCard, SectionTitle, QuickAction, InfoRow, Card, StatusCard } from "./DashboardComponents";
 import { getDailyPayment } from "../store/slice/DailyPayment.slice";
+import CustomerDashboard from "./CustomerDashboard";
 
 const apiDate = d => {
   const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
@@ -29,6 +30,7 @@ const roleOf = user => {
   if (r === "admin") return "admin";
   if (r.includes("salesperson")) return "sales";
   if (r.includes("user")) return "delivery";
+  if (r.includes("customer")) return "customer";
   return "sales";
 };
 
@@ -36,6 +38,7 @@ const SUBTITLES = {
   admin: "your business overview at a glance",
   sales: "your customer overview at a glance",
   delivery: "your daily work overview at a glance",
+  customer: "All yours orders at a glance",
 };
 
 const AdminDashboard = ({ navigation, customers, stockEntries, gasEntries }) => {
@@ -406,6 +409,7 @@ const UserHomeDashboard = () => {
   const entries = Array.isArray(stockData) ? stockData : [];
 
   const role = roleOf(user);
+  // const role = "customer";
 
   return (
     <View style={styles.container}>
@@ -419,6 +423,7 @@ const UserHomeDashboard = () => {
         {role === "admin" && <AdminDashboard navigation={navigation} customers={customers} stockEntries={entries} gasEntries={gasEntries} />}
         {role === "sales" && <SalesDashboard navigation={navigation} user={user} customers={customers} />}
         {role === "delivery" && <DeliveryDashboard navigation={navigation} user={user} customers={customers} stockEntries={entries} />}
+        {role === "customer" && <CustomerDashboard navigation={navigation} />}
       </ScrollView>
     </View>
   );

@@ -11,30 +11,16 @@ import {
     RefreshControl,
     ScrollView,
 } from "react-native";
-
 import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
-
 import DateTimePicker from "@react-native-community/datetimepicker";
-
 import CustomNavBar from "../../helper/CustomNavBar";
-
 import { useDispatch, useSelector } from "react-redux";
-
-import {
-    useIsFocused,
-} from "@react-navigation/native";
-
-import {
-    delDailyPayment,
-    getDailyPayment,
-} from "../../store/slice/DailyPayment.slice";
+import { delDailyStockEntry, getDailyStockEntry, } from "../../store/slice/DailyStockEntry.slice";
+import { useIsFocused, } from "@react-navigation/native";
 import ConfirmModal from "../../helper/ConfirmModal";
 import Toast from "react-native-toast-message";
+import { getDailyExpense } from "../../store/slice/Expence.slice";
 
-
-// ============================================================
-// DATE FORMAT
-// ============================================================
 
 const formatDate = (dateString) => {
 
@@ -42,25 +28,16 @@ const formatDate = (dateString) => {
 
     const value = String(dateString).trim();
 
-    /*
-        Handles:
-        8/27/2026 12:00:00
-        8/27/2026 12:00:00 AM
-        8/27/2026
-    */
+    // API examples:
+    // 8/27/2026 12:00:00
+    // 8/27/2026 12:00:00 AM
+    // 8/27/2026
 
-    const match = value.match(
-        /^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/
-    );
+    const match = value.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
 
     if (match) {
-
         const [, month, day, year] = match;
-
-        return `${String(day).padStart(2, "0")}/${String(
-            month
-        ).padStart(2, "0")}/${year}`;
-
+        return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`;
     }
 
     const date = new Date(dateString);
@@ -69,18 +46,10 @@ const formatDate = (dateString) => {
         return dateString;
     }
 
-    return `${String(date.getDate()).padStart(2, "0")}/${String(
-        date.getMonth() + 1
-    ).padStart(2, "0")}/${date.getFullYear()}`;
+    return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
 };
 
-
-// ============================================================
-// API DATE FORMAT
-// ============================================================
-
 const formatApiDate = (date) => {
-
     if (!date) return null;
 
     const months = [
@@ -99,125 +68,71 @@ const formatApiDate = (date) => {
     ];
 
     const day = String(date.getDate()).padStart(2, "0");
-
     const month = months[date.getMonth()];
-
     const year = date.getFullYear();
 
     return `${day}-${month}-${year}`;
 };
 
 
-// ============================================================
-// COMPONENT
-// ============================================================
-
-const PaymentEntryList = ({ navigation }) => {
+const ExpenseEntryList = ({ navigation }) => {
 
     const isFocused = useIsFocused();
 
     const dispatch = useDispatch();
-
-    const currUser = useSelector(
-        (state) => state.auth.userData
-    );
-
-    const gasEntries = useSelector(
-        (state) => state.dailyPayment.paymentList
-    );
-    const loading = useSelector(
-        (state) => state.dailyPayment.loading
-    );
+    const currUser = useSelector((state) => state.auth.userData);
+    const expenseEntries = useSelector((state) => state.expense.dailyExpenseList);
+    const loading = useSelector((state) => state.dailyEntry.loading);
 
     const comid = currUser?.Comid;
     const isAdmin = currUser?.UserType == "Admin"
 
-    // ========================================================
-    // STATE
-    // ========================================================
-
     const [refreshing, setRefreshing] = useState(false);
-
     const [showFilter, setShowFilter] = useState(false);
-
-    const [fromDate, setFromDate] = useState(
-        new Date()
-    );
-
-    const [toDate, setToDate] = useState(
-        new Date()
-    );
-
-    const [showFromPicker, setShowFromPicker] =
-        useState(false);
-
-    const [showToPicker, setShowToPicker] =
-        useState(false);
-
+    const [fromDate, setFromDate] = useState(new Date());
+    const [toDate, setToDate] = useState(new Date());
+    const [showFromPicker, setShowFromPicker] = useState(false);
+    const [showToPicker, setShowToPicker] = useState(false);
     const [status, setStatus] = useState(0);
     const [adminApprovalstatus, setAdminApprovalStatus] = useState(0);
-    const [customerId, setCustomerId] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-    // ========================================================
-    // FETCH
-    // ========================================================
+    const [customerId, setCustomerId] = useState(null);
 
     useEffect(() => {
-
         fetchEntries();
-
     }, [
         fromDate,
         toDate,
-        adminApprovalstatus,
         status,
+        adminApprovalstatus,
+        dispatch,
     ]);
-
 
     const fetchEntries = async () => {
 
-        try {
-
-            await dispatch(
-                getDailyPayment({
-                    FromDate: formatApiDate(fromDate),
-                    Todate: formatApiDate(toDate),
-                    PendingStatus: status,
-                    Comid: comid,
-                    AdminApproval: adminApprovalstatus,
-                })
-            );
-
-        } catch (error) {
-
-            throw error
-
-        }
+        await dispatch(
+            getDailyExpense({
+                FromDate: formatApiDate(fromDate),
+                Todate: formatApiDate(toDate),
+                PendingStatus: status,
+                AdminApproval: adminApprovalstatus,
+                Comid: comid,
+            })
+        );
 
     };
-
-
-    // ========================================================
-    // REFRESH
-    // ========================================================
 
     const onRefresh = async () => {
 
         setRefreshing(true);
 
         try {
-
             await fetchEntries();
-
         } finally {
-
             setRefreshing(false);
-
         }
 
     };
-
 
     useEffect(() => {
 
@@ -228,27 +143,19 @@ const PaymentEntryList = ({ navigation }) => {
     }, [isFocused]);
 
 
-    // ========================================================
-    // TOTAL AMOUNT
-    // ========================================================
-
-    const totalAmount = (
-        gasEntries || []
-    ).reduce(
-        (total, item) => {
-
-            return total + Number(
-                item.Amount || 0
-            );
-
+    const totals = (expenseEntries || []).reduce(
+        (acc, item) => {
+            acc.amount += Number(item.Amount || 0);
+            return acc;
         },
-        0
+        {
+            amount: 0,
+        }
     );
 
     const handleDelete = async () => {
-        const res = await dispatch(delDailyPayment({ comid, id: customerId }));
-
-        if (res.type === 'deleteDailyPayment/rejected') {
+        const res = await dispatch(delDailyStockEntry({ comid, id: customerId }));
+        if (res.type === 'deleteDailyStockEntry/rejected') {
             Toast.show({
                 type: 'customNotificationError',
                 text1: res?.error?.message || 'Error Occured',
@@ -259,7 +166,7 @@ const PaymentEntryList = ({ navigation }) => {
         } else {
             Toast.show({
                 type: 'customNotificationSuccess',
-                text1: 'Daily Payment Entry Deleted Successfully',
+                text1: 'Daily Stock Entry Deleted Successfully',
                 visibilityTime: 2000,
             });
             setShowDeleteModal(false);
@@ -268,77 +175,37 @@ const PaymentEntryList = ({ navigation }) => {
     }
 
     const renderEntry = (item) => {
-
         return (
-
             <View
                 key={item.EntryID}
                 style={styles.tableRow}
             >
 
-                {/* ==========================================
-                    CUSTOMER
-                ========================================== */}
+                {/* CUSTOMER */}
 
-                <View
-                    style={[
-                        styles.cell,
-                        styles.customerCell,
-                    ]}
-                >
-
+                <View style={[styles.cell, styles.customerCell,]}>
                     <Text
                         style={styles.customerText}
                         numberOfLines={1}
                     >
                         {item.Customer || "-"}
                     </Text>
-
-                    <Text style={styles.entryText}>
-                        #{item.EntryID}
-                    </Text>
-
+                    <Text style={styles.entryText}>#{item.EntryID}</Text>
                 </View>
 
+                {/* PAYMENT */}
 
-                {/* ==========================================
-                    DATE
-                ========================================== */}
-
-                <View
-                    style={[
-                        styles.cell,
-                        styles.dateCell,
-                    ]}
-                >
-
-                    <Text style={styles.dateText}>
-                        {formatDate(item.payDate)}
-                    </Text>
-
-                </View>
-
-
-                {/* ==========================================
-                    PAYMENT MODE
-                ========================================== */}
-
-                <View
-                    style={[
-                        styles.cell,
-                        styles.payCell,
-                    ]}
-                >
-
+                <View style={[styles.cell, styles.payCell,]}>
                     <Text
                         style={styles.payText}
                         numberOfLines={1}
                     >
                         {item.PaymentMode || "-"}
                     </Text>
-
                 </View>
 
+
+                {/* AMOUNT + EDIT + DELETE   */}
 
                 <View
                     style={[
@@ -350,7 +217,7 @@ const PaymentEntryList = ({ navigation }) => {
                         <Text style={styles.amountText}>
                             ₹{item.Amount ?? 0}
                         </Text>
-                        {!item.paytype && (
+                        {item.paytype && (
                             <Text style={styles.entryText}>
                                 ( {item.paytype} )
                             </Text>
@@ -361,217 +228,56 @@ const PaymentEntryList = ({ navigation }) => {
                         {/* Edit button */}
                         {(status === 0 || (isAdmin)) && (
                             <TouchableOpacity
-                                style={
-                                    styles.editIconButton
-                                }
+                                style={styles.editIconButtonAmt}
                                 onPress={() => {
                                     if (status === 1) {
                                         navigation.navigate("Home", {
-                                            screen: "AdminApprovalAndEditPayment",
+                                            screen: "ExpenseAdminApprovalAndEdit",
                                             params: {
                                                 entry: item,
                                                 isApproved: adminApprovalstatus,
                                             },
                                         });
                                     } else {
-                                        navigation.navigate("DailyPaymentEntry", {
+                                        navigation.navigate("ExpenseEntry", {
                                             entry: item,
                                             isEdit: true,
-                                            fromDate:
-                                                formatApiDate(
-                                                    fromDate
-                                                ),
-                                            toDate:
-                                                formatApiDate(
-                                                    toDate
-                                                ),
-                                            PendingStatus:
-                                                status,
                                         });
                                     }
-
-
                                 }}
                             >
-                                <FontAwesome6
-                                    name="pen-to-square"
-                                    size={12}
-                                    color="#4A90E2"
-                                />
+                                <FontAwesome6 name="pen-to-square" size={12} color="#4A90E2" />
                             </TouchableOpacity>
                         )}
 
                         {/* Delete button */}
-                        {status === 0 && (
+                        {/* {status === 0 && (
                             <TouchableOpacity
                                 style={styles.deleteIconButton}
                                 onPress={() => { setShowDeleteModal(true); setCustomerId(item.EntryID); }}
                             >
-                                <FontAwesome6
-                                    name="trash"
-                                    size={12}
-                                    color="#e24a4a"
-                                />
-                            </TouchableOpacity>)}
+                                <FontAwesome6 name="trash" size={12} color="#e24a4a" />
+
+                            </TouchableOpacity>
+                        )} */}
                     </View>
 
 
                 </View>
 
-                {/* ==========================================
-                    AMOUNT
-                ========================================== */}
-
-                {/* <View
-                    style={[
-                        styles.cell,
-                        styles.amountCell,
-                    ]}
-                >
-
-                    <Text style={styles.amountText}>
-                        ₹{item.Amount ?? 0}
-                    </Text>
-
-                </View> */}
-
-
-                {/* ==========================================
-                    EDIT
-                ========================================== */}
-
-                {/* {!!status === 0 || (isAdmin) && (
-
-                    <View
-                        style={[
-                            styles.cell,
-                            styles.editCell,
-                        ]}
-                    >
-
-                        <TouchableOpacity
-                            style={
-                                styles.editIconButton
-                            }
-                            onPress={() => {
-                                if (status === 1) {
-                                    navigation.navigate("Home", {
-                                        screen: "AdminApprovalAndEditPayment",
-                                        params: {
-                                            entry: item,
-                                            isApproved: adminApprovalstatus,
-                                        },
-                                    });
-                                } else {
-                                    navigation.navigate("DailyPaymentEntry", {
-                                        entry: item,
-                                        isEdit: true,
-                                        fromDate:
-                                            formatApiDate(
-                                                fromDate
-                                            ),
-                                        toDate:
-                                            formatApiDate(
-                                                toDate
-                                            ),
-                                        PendingStatus:
-                                            status,
-                                    });
-                                }
-
-
-                            }}
-                        >
-
-                            <FontAwesome6
-                                name="pen-to-square"
-                                size={12}
-                                color="#4A90E2"
-                            />
-
-                        </TouchableOpacity>
-
-                    </View>
-
-                )}
-
-                {status === 0 && (
-                    <View
-                        style={[
-                            styles.cell,
-                            styles.editCell,
-                        ]}
-                    >
-
-                        <TouchableOpacity
-                            style={
-                                styles.editIconButton
-                            }
-                            onPress={() => {
-                                if (status === 1) {
-                                    navigation.navigate("Home", {
-                                        screen: "AdminApprovalAndEditPayment",
-                                        params: {
-                                            entry: item,
-                                            isApproved: adminApprovalstatus,
-                                        },
-                                    });
-                                } else {
-                                    navigation.navigate("DailyPaymentEntry", {
-                                        entry: item,
-                                        isEdit: true,
-                                        fromDate:
-                                            formatApiDate(
-                                                fromDate
-                                            ),
-                                        toDate:
-                                            formatApiDate(
-                                                toDate
-                                            ),
-                                        PendingStatus:
-                                            status,
-                                    });
-                                }
-
-
-                            }}
-                        >
-
-                            <FontAwesome6
-                                name="pen-to-square"
-                                size={12}
-                                color="#4A90E2"
-                            />
-
-                        </TouchableOpacity>
-
-                    </View>
-
-                )} */}
-
-            </View>
-
+            </View >
         );
-
     };
+
 
     return (
 
         <SafeAreaView style={styles.container}>
 
-            {/* =================================================
-                NAVBAR
-            ================================================= */}
-
             <CustomNavBar
-                navName="Daily Payment Entry Logs"
-                subtitle="View your daily payment transactions"
+                navName={"Daily Expense Entry Logs"}
+                subtitle={"View your expense transactions"}
             />
-
-
-            {/* =================================================
-                FILTER BAR
-            ================================================= */}
 
             <View style={styles.filterBar}>
 
@@ -579,52 +285,24 @@ const PaymentEntryList = ({ navigation }) => {
 
                 <TouchableOpacity
                     style={styles.filterButton}
-                    onPress={() =>
-                        setShowFilter(true)
-                    }
+                    onPress={() => setShowFilter(true)}
                 >
-
-                    <FontAwesome6
-                        name="filter"
-                        size={12}
-                        color="#4A90E2"
-                    />
-
-                    <Text
-                        style={
-                            styles.filterButtonText
-                        }
-                    >
-                        Filters
-                    </Text>
-
-                    <FontAwesome6
-                        name="chevron-down"
-                        size={8}
-                        color="#7A8493"
-                    />
-
+                    <FontAwesome6 name="filter" size={12} color="#4A90E2" />
+                    <Text style={styles.filterButtonText}>Filters</Text>
+                    <FontAwesome6 name="chevron-down" size={8} color="#7A8493" />
                 </TouchableOpacity>
 
 
-                {/* DATE RANGE */}
+                {/* DATE */}
 
                 <View style={styles.dateBadge}>
-
-                    <FontAwesome6
-                        name="calendar-days"
-                        size={11}
-                        color="#7A8493"
-                    />
-
+                    <FontAwesome6 name="calendar-days" size={11} color="#7A8493" />
                     <Text
                         style={styles.dateBadgeText}
                         numberOfLines={1}
                     >
-                        {formatDate(fromDate)} -{" "}
-                        {formatDate(toDate)}
+                        {formatDate(fromDate)} -  {formatDate(toDate)}
                     </Text>
-
                 </View>
 
 
@@ -635,23 +313,12 @@ const PaymentEntryList = ({ navigation }) => {
                     <View
                         style={[
                             styles.statusDot,
-                            {
-                                backgroundColor:
-                                    status === 1
-                                        ? "#28A745"
-                                        : "#4A90E2",
-                            },
-                        ]}
+                            { backgroundColor: status === 1 ? "#28A745" : "#4A90E2", }
+                            ,]}
                     />
 
-                    <Text
-                        style={
-                            styles.statusBadgeText
-                        }
-                    >
-                        {status === 1
-                            ? "Approved"
-                            : "Pending"}
+                    <Text style={styles.statusBadgeText}>
+                        {status === 1 ? "Approved" : "Pending"}
                     </Text>
 
                 </View>
@@ -660,398 +327,135 @@ const PaymentEntryList = ({ navigation }) => {
                 {/* SUBMIT */}
 
                 {status === 0 && (
-
                     <TouchableOpacity
-                        style={
-                            styles.submitIconButton
-                        }
-                        onPress={() => {
-
-                            navigation.navigate(
-                                "Home",
-                                {
-                                    screen:
-                                        "PaymentSubmitForm",
-                                }
-                            );
-
-                        }}
+                        style={styles.submitIconButton}
+                        onPress={() => { navigation.navigate("Home", { screen: "ExpenseSubmitForm", }); }}
                     >
-
-                        <FontAwesome6
-                            name="paper-plane"
-                            size={12}
-                            color="#FFFFFF"
-                        />
-
-                    </TouchableOpacity>
-
-                )}
+                        <FontAwesome6 name="paper-plane" size={12} color="#FFFFFF" />
+                    </TouchableOpacity>)}
 
             </View>
-
-
-            {/* =================================================
-                SUMMARY
-            ================================================= */}
 
             <View style={styles.summaryCard}>
 
-                <View
-                    style={styles.summaryHeader}
-                >
-
-                    <View
-                        style={
-                            styles.summaryTitleContainer
-                        }
-                    >
-
-                        <FontAwesome6
-                            name="chart-simple"
-                            size={12}
-                            color="#4A90E2"
-                        />
-
-                        <Text
-                            style={
-                                styles.summaryTitle
-                            }
-                        >
-                            Summary
-                        </Text>
-
+                <View style={styles.summaryHeader}>
+                    <View style={styles.summaryTitleContainer} >
+                        <FontAwesome6 name="chart-simple" size={12} color="#4A90E2" />
+                        <Text style={styles.summaryTitle}>Summary</Text>
                     </View>
-
-
-                    <Text
-                        style={styles.entryCount}
-                    >
-                        {gasEntries?.length || 0} Entries
-                    </Text>
-
+                    <Text style={styles.entryCount}>{expenseEntries?.length || 0} Entries </Text>
                 </View>
 
+                <View style={styles.summaryDivider} />
 
-                <View
-                    style={styles.summaryDivider}
-                />
-
-
-                <View
-                    style={styles.summaryRow}
-                >
-
+                <View style={styles.summaryRow}>
                     <View
-                        style={styles.summaryItem}
-                    >
-
-                        <Text
-                            style={styles.summaryLabel}
-                        >
-                            ENTRIES
-                        </Text>
-
-                        <Text
-                            style={styles.summaryValue}
-                        >
-                            {gasEntries?.length || 0}
-                        </Text>
-
+                        style={[styles.summaryItem, styles.amountSummaryItem,]}     >
+                        <Text style={styles.summaryLabel}> AMOUNT</Text>
+                        <Text style={styles.summaryAmount}> ₹{totals.amount}</Text>
                     </View>
 
-
-                    <View
-                        style={styles.summaryItem}
-                    >
-
-                        <Text
-                            style={styles.summaryLabel}
-                        >
-                            CASH
+                    <View style={styles.summaryItem}  >
+                        <Text style={styles.summaryLabel} > CASH </Text>
+                        <Text style={styles.summaryValue}>
+                            ₹{(expenseEntries || []).filter((item) => String(item.paytype || "").toLowerCase() === "cash").reduce((total, item) => total + Number(item.Amount || 0), 0)}
                         </Text>
-
-                        <Text
-                            style={styles.summaryValue}
-                        >
-                            ₹{(gasEntries || []).filter((item) => String(item.paytype || "").toLowerCase() === "cash").reduce((total, item) => total + Number(item.Amount || 0), 0)}
-                        </Text>
-
                     </View>
 
-
-                    <View
-                        style={styles.summaryItem}
-                    >
-
-                        <Text
-                            style={styles.summaryLabel}
-                        >
-                            UPI
+                    <View style={styles.summaryItem}  >
+                        <Text style={styles.summaryLabel} > UPI</Text>
+                        <Text style={styles.summaryValue}  >
+                            ₹{(expenseEntries || []).filter((item) => String(item.paytype || "").toLowerCase() === "upi").reduce((total, item) => total + Number(item.Amount || 0), 0)}
                         </Text>
-
-                        <Text
-                            style={styles.summaryValue}
-                        >
-                            ₹
-                            {
-                                (gasEntries || []).filter((item) => String(item.paytype || "").toLowerCase() === "upi").reduce((total, item) => total + Number(item.Amount || 0), 0)
-                            }
-                        </Text>
-
                     </View>
-
-
-                    <View
-                        style={[
-                            styles.summaryItem,
-                            styles.amountSummaryItem,
-                        ]}
-                    >
-
-                        <Text
-                            style={styles.summaryLabel}
-                        >
-                            TOTAL
-                        </Text>
-
-                        <Text
-                            style={styles.summaryAmount}
-                        >
-                            ₹{totalAmount}
-                        </Text>
-
-                    </View>
-
                 </View>
-
             </View>
-
-
-            {/* =================================================
-                TABLE
-            ================================================= */}
 
             <View style={styles.tableWrapper}>
 
-                {/* =================================================
+                {/* 
                     HORIZONTAL SCROLL
-                ================================================= */}
+                */}
 
                 <ScrollView
                     horizontal={true}
                     showsHorizontalScrollIndicator={true}
                     bounces={false}
                     nestedScrollEnabled={true}
-                    contentContainerStyle={
-                        styles.horizontalContent
-                    }
+                    contentContainerStyle={styles.horizontalContent}
                 >
 
                     <View style={styles.table}>
 
-                        {/* =====================================
-                            TABLE HEADER
-                        ===================================== */}
+                        {/* Header */}
+                        <View style={styles.tableHeader}>
 
-                        <View
-                            style={
-                                styles.tableHeader
-                            }
-                        >
-
-                            {/* CUSTOMER */}
-
-                            <View
-                                style={[
-                                    styles.headerCell,
-                                    styles.customerCell,
-                                ]}
-                            >
-
-                                <Text
-                                    style={
-                                        styles.headerText
-                                    }
-                                >
+                            {/* <View style={[styles.headerCell, styles.customerCell,]}  >
+                                <Text style={styles.headerText}>
                                     Customer
                                 </Text>
+                            </View> */}
 
-                            </View>
-
-
-                            {/* DATE */}
-
-                            <View
-                                style={[
-                                    styles.headerCell,
-                                    styles.dateCell,
-                                ]}
-                            >
-
-                                <Text
-                                    style={
-                                        styles.headerText
-                                    }
-                                >
-                                    Date
+                            <View style={[styles.headerCell, styles.customerCell,]}  >
+                                <Text style={styles.headerText}>
+                                    Expense
                                 </Text>
-
                             </View>
 
-
-                            {/* PAYMENT */}
-
-                            <View
-                                style={[
-                                    styles.headerCell,
-                                    styles.payCell,
-                                ]}
-                            >
-
-                                <Text
-                                    style={
-                                        styles.headerText
-                                    }
-                                >
+                            <View style={[styles.headerCell, styles.payCell,]}  >
+                                <Text style={styles.headerText}>
                                     Pay Mode
                                 </Text>
-
                             </View>
 
 
-                            {/* AMOUNT */}
-
-                            <View
-                                style={[
-                                    styles.headerCell,
-                                    styles.amountCell,
-                                ]}
-                            >
-
-                                <Text
-                                    style={
-                                        styles.headerText
-                                    }
-                                >
+                            <View style={[styles.headerCell, styles.amountCell,]}  >
+                                <Text style={styles.headerText} >
                                     Amount
                                 </Text>
-
                             </View>
-
-
-                            {/* EDIT */}
-
-                            {status === 0 && (
-
-                                <View
-                                    style={[
-                                        styles.headerCell,
-                                        styles.editCell,
-                                    ]}
-                                >
-
-                                    <FontAwesome6
-                                        name="pen"
-                                        size={9}
-                                        color="#69727E"
-                                    />
-
-                                </View>
-
-                            )}
 
                         </View>
 
-
-                        {/* =====================================
-                            VERTICAL SCROLL
-                        ===================================== */}
-
                         <ScrollView
-                            style={
-                                styles.verticalTableScroll
-                            }
-                            showsVerticalScrollIndicator={
-                                true
-                            }
+                            style={styles.verticalTableScroll}
+                            showsVerticalScrollIndicator={true}
                             nestedScrollEnabled={true}
                             refreshControl={
                                 <RefreshControl
-                                    refreshing={
-                                        refreshing
-                                    }
-                                    onRefresh={
-                                        onRefresh
-                                    }
+                                    refreshing={refreshing}
+                                    onRefresh={onRefresh}
                                     tintColor="#4A90E2"
-                                    colors={[
-                                        "#4A90E2",
-                                    ]}
+                                    colors={["#4A90E2",]}
                                 />
                             }
                         >
 
-                            {/* =================================
-                                DATA
-                            ================================= */}
+                            {/* DATA */}
 
-                            {gasEntries &&
-                                gasEntries.length > 0 ? (
-
-                                gasEntries.map(
-                                    (item) =>
-                                        renderEntry(item)
-                                )
-
+                            {expenseEntries && expenseEntries.length > 0 ? (
+                                expenseEntries.map((item) => renderEntry(item))
                             ) : (
-
                                 <View
-                                    style={
-                                        styles.emptyContainer
-                                    }
-                                >
+                                    style={styles.emptyContainer}  >
 
-                                    <View
-                                        style={
-                                            styles.emptyIcon
-                                        }
-                                    >
+                                    <FontAwesome6 name="clipboard-list" size={27} color="#4A90E2" />
 
-                                        <FontAwesome6
-                                            name="money-bill-transfer"
-                                            size={25}
-                                            color="#4A90E2"
-                                        />
-
-                                    </View>
-
-
-                                    <Text
-                                        style={
-                                            styles.emptyTitle
-                                        }
-                                    >
-                                        No Payment Entries
+                                    <Text style={styles.emptyTitle} >
+                                        No Expense Entries
                                     </Text>
-
-
-                                    <Text
-                                        style={
-                                            styles.emptyText
-                                        }
-                                    >
-                                        Your daily payment
+                                    <Text style={styles.emptyText}  >
+                                        Your daily Expense
                                         entries will appear
                                         here.
                                     </Text>
-
                                 </View>
-
                             )}
 
-
-
+                            {/* 
+                            {gasEntries &&
+                                gasEntries.length > 0 &&
+                                renderSumRow()} */}
 
                         </ScrollView>
 
@@ -1059,14 +463,14 @@ const PaymentEntryList = ({ navigation }) => {
 
                 </ScrollView>
 
-            </View>
+            </View >
 
 
             {/* =================================================
                 FILTER MODAL
             ================================================= */}
 
-            <Modal
+            < Modal
                 visible={showFilter}
                 transparent
                 animationType="slide"
@@ -1075,29 +479,17 @@ const PaymentEntryList = ({ navigation }) => {
                 }
             >
 
-                <View
-                    style={styles.modalOverlay}
-                >
+                <View style={styles.modalOverlay}>
 
-                    <View
-                        style={styles.filterModal}
-                    >
+                    <View style={styles.filterModal}>
 
-                        {/* =================================
-                            HEADER
-                        ================================= */}
+                        {/* HEADER */}
 
-                        <View
-                            style={styles.modalHeader}
-                        >
+                        <View style={styles.modalHeader}>
 
                             <View>
 
-                                <Text
-                                    style={
-                                        styles.modalTitle
-                                    }
-                                >
+                                <Text style={styles.modalTitle}>
                                     Filter Entries
                                 </Text>
 
@@ -1114,13 +506,9 @@ const PaymentEntryList = ({ navigation }) => {
 
 
                             <TouchableOpacity
-                                style={
-                                    styles.closeButton
-                                }
+                                style={styles.closeButton}
                                 onPress={() =>
-                                    setShowFilter(
-                                        false
-                                    )
+                                    setShowFilter(false)
                                 }
                             >
 
@@ -1135,25 +523,16 @@ const PaymentEntryList = ({ navigation }) => {
                         </View>
 
 
-                        {/* =================================
-                            FROM DATE
-                        ================================= */}
+                        {/* FROM DATE */}
 
-                        <Text
-                            style={styles.fieldLabel}
-                        >
+                        <Text style={styles.fieldLabel}>
                             From Date
                         </Text>
 
-
                         <TouchableOpacity
-                            style={
-                                styles.dateButton
-                            }
+                            style={styles.dateButton}
                             onPress={() =>
-                                setShowFromPicker(
-                                    true
-                                )
+                                setShowFromPicker(true)
                             }
                         >
 
@@ -1163,14 +542,8 @@ const PaymentEntryList = ({ navigation }) => {
                                 color="#4A90E2"
                             />
 
-                            <Text
-                                style={
-                                    styles.dateText
-                                }
-                            >
-                                {formatDate(
-                                    fromDate
-                                )}
+                            <Text style={styles.dateText}>
+                                {formatDate(fromDate)}
                             </Text>
 
                         </TouchableOpacity>
@@ -1187,18 +560,12 @@ const PaymentEntryList = ({ navigation }) => {
                                     selectedDate
                                 ) => {
 
-                                    setShowFromPicker(
-                                        false
-                                    );
+                                    setShowFromPicker(false);
 
-                                    if (
-                                        selectedDate
-                                    ) {
-
+                                    if (selectedDate) {
                                         setFromDate(
                                             selectedDate
                                         );
-
                                     }
 
                                 }}
@@ -1207,25 +574,16 @@ const PaymentEntryList = ({ navigation }) => {
                         )}
 
 
-                        {/* =================================
-                            TO DATE
-                        ================================= */}
+                        {/* TO DATE */}
 
-                        <Text
-                            style={styles.fieldLabel}
-                        >
+                        <Text style={styles.fieldLabel}>
                             To Date
                         </Text>
 
-
                         <TouchableOpacity
-                            style={
-                                styles.dateButton
-                            }
+                            style={styles.dateButton}
                             onPress={() =>
-                                setShowToPicker(
-                                    true
-                                )
+                                setShowToPicker(true)
                             }
                         >
 
@@ -1235,14 +593,8 @@ const PaymentEntryList = ({ navigation }) => {
                                 color="#4A90E2"
                             />
 
-                            <Text
-                                style={
-                                    styles.dateText
-                                }
-                            >
-                                {formatDate(
-                                    toDate
-                                )}
+                            <Text style={styles.dateText}>
+                                {formatDate(toDate)}
                             </Text>
 
                         </TouchableOpacity>
@@ -1259,18 +611,12 @@ const PaymentEntryList = ({ navigation }) => {
                                     selectedDate
                                 ) => {
 
-                                    setShowToPicker(
-                                        false
-                                    );
+                                    setShowToPicker(false);
 
-                                    if (
-                                        selectedDate
-                                    ) {
-
+                                    if (selectedDate) {
                                         setToDate(
                                             selectedDate
                                         );
-
                                     }
 
                                 }}
@@ -1279,22 +625,14 @@ const PaymentEntryList = ({ navigation }) => {
                         )}
 
 
-                        {/* =================================
-                            STATUS
-                        ================================= */}
+                        {/* STATUS */}
 
-                        <Text
-                            style={styles.fieldLabel}
-                        >
+                        <Text style={styles.fieldLabel}>
                             Status
                         </Text>
 
 
-                        <View
-                            style={
-                                styles.statusOptions
-                            }
-                        >
+                        <View style={styles.statusOptions}>
 
                             {/* PENDING */}
 
@@ -1362,7 +700,7 @@ const PaymentEntryList = ({ navigation }) => {
                                         styles.statusOptionTextActive,
                                     ]}
                                 >
-                                    Approved
+                                    Completed
                                 </Text>
 
                             </TouchableOpacity>
@@ -1447,15 +785,10 @@ const PaymentEntryList = ({ navigation }) => {
 
                             </View>
                         </>}
-
-                        {/* =================================
-                            APPLY
-                        ================================= */}
+                        {/* APPLY */}
 
                         <TouchableOpacity
-                            style={
-                                styles.applyButton
-                            }
+                            style={styles.applyButton}
                             onPress={() => {
 
                                 if (
@@ -1468,12 +801,9 @@ const PaymentEntryList = ({ navigation }) => {
                                     );
 
                                     return;
-
                                 }
 
-                                setShowFilter(
-                                    false
-                                );
+                                setShowFilter(false);
 
                                 fetchEntries();
 
@@ -1500,20 +830,20 @@ const PaymentEntryList = ({ navigation }) => {
 
                 </View>
 
-            </Modal>
+            </Modal >
+
             <ConfirmModal
                 visible={showDeleteModal}
-                title="Delete Payment?"
-                message="Are you sure you want to delete this payment? This action cannot be undone."
+                title="Delete Stock Entry?"
+                message="Are you sure you want to delete this entry? This action cannot be undone."
                 confirmText="Delete"
                 onCancel={() => setShowDeleteModal(false)}
                 onConfirm={handleDelete}
                 loading={loading}
             />
-        </SafeAreaView>
+        </SafeAreaView >
 
     );
-
 };
 
 
@@ -1539,14 +869,11 @@ const styles = StyleSheet.create({
 
     filterBar: {
         minHeight: 44,
-
         paddingHorizontal: 10,
-
         marginTop: 3,
         marginBottom: 4,
 
         flexDirection: "row",
-
         alignItems: "center",
 
         gap: 6,
@@ -1561,13 +888,11 @@ const styles = StyleSheet.create({
         borderRadius: 8,
 
         borderWidth: 1,
-
         borderColor: "#DCE8F7",
 
         backgroundColor: "#FFFFFF",
 
         flexDirection: "row",
-
         alignItems: "center",
 
         gap: 5,
@@ -1576,9 +901,7 @@ const styles = StyleSheet.create({
 
     filterButtonText: {
         fontSize: 10,
-
         fontWeight: "600",
-
         color: "#4A90E2",
     },
 
@@ -1597,13 +920,10 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
 
         borderWidth: 1,
-
         borderColor: "#E7EBF0",
 
         flexDirection: "row",
-
         alignItems: "center",
-
         justifyContent: "center",
 
         gap: 4,
@@ -1612,9 +932,7 @@ const styles = StyleSheet.create({
 
     dateBadgeText: {
         fontSize: 8,
-
         color: "#626B78",
-
         fontWeight: "600",
     },
 
@@ -1629,11 +947,9 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
 
         borderWidth: 1,
-
         borderColor: "#E7EBF0",
 
         flexDirection: "row",
-
         alignItems: "center",
 
         gap: 5,
@@ -1642,25 +958,20 @@ const styles = StyleSheet.create({
 
     statusDot: {
         width: 6,
-
         height: 6,
-
         borderRadius: 3,
     },
 
 
     statusBadgeText: {
         fontSize: 8,
-
         fontWeight: "600",
-
         color: "#555E6B",
     },
 
 
     submitIconButton: {
         width: 33,
-
         height: 33,
 
         borderRadius: 8,
@@ -1668,7 +979,6 @@ const styles = StyleSheet.create({
         backgroundColor: "#4A90E2",
 
         alignItems: "center",
-
         justifyContent: "center",
     },
 
@@ -1679,17 +989,14 @@ const styles = StyleSheet.create({
 
     summaryCard: {
         marginHorizontal: 10,
-
         marginBottom: 6,
 
         paddingHorizontal: 9,
-
         paddingVertical: 7,
 
         backgroundColor: "#FFFFFF",
 
         borderWidth: 1,
-
         borderColor: "#E2E7ED",
 
         borderRadius: 9,
@@ -1698,16 +1005,13 @@ const styles = StyleSheet.create({
 
     summaryHeader: {
         flexDirection: "row",
-
         alignItems: "center",
-
         justifyContent: "space-between",
     },
 
 
     summaryTitleContainer: {
         flexDirection: "row",
-
         alignItems: "center",
 
         gap: 5,
@@ -1716,18 +1020,14 @@ const styles = StyleSheet.create({
 
     summaryTitle: {
         fontSize: 10,
-
         fontWeight: "700",
-
         color: "#252B35",
     },
 
 
     entryCount: {
         fontSize: 8,
-
         color: "#7A8493",
-
         fontWeight: "500",
     },
 
@@ -1743,7 +1043,6 @@ const styles = StyleSheet.create({
 
     summaryRow: {
         flexDirection: "row",
-
         alignItems: "center",
     },
 
@@ -1754,7 +1053,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
 
         borderRightWidth: 1,
-
         borderRightColor: "#EEF1F4",
     },
 
@@ -1766,9 +1064,7 @@ const styles = StyleSheet.create({
 
     summaryLabel: {
         fontSize: 7,
-
         color: "#7A8493",
-
         fontWeight: "600",
 
         marginBottom: 1,
@@ -1776,42 +1072,31 @@ const styles = StyleSheet.create({
 
 
     summaryValue: {
-        fontSize: 11,
-
+        fontSize: 12,
         color: "#252B35",
-
         fontWeight: "700",
     },
 
 
     summaryAmount: {
         fontSize: 12,
-
         color: "#4A90E2",
-
-        fontWeight: "800",
+        fontWeight: "700",
     },
 
 
     // ========================================================
-    // TABLE WRAPPER
+    // TABLE
     // ========================================================
 
     tableWrapper: {
         flex: 1,
-
         marginHorizontal: 10,
-
         marginBottom: 8,
-
         backgroundColor: "#FFFFFF",
-
         borderWidth: 1,
-
         borderColor: "#C9D0D8",
-
         borderRadius: 7,
-
         overflow: "hidden",
         marginBottom: 50
     },
@@ -1829,18 +1114,16 @@ const styles = StyleSheet.create({
 
 
     // ========================================================
-    // TABLE HEADER
+    // HEADER
     // ========================================================
 
     tableHeader: {
         height: 34,
 
         flexDirection: "row",
-
         backgroundColor: "#F1F4F7",
 
         borderBottomWidth: 1,
-
         borderBottomColor: "#BFC6CE",
     },
 
@@ -1849,11 +1132,9 @@ const styles = StyleSheet.create({
         height: 34,
 
         alignItems: "center",
-
         justifyContent: "center",
 
         borderRightWidth: 1,
-
         borderRightColor: "#D2D7DD",
 
         paddingHorizontal: 3,
@@ -1876,35 +1157,22 @@ const styles = StyleSheet.create({
     // ========================================================
 
     customerCell: {
-        width: 105,
-
+        width: 100,
         alignItems: "flex-start",
-
         paddingLeft: 7,
     },
 
 
-    dateCell: {
-        width: 78,
-    },
+    numberCell: { width: 42, },
+    payCell: { width: 58 },
 
-
-    payCell: {
-        width: 65,
-    },
-
-
-    // amountCell: {
-    //     width: 50,
-    //     borderRightWidth: 0,
-    // },
     amountCell: {
         width: 60,
         borderRightWidth: 0,
         position: "relative",
         flexDirection: "row",
         justifyContent: "space-around",
-        gap: 10,
+        gap: 14,
     },
     actionButtonsRow: {
         flexDirection: "row",
@@ -1930,14 +1198,8 @@ const styles = StyleSheet.create({
         backgroundColor: "#FDEAEA", // light red bg
     },
 
-    editCell: {
-        width: 30,
-        borderRightWidth: 0,
-    },
-
-
     // ========================================================
-    // VERTICAL SCROLL
+    // VERTICAL TABLE
     // ========================================================
 
     verticalTableScroll: {
@@ -1946,33 +1208,24 @@ const styles = StyleSheet.create({
 
 
     // ========================================================
-    // TABLE ROW
+    // ROW
     // ========================================================
 
     tableRow: {
         height: 40,
-
         flexDirection: "row",
-
         backgroundColor: "#FFFFFF",
-
         borderBottomWidth: 1,
-
         borderBottomColor: "#E0E4E8",
     },
 
 
     cell: {
         height: 40,
-
         alignItems: "center",
-
         justifyContent: "center",
-
         borderRightWidth: 1,
-
         borderRightColor: "#E0E4E8",
-
         paddingHorizontal: 3,
     },
 
@@ -1989,20 +1242,19 @@ const styles = StyleSheet.create({
 
 
     entryText: {
-        fontSize: 7,
-
+        fontSize: 8.5,
+        fontWeight: "600",
         color: "#9AA2AD",
-
         marginTop: 1,
     },
 
 
-    dateText: {
-        fontSize: 8.5,
+    numberText: {
+        fontSize: 10.5,
 
-        fontWeight: "500",
+        fontWeight: "600",
 
-        color: "#555E6B",
+        color: "#252B35",
 
         textAlign: "center",
     },
@@ -2010,19 +1262,15 @@ const styles = StyleSheet.create({
 
     payText: {
         maxWidth: "100%",
-
         fontSize: 8.5,
-
-        fontWeight: "600",
-
+        fontWeight: "500",
         color: "#555E6B",
-
         textAlign: "center",
     },
 
 
     amountText: {
-        fontSize: 10,
+        fontSize: 9.5,
 
         fontWeight: "700",
 
@@ -2033,26 +1281,25 @@ const styles = StyleSheet.create({
 
 
     // ========================================================
-    // EDIT BUTTON
+    // EDIT
     // ========================================================
 
     editIconButton: {
-        width: 20,
-
-        height: 20,
-
-        borderRadius: 5,
-
+        position: "absolute",
+        right: 2,
+        // top: 2,
+        width: 18,
+        height: 18,
+        borderRadius: 4,
         backgroundColor: "#F0F7FF",
-
         alignItems: "center",
-
         justifyContent: "center",
+        marginRight: 3
     },
 
 
     // ========================================================
-    // SUM ROW
+    // SUM
     // ========================================================
 
     sumRow: {
@@ -2063,7 +1310,6 @@ const styles = StyleSheet.create({
         backgroundColor: "#F7F8FA",
 
         borderTopWidth: 1,
-
         borderTopColor: "#BFC6CE",
     },
 
@@ -2072,11 +1318,9 @@ const styles = StyleSheet.create({
         height: 40,
 
         alignItems: "center",
-
         justifyContent: "center",
 
         borderRightWidth: 1,
-
         borderRightColor: "#D9DEE4",
 
         paddingHorizontal: 3,
@@ -2085,6 +1329,15 @@ const styles = StyleSheet.create({
 
     sumText: {
         fontSize: 9,
+
+        fontWeight: "800",
+
+        color: "#252B35",
+    },
+
+
+    sumValue: {
+        fontSize: 10.5,
 
         fontWeight: "800",
 
@@ -2106,43 +1359,20 @@ const styles = StyleSheet.create({
     // ========================================================
 
     emptyContainer: {
-        width: 410,
-
         alignItems: "center",
-
         justifyContent: "center",
 
-        paddingTop: 70,
+        paddingTop: 80,
+        paddingBottom: 80,
 
-        paddingBottom: 70,
-
-        paddingHorizontal: 20,
-    },
-
-
-    emptyIcon: {
-        width: 58,
-
-        height: 58,
-
-        borderRadius: 16,
-
-        backgroundColor: "#EAF3FF",
-
-        borderWidth: 1,
-
-        borderColor: "#D8E8FA",
-
-        alignItems: "center",
-
-        justifyContent: "center",
-
-        marginBottom: 12,
+        width: 452,
     },
 
 
     emptyTitle: {
-        fontSize: 15,
+        marginTop: 10,
+
+        fontSize: 14,
 
         fontWeight: "700",
 
@@ -2178,13 +1408,10 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
 
         borderTopLeftRadius: 24,
-
         borderTopRightRadius: 24,
 
         paddingHorizontal: 20,
-
         paddingTop: 20,
-
         paddingBottom: 30,
     },
 
@@ -2220,7 +1447,6 @@ const styles = StyleSheet.create({
 
     closeButton: {
         width: 34,
-
         height: 34,
 
         borderRadius: 17,
@@ -2228,7 +1454,6 @@ const styles = StyleSheet.create({
         backgroundColor: "#F6F7F9",
 
         alignItems: "center",
-
         justifyContent: "center",
     },
 
@@ -2241,7 +1466,6 @@ const styles = StyleSheet.create({
         color: "#555E6B",
 
         marginBottom: 7,
-
         marginTop: 10,
     },
 
@@ -2357,4 +1581,4 @@ const styles = StyleSheet.create({
 });
 
 
-export default PaymentEntryList;
+export default ExpenseEntryList;

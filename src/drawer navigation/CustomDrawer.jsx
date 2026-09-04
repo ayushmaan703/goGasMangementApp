@@ -120,13 +120,13 @@ const CustomDrawer = (props) => {
                             {empName}
                         </Text>
 
-                        <View style={styles.roleContainer}>
+                        {!(currUser?.UserType == "Customer") && <View style={styles.roleContainer}>
                             <View style={styles.onlineDot} />
 
                             <Text style={styles.roleText}>
                                 {currUser?.UserType}
                             </Text>
-                        </View>
+                        </View>}
 
                     </View>
 
@@ -163,15 +163,15 @@ const CustomDrawer = (props) => {
                 />
 
                 {/* Register users */}
-                <CustomBtn
+                {!(currUser?.UserType == "Customer") && <CustomBtn
                     title="Create Customer"
                     icon="user-plus"
                     onPress={() => navigation.navigate("Home", { screen: "CreateCustomer" })}
                     isActive={activeButton === "Create Customer"}
                     setActive={setActiveButton}
                     navigation={navigation}
-                />
-                <CustomBtn
+                />}
+                {!(currUser?.UserType == "Customer") && <CustomBtn
                     title="Customer List"
                     icon="user-group"
                     // onPress={() => navigation.navigate("Home", { screen: "CustomerList" })}
@@ -179,8 +179,7 @@ const CustomDrawer = (props) => {
                     isActive={activeButton === "Customer List"}
                     setActive={setActiveButton}
                     navigation={navigation}
-                />
-
+                />}
                 {(currUser?.UserType == "User" || currUser?.UserType == "Admin") && <CustomBtn
                     title="Daily Stock Entry"
                     icon="arrow-right-arrow-left"
@@ -213,6 +212,47 @@ const CustomDrawer = (props) => {
                     setActive={setActiveButton}
                     navigation={navigation}
                 />}
+                {!(currUser?.UserType == "Customer") && <CustomBtn
+                    title="Daily Expense Entry"
+                    icon="money-bill"
+                    onPress={() => navigation.navigate("ExpenseEntry")}
+                    isActive={activeButton === "Daily Expense Entry"}
+                    setActive={setActiveButton}
+                    navigation={navigation}
+                />}
+                {!(currUser?.UserType == "Customer") && <CustomBtn
+                    title="Daily Expense Entry Logs"
+                    icon="file-invoice-dollar"
+                    onPress={() => navigation.navigate("ExpenseEntryList")}
+                    isActive={activeButton === "Daily Expense Entry Logs"}
+                    setActive={setActiveButton}
+                    navigation={navigation}
+                />}
+                {!(currUser?.UserType == "Customer") && <CustomBtn
+                    title="Complete Customer Order"
+                    icon="clipboard-check"
+                    onPress={() => navigation.navigate("ApproveCustomerOrder")}
+                    isActive={activeButton === "Complete Customer Order"}
+                    setActive={setActiveButton}
+                    navigation={navigation}
+                />}
+                {currUser?.UserType == "Customer" && <CustomBtn
+                    title="Order Cylinders"
+                    icon="bottle-water"
+                    onPress={() => navigation.navigate("Home", { screen: "CustomerOrderForm" })}
+                    isActive={activeButton === "Order Cylinders"}
+                    setActive={setActiveButton}
+                    navigation={navigation}
+                />}
+                {currUser?.UserType == "Customer" && <CustomBtn
+                    title="My Orders"
+                    icon="receipt"
+                    onPress={() => navigation.navigate("Home", { screen: "CustomerOrderList" })}
+                    isActive={activeButton === "My Orders"}
+                    setActive={setActiveButton}
+                    navigation={navigation}
+                />}
+
             </DrawerContentScrollView>
 
             <View style={styles.footer}>
