@@ -180,59 +180,59 @@ const CustomDrawer = (props) => {
                     setActive={setActiveButton}
                     navigation={navigation}
                 />}
-                {(currUser?.UserType == "User" || currUser?.UserType == "Admin") && <CustomBtn
+                {/* {(currUser?.UserType == "User" || currUser?.UserType == "Admin") && <CustomBtn
                     title="Daily Stock Entry"
                     icon="arrow-right-arrow-left"
                     onPress={() => navigation.navigate("DailyStockEntry")}
                     isActive={activeButton === "Daily Stock Entry"}
                     setActive={setActiveButton}
                     navigation={navigation}
-                />}
+                />} */}
                 {(currUser?.UserType == "User" || currUser?.UserType == "Admin") && <CustomBtn
-                    title="Daily Stock Entry Logs"
+                    title="Daily Stock"
                     icon="clipboard-list"
                     onPress={() => navigation.navigate("EntryList")}
-                    isActive={activeButton === "Daily Stock Entry Logs"}
+                    isActive={activeButton === "Daily Stock"}
                     setActive={setActiveButton}
                     navigation={navigation}
                 />}
-                {(currUser?.UserType == "User" || currUser?.UserType == "Admin") && <CustomBtn
+                {/* {(currUser?.UserType == "User" || currUser?.UserType == "Admin") && <CustomBtn
                     title="Daily Payment Entry"
                     icon="money-bill-transfer"
                     onPress={() => navigation.navigate("DailyPaymentEntry")}
                     isActive={activeButton === "Daily Payment Entry"}
                     setActive={setActiveButton}
                     navigation={navigation}
-                />}
+                />} */}
                 {currUser?.UserType == "Admin" && <CustomBtn
-                    title="Daily Payment Entry Logs"
-                    icon="clock-rotate-left"
+                    title="Daily Payments"
+                    icon="money-bill-transfer"
                     onPress={() => navigation.navigate("PaymentEntryList")}
-                    isActive={activeButton === "Daily Payment Entry Logs"}
+                    isActive={activeButton === "Daily Payments"}
                     setActive={setActiveButton}
                     navigation={navigation}
                 />}
-                {!(currUser?.UserType == "Customer") && <CustomBtn
+                {/* {!(currUser?.UserType == "Customer") && <CustomBtn
                     title="Daily Expense Entry"
                     icon="money-bill"
                     onPress={() => navigation.navigate("ExpenseEntry")}
                     isActive={activeButton === "Daily Expense Entry"}
                     setActive={setActiveButton}
                     navigation={navigation}
-                />}
+                />} */}
                 {!(currUser?.UserType == "Customer") && <CustomBtn
-                    title="Daily Expense Entry Logs"
+                    title="Daily Expenses"
                     icon="file-invoice-dollar"
                     onPress={() => navigation.navigate("ExpenseEntryList")}
-                    isActive={activeButton === "Daily Expense Entry Logs"}
+                    isActive={activeButton === "Daily Expenses "}
                     setActive={setActiveButton}
                     navigation={navigation}
                 />}
                 {!(currUser?.UserType == "Customer") && <CustomBtn
-                    title="Complete Customer Order"
+                    title="Customer Orders"
                     icon="clipboard-check"
                     onPress={() => navigation.navigate("ApproveCustomerOrder")}
-                    isActive={activeButton === "Complete Customer Order"}
+                    isActive={activeButton === "Customer Orders"}
                     setActive={setActiveButton}
                     navigation={navigation}
                 />}

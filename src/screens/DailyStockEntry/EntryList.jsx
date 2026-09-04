@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-
 import {
     View,
     Text,
@@ -15,76 +14,42 @@ import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import CustomNavBar from "../../helper/CustomNavBar";
 import { useDispatch, useSelector } from "react-redux";
-import { delDailyStockEntry, getDailyStockEntry, } from "../../store/slice/DailyStockEntry.slice";
-import { useIsFocused, } from "@react-navigation/native";
+import { delDailyStockEntry, getDailyStockEntry } from "../../store/slice/DailyStockEntry.slice";
+import { useIsFocused } from "@react-navigation/native";
 import ConfirmModal from "../../helper/ConfirmModal";
 import Toast from "react-native-toast-message";
 
-
 const formatDate = (dateString) => {
-
-    if (!dateString) return "";
-
+    if (!dateString) return "-";
     const value = String(dateString).trim();
-
-    // API examples:
-    // 8/27/2026 12:00:00
-    // 8/27/2026 12:00:00 AM
-    // 8/27/2026
-
     const match = value.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
-
     if (match) {
         const [, month, day, year] = match;
         return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`;
     }
-
     const date = new Date(dateString);
-
-    if (isNaN(date.getTime())) {
-        return dateString;
-    }
-
+    if (isNaN(date.getTime())) return dateString;
     return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
 };
 
 const formatApiDate = (date) => {
     if (!date) return null;
-
-    const months = [
-        "jan",
-        "feb",
-        "mar",
-        "apr",
-        "may",
-        "jun",
-        "jul",
-        "aug",
-        "sep",
-        "oct",
-        "nov",
-        "dec",
-    ];
-
+    const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
     const day = String(date.getDate()).padStart(2, "0");
     const month = months[date.getMonth()];
     const year = date.getFullYear();
-
     return `${day}-${month}-${year}`;
 };
 
-
 const EntryList = ({ navigation }) => {
-
     const isFocused = useIsFocused();
-
     const dispatch = useDispatch();
     const currUser = useSelector((state) => state.auth.userData);
     const gasEntries = useSelector((state) => state.dailyEntry.stockEntryList);
     const loading = useSelector((state) => state.dailyEntry.loading);
 
     const comid = currUser?.Comid;
-    const isAdmin = currUser?.UserType == "Admin"
+    const isAdmin = currUser?.UserType === "Admin";
 
     const [refreshing, setRefreshing] = useState(false);
     const [showFilter, setShowFilter] = useState(false);
@@ -97,18 +62,14 @@ const EntryList = ({ navigation }) => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [customerId, setCustomerId] = useState(null);
 
-    useEffect(() => {
-        fetchEntries();
-    }, [
-        fromDate,
-        toDate,
-        status,
-        adminApprovalstatus,
-        dispatch,
-    ]);
+    const todayStr = new Date().toDateString();
+    const isFilterActive =
+        fromDate.toDateString() !== todayStr ||
+        toDate.toDateString() !== todayStr ||
+        status !== 0 ||
+        (isAdmin && adminApprovalstatus !== 0);
 
     const fetchEntries = async () => {
-
         await dispatch(
             getDailyStockEntry({
                 FromDate: formatApiDate(fromDate),
@@ -118,1820 +79,854 @@ const EntryList = ({ navigation }) => {
                 Comid: comid,
             })
         );
+    };
 
+    useEffect(() => {
+        fetchEntries();
+    }, [fromDate, toDate, status, adminApprovalstatus, dispatch]);
+
+    const handleResetFilters = () => {
+        const today = new Date();
+        setFromDate(today);
+        setToDate(today);
+        setStatus(0);
+        setAdminApprovalStatus(0);
+        setShowFilter(false);
     };
 
     const onRefresh = async () => {
-
         setRefreshing(true);
-
         try {
             await fetchEntries();
         } finally {
             setRefreshing(false);
         }
-
     };
 
     useEffect(() => {
-
         if (isFocused) {
             onRefresh();
         }
-
     }, [isFocused]);
-
 
     const totals = (gasEntries || []).reduce(
         (acc, item) => {
-
             acc.in += Number(item.CycIn || 0);
-
             acc.out += Number(item.CycOut || 0);
-
-            acc.regulator += Number(
-                item.Regulator || 0
-            );
-
-            acc.balEmpty += Number(
-                item.BalCyc || 0
-            );
-
-            acc.amount += Number(
-                item.Amount || 0
-            );
-
+            acc.regulator += Number(item.Regulator || 0);
+            acc.balEmpty += Number(item.BalCyc || 0);
+            acc.amount += Number(item.Amount || 0);
             return acc;
-
         },
-        {
-            in: 0,
-            out: 0,
-            regulator: 0,
-            balEmpty: 0,
-            amount: 0,
-        }
+        { in: 0, out: 0, regulator: 0, balEmpty: 0, amount: 0 }
     );
 
     const handleDelete = async () => {
         const res = await dispatch(delDailyStockEntry({ comid, id: customerId }));
-        if (res.type === 'deleteDailyStockEntry/rejected') {
+        if (res.type === "deleteDailyStockEntry/rejected") {
             Toast.show({
-                type: 'customNotificationError',
-                text1: res?.error?.message || 'Error Occured',
+                type: "customNotificationError",
+                text1: res?.error?.message || "Error Occurred",
                 visibilityTime: 2000,
             });
             setShowDeleteModal(false);
             return;
-        } else {
-            Toast.show({
-                type: 'customNotificationSuccess',
-                text1: 'Daily Stock Entry Deleted Successfully',
-                visibilityTime: 2000,
-            });
-            setShowDeleteModal(false);
-            navigation.goBack();
         }
-    }
+        Toast.show({
+            type: "customNotificationSuccess",
+            text1: "Daily Stock Entry Deleted Successfully",
+            visibilityTime: 2000,
+        });
+        setShowDeleteModal(false);
+        fetchEntries();
+    };
 
-    const renderEntry = (item) => {
+    const renderEntry = (item, index) => {
+        const isEven = index % 2 === 0;
         return (
-            <View
-                key={item.EntryID}
-                style={styles.tableRow}
-            >
-
-                {/* CUSTOMER */}
-
-                <View
-                    style={[
-                        styles.cell,
-                        styles.customerCell,
-                    ]}
-                >
-
-                    <Text
-                        style={styles.customerText}
-                        numberOfLines={1}
-                    >
+            <View key={item.EntryID} style={[styles.tableRow, isEven && styles.tableRowEven]}>
+                <View style={[styles.cell, styles.colCustomer]}>
+                    <Text style={styles.customerText} numberOfLines={1}>
                         {item.Customer || "-"}
                     </Text>
-                    <Text style={styles.entryText}>#{item.EntryID}</Text>
+                    <Text style={styles.entrySubText}>ID: #{item.EntryID}</Text>
                 </View>
 
-
-                {/* IN */}
-
-                <View
-                    style={[
-                        styles.cell,
-                        styles.numberCell,
-                    ]}
-                >
-                    <Text style={styles.numberText}> {item.CycIn ?? 0} </Text>
-                </View>
-
-
-                {/* OUT */}
-
-                <View
-                    style={[
-                        styles.cell,
-                        styles.numberCell,
-                    ]}
-                >
-                    <Text style={styles.numberText}>{item.CycOut ?? 0} </Text>
-                </View>
-
-
-                {/* REGULATOR */}
-
-                {/* <View
-                    style={[
-                        styles.cell,
-                        styles.numberCell,
-                    ]}
-                >
-
-                    <Text style={styles.numberText}>
-                        {item.Regulator ?? 0}
+                <View style={[styles.cell, styles.colNum]}>
+                    <Text style={[styles.numberText, Number(item.CycIn) > 0 && styles.inAccentText]}>
+                        {item.CycIn ?? 0}
                     </Text>
-
-                </View> */}
-
-                {/* BAL EMPTY */}
-
-                <View
-                    style={[
-                        styles.cell,
-                        styles.numberCell,
-                    ]}
-                >
-                    <Text style={styles.numberText}> {item.BalCyc ?? 0} </Text>
                 </View>
 
-
-                {/* PAYMENT */}
-
-                {/* <View
-                    style={[
-                        styles.cell,
-                        styles.payCell,
-                    ]}
-                >
-
-                    <Text
-                        style={styles.payText}
-                        numberOfLines={1}
-                    >
-                        {item.PaymentMode || "-"}
+                <View style={[styles.cell, styles.colNum]}>
+                    <Text style={[styles.numberText, Number(item.CycOut) > 0 && styles.outAccentText]}>
+                        {item.CycOut ?? 0}
                     </Text>
-
-                </View> */}
-
-
-                {/* AMOUNT + EDIT + DELETE   */}
-
-                <View
-                    style={[
-                        styles.cell,
-                        styles.amountCell,
-                    ]}
-                >
-                    <View style={styles.amountRow}>
-                        <Text style={styles.amountText}>
-                            ₹{item.Amount ?? 0}
-                        </Text>
-                        {item.paytype && (
-                            <Text style={styles.entryText}>
-                                ( {item.paytype} )
-                            </Text>
-                        )}
-                    </View>
-
-                    <View style={styles.actionButtonsRow}>
-                        {/* Edit button */}
-                        {(status === 0 || (isAdmin)) && (
-                            <TouchableOpacity
-                                style={styles.editIconButtonAmt}
-                                onPress={() => {
-                                    if (status === 1) {
-                                        navigation.navigate("Home", {
-                                            screen: "AdminApprovalAndEdit",
-                                            params: {
-                                                entry: item,
-                                                isApproved: adminApprovalstatus,
-                                            },
-                                        });
-                                    } else {
-                                        navigation.navigate("DailyStockEntry", {
-                                            entry: item,
-                                            isEdit: true,
-                                        });
-                                    }
-                                }}
-                            >
-                                <FontAwesome6
-                                    name="pen-to-square"
-                                    size={12}
-                                    color="#4A90E2"
-                                />
-                            </TouchableOpacity>
-                        )}
-
-                        {/* Delete button */}
-                        {status === 0 && (
-                            <TouchableOpacity
-                                style={styles.deleteIconButton}
-                                onPress={() => { setShowDeleteModal(true); setCustomerId(item.EntryID); }}
-                            >
-                                <FontAwesome6
-                                    name="trash"
-                                    size={12}
-                                    color="#e24a4a"
-                                />
-                            </TouchableOpacity>)}
-                    </View>
-
-
                 </View>
 
-            </View >
+                <View style={[styles.cell, styles.colNum]}>
+                    <Text style={styles.numberText}>{item.BalCyc ?? 0}</Text>
+                </View>
+
+                <View style={[styles.cell, styles.colAmount]}>
+                    <Text style={styles.amountText}>
+                        ₹{Number(item.Amount || 0).toLocaleString("en-IN")}
+                    </Text>
+                    {item.paytype ? <Text style={styles.payTypeBadge}>{item.paytype}</Text> : null}
+                </View>
+
+                <View style={[styles.cell, styles.colAction]}>
+                    {(status === 0 || isAdmin) && (
+                        <TouchableOpacity
+                            style={styles.actionBtnEdit}
+                            onPress={() => {
+                                if (status === 1) {
+                                    navigation.navigate("Home", {
+                                        screen: "AdminApprovalAndEdit",
+                                        params: { entry: item, isApproved: adminApprovalstatus },
+                                    });
+                                } else {
+                                    navigation.navigate("DailyStockEntry", { entry: item, isEdit: true });
+                                }
+                            }}
+                        >
+                            <FontAwesome6 name="pen-to-square" size={11} color="#0D6EFD" />
+                        </TouchableOpacity>
+                    )}
+
+                    {status === 0 && (
+                        <TouchableOpacity
+                            style={styles.actionBtnDelete}
+                            onPress={() => {
+                                setShowDeleteModal(true);
+                                setCustomerId(item.EntryID);
+                            }}
+                        >
+                            <FontAwesome6 name="trash-can" size={11} color="#DC3545" />
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </View>
         );
     };
 
-
     return (
-
         <SafeAreaView style={styles.container}>
-
-            {/* =================================================
-                NAVBAR
-            ================================================= */}
-
-            <CustomNavBar
-                navName={"Daily Stock Entry Logs"}
-                subtitle={"View your gas transactions"}
-            />
-
-
-            {/* =================================================
-                FILTER BAR
-            ================================================= */}
+            <CustomNavBar navName="Daily Stock" subtitle="Spreadsheet Register" />
 
             <View style={styles.filterBar}>
-
-                {/* FILTER */}
-
-                <TouchableOpacity
-                    style={styles.filterButton}
-                    onPress={() =>
-                        setShowFilter(true)
-                    }
-                >
-
-                    <FontAwesome6
-                        name="filter"
-                        size={12}
-                        color="#4A90E2"
-                    />
-
-                    <Text style={styles.filterButtonText}>
-                        Filters
-                    </Text>
-
-                    <FontAwesome6
-                        name="chevron-down"
-                        size={8}
-                        color="#7A8493"
-                    />
-
+                <TouchableOpacity style={styles.filterButton} onPress={() => setShowFilter(true)}>
+                    <View style={styles.filterIconWrapper}>
+                        <FontAwesome6 name="filter" size={11} color="#0D6EFD" />
+                        {isFilterActive && <View style={styles.activeFilterIndicator} />}
+                    </View>
+                    <Text style={styles.filterButtonText}>Filters</Text>
+                    <FontAwesome6 name="chevron-down" size={8} color="#64748B" />
                 </TouchableOpacity>
 
-
-                {/* DATE */}
-
-                <View style={styles.dateBadge}>
-
-                    <FontAwesome6
-                        name="calendar-days"
-                        size={11}
-                        color="#7A8493"
-                    />
-
-                    <Text
-                        style={styles.dateBadgeText}
-                        numberOfLines={1}
-                    >
-                        {formatDate(fromDate)} -{" "}
-                        {formatDate(toDate)}
-                    </Text>
-
-                </View>
-
-
-                {/* STATUS */}
-
                 <View style={styles.statusBadge}>
-
                     <View
                         style={[
                             styles.statusDot,
-                            {
-                                backgroundColor:
-                                    status === 1
-                                        ? "#28A745"
-                                        : "#4A90E2",
-                            },
+                            { backgroundColor: status === 1 ? "#10B981" : "#0D6EFD" },
                         ]}
                     />
-
-                    <Text style={styles.statusBadgeText}>
-                        {status === 1
-                            ? "Approved"
-                            : "Pending"}
-                    </Text>
-
+                    <Text style={styles.statusBadgeText}>{status === 1 ? "Completed" : "Pending"}</Text>
                 </View>
 
+                <View style={styles.headerButtons}>
+                    {status === 0 && (
+                        <TouchableOpacity
+                            activeOpacity={0.85}
+                            style={styles.btnSecondary}
+                            onPress={() => navigation.navigate("Home", { screen: "SubmitForm" })}
+                        >
+                            <FontAwesome6 name="paper-plane" size={10} color="#0D6EFD" />
+                            <Text style={styles.btnSecondaryText}>Submit</Text>
+                        </TouchableOpacity>
+                    )}
 
-                {/* SUBMIT */}
-
-                {status === 0 && (
                     <TouchableOpacity
-                        style={styles.submitIconButton}
-                        onPress={() => {
-
-                            navigation.navigate(
-                                "Home",
-                                {
-                                    screen: "SubmitForm",
-                                }
-                            );
-
-                        }}
+                        activeOpacity={0.85}
+                        style={styles.btnPrimary}
+                        onPress={() => navigation.navigate("DailyStockEntry")}
                     >
-
-                        <FontAwesome6
-                            name="paper-plane"
-                            size={12}
-                            color="#FFFFFF"
-                        />
-
-                    </TouchableOpacity>)}
-
+                        <FontAwesome6 name="plus" size={11} color="#FFFFFF" />
+                        <Text style={styles.btnPrimaryText}>Create</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
-
-            {/* =================================================
-                SUMMARY
-            ================================================= */}
-
-            <View style={styles.summaryCard}>
-
-                <View style={styles.summaryHeader}>
-
-                    <View
-                        style={
-                            styles.summaryTitleContainer
-                        }
-                    >
-
-                        <FontAwesome6
-                            name="chart-simple"
-                            size={12}
-                            color="#4A90E2"
-                        />
-
-                        <Text style={styles.summaryTitle}>
-                            Summary
-                        </Text>
-
-                    </View>
-
-
-                    <Text style={styles.entryCount}>
-                        {gasEntries?.length || 0} Entries
+            <View style={styles.summaryBar}>
+                <View style={styles.summaryBox}>
+                    <Text style={styles.summaryBoxLabel}>TOTAL IN</Text>
+                    <Text style={[styles.summaryBoxVal, styles.inAccentText]}>{totals.in}</Text>
+                </View>
+                <View style={styles.summaryBox}>
+                    <Text style={styles.summaryBoxLabel}>TOTAL OUT</Text>
+                    <Text style={[styles.summaryBoxVal, styles.outAccentText]}>{totals.out}</Text>
+                </View>
+                <View style={styles.summaryBox}>
+                    <Text style={styles.summaryBoxLabel}>REGULATOR</Text>
+                    <Text style={styles.summaryBoxVal}>{totals.regulator}</Text>
+                </View>
+                <View style={[styles.summaryBox, styles.summaryBoxHighlight]}>
+                    <Text style={[styles.summaryBoxLabel, styles.summaryHighlightLabel]}>TOTAL AMOUNT</Text>
+                    <Text style={styles.summaryHighlightVal}>
+                        ₹{Number(totals.amount).toLocaleString("en-IN")}
                     </Text>
-
                 </View>
-
-
-                <View style={styles.summaryDivider} />
-
-
-                <View style={styles.summaryRow}>
-
-                    <View style={styles.summaryItem}>
-
-                        <Text style={styles.summaryLabel}>
-                            IN
-                        </Text>
-
-                        <Text style={styles.summaryValue}>
-                            {totals.in}
-                        </Text>
-
-                    </View>
-
-
-                    <View style={styles.summaryItem}>
-
-                        <Text style={styles.summaryLabel}>
-                            OUT
-                        </Text>
-
-                        <Text style={styles.summaryValue}>
-                            {totals.out}
-                        </Text>
-
-                    </View>
-
-
-                    <View style={styles.summaryItem}>
-
-                        <Text style={styles.summaryLabel}>
-                            REG
-                        </Text>
-
-                        <Text style={styles.summaryValue}>
-                            {totals.regulator}
-                        </Text>
-
-                    </View>
-
-
-                    {/* <View style={styles.summaryItem}>
-
-                        <Text style={styles.summaryLabel}>
-                            BAL
-                        </Text>
-
-                        <Text style={styles.summaryValue}>
-                            {totals.balEmpty}
-                        </Text>
-
-                    </View> */}
-
-
-                    <View
-                        style={[
-                            styles.summaryItem,
-                            styles.amountSummaryItem,
-                        ]}
-                    >
-
-                        <Text style={styles.summaryLabel}>
-                            AMOUNT
-                        </Text>
-
-                        <Text style={styles.summaryAmount}>
-                            ₹{totals.amount}
-                        </Text>
-
-                    </View>
-
-                </View>
-
             </View>
 
-
-            {/* =================================================
-                TABLE
-            ================================================= */}
-
-            <View style={styles.tableWrapper}>
-
-                {/* 
-                    HORIZONTAL SCROLL
-                */}
-
+            <View style={styles.gridContainer}>
                 <ScrollView
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={true}
+                    horizontal
+                    showsHorizontalScrollIndicator
                     bounces={false}
-                    nestedScrollEnabled={true}
-                    contentContainerStyle={
-                        styles.horizontalContent
-                    }
+                    contentContainerStyle={styles.horizontalScrollContent}
                 >
-
-                    <View style={styles.table}>
-
-                        {/* =====================================
-                            HEADER
-                        ===================================== */}
-
-                        <View style={styles.tableHeader}>
-
-                            <View
-                                style={[
-                                    styles.headerCell,
-                                    styles.customerCell,
-                                ]}
-                            >
-
-                                <Text
-                                    style={styles.headerText}
-                                >
-                                    Customer
-                                </Text>
-
+                    <View style={styles.sheetTable}>
+                        <View style={styles.gridHeaderRow}>
+                            <View style={[styles.headerCol, styles.colCustomer]}>
+                                <Text style={styles.headerLabel}>CUSTOMER</Text>
                             </View>
-
-
-                            <View
-                                style={[
-                                    styles.headerCell,
-                                    styles.numberCell,
-                                ]}
-                            >
-
-                                <Text
-                                    style={styles.headerText}
-                                >
-                                    IN
-                                </Text>
-
+                            <View style={[styles.headerCol, styles.colNum]}>
+                                <Text style={styles.headerLabel}>IN</Text>
                             </View>
-
-
-                            <View
-                                style={[
-                                    styles.headerCell,
-                                    styles.numberCell,
-                                ]}
-                            >
-
-                                <Text
-                                    style={styles.headerText}
-                                >
-                                    Out
-                                </Text>
-
+                            <View style={[styles.headerCol, styles.colNum]}>
+                                <Text style={styles.headerLabel}>OUT</Text>
                             </View>
-
-
-                            {/* <View
-                                style={[
-                                    styles.headerCell,
-                                    styles.numberCell,
-                                ]}
-                            >
-
-                                <Text
-                                    style={styles.headerText}
-                                >
-                                    Reg
-                                </Text>
-
-                            </View> */}
-
-
-                            <View
-                                style={[
-                                    styles.headerCell,
-                                    styles.numberCell,
-                                ]}
-                            >
-
-                                <Text
-                                    style={styles.headerText}
-                                >
-                                    Bal
-                                </Text>
-
+                            <View style={[styles.headerCol, styles.colNum]}>
+                                <Text style={styles.headerLabel}>BAL</Text>
                             </View>
-
-
-                            {/* <View
-                                style={[
-                                    styles.headerCell,
-                                    styles.payCell,
-                                ]}
-                            >
-
-                                <Text
-                                    style={styles.headerText}
-                                >
-                                    Pay
-                                </Text>
-
-                            </View> */}
-
-
-                            <View
-                                style={[
-                                    styles.headerCell,
-                                    styles.amountCell,
-                                ]}
-                            >
-
-                                <Text
-                                    style={styles.headerText}
-                                >
-                                    Amount
-                                </Text>
-
+                            <View style={[styles.headerCol, styles.colAmount]}>
+                                <Text style={styles.headerLabel}>AMOUNT</Text>
                             </View>
-
+                            <View style={[styles.headerCol, styles.colAction]}>
+                                <Text style={styles.headerLabel}>ACTION</Text>
+                            </View>
                         </View>
 
-
-                        {/* =====================================
-                            VERTICAL SCROLL
-                        ===================================== */}
-
                         <ScrollView
-                            style={styles.verticalTableScroll}
-                            showsVerticalScrollIndicator={true}
-                            nestedScrollEnabled={true}
+                            style={styles.gridBodyScroll}
+                            showsVerticalScrollIndicator
+                            nestedScrollEnabled
                             refreshControl={
                                 <RefreshControl
                                     refreshing={refreshing}
                                     onRefresh={onRefresh}
-                                    tintColor="#4A90E2"
-                                    colors={[
-                                        "#4A90E2",
-                                    ]}
+                                    tintColor="#0D6EFD"
+                                    colors={["#0D6EFD"]}
                                 />
                             }
                         >
-
-                            {/* DATA */}
-
                             {gasEntries && gasEntries.length > 0 ? (
-
-                                gasEntries.map((item) =>
-                                    renderEntry(item)
-                                )
-
+                                gasEntries.map((item, index) => renderEntry(item, index))
                             ) : (
-
-                                <View
-                                    style={
-                                        styles.emptyContainer
-                                    }
-                                >
-
-                                    <FontAwesome6
-                                        name="clipboard-list"
-                                        size={27}
-                                        color="#4A90E2"
-                                    />
-
-                                    <Text
-                                        style={
-                                            styles.emptyTitle
-                                        }
-                                    >
-                                        No Stock Entries
-                                    </Text>
-
-                                    <Text
-                                        style={
-                                            styles.emptyText
-                                        }
-                                    >
-                                        Your daily stock
-                                        entries will appear
-                                        here.
-                                    </Text>
-
+                                <View style={styles.emptyView}>
+                                    <View style={styles.emptyIconWrap}>
+                                        <FontAwesome6 name="table" size={22} color="#0D6EFD" />
+                                    </View>
+                                    <Text style={styles.emptyTitle}>No Records Found</Text>
+                                    <Text style={styles.emptySubtitle}>Tap 'Create' above to add stock entries.</Text>
                                 </View>
-
                             )}
-
-
-
-                            {/* 
-                            {gasEntries &&
-                                gasEntries.length > 0 &&
-                                renderSumRow()} */}
-
                         </ScrollView>
-
                     </View>
-
                 </ScrollView>
-
             </View>
-
-
-            {/* =================================================
-                FILTER MODAL
-            ================================================= */}
 
             <Modal
                 visible={showFilter}
                 transparent
-                animationType="slide"
-                onRequestClose={() =>
-                    setShowFilter(false)
-                }
+                animationType="fade"
+                onRequestClose={() => setShowFilter(false)}
             >
-
-                <View style={styles.modalOverlay}>
-
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowFilter(false)}
+                >
                     <View style={styles.filterModal}>
-
-                        {/* HEADER */}
-
                         <View style={styles.modalHeader}>
-
                             <View>
-
-                                <Text style={styles.modalTitle}>
-                                    Filter Entries
-                                </Text>
-
-                                <Text
-                                    style={
-                                        styles.modalSubtitle
-                                    }
-                                >
-                                    Select date range and
-                                    status
-                                </Text>
-
+                                <Text style={styles.modalTitle}>Filter Register</Text>
+                                <Text style={styles.modalSubtitle}>Configure scope and entry statuses</Text>
                             </View>
-
-
-                            <TouchableOpacity
-                                style={styles.closeButton}
-                                onPress={() =>
-                                    setShowFilter(false)
-                                }
-                            >
-
-                                <FontAwesome6
-                                    name="xmark"
-                                    size={16}
-                                    color="#555"
-                                />
-
+                            <TouchableOpacity style={styles.closeBtn} onPress={() => setShowFilter(false)}>
+                                <FontAwesome6 name="xmark" size={14} color="#64748B" />
                             </TouchableOpacity>
-
                         </View>
 
-
-                        {/* FROM DATE */}
-
-                        <Text style={styles.fieldLabel}>
-                            From Date
-                        </Text>
-
-                        <TouchableOpacity
-                            style={styles.dateButton}
-                            onPress={() =>
-                                setShowFromPicker(true)
-                            }
-                        >
-
-                            <FontAwesome6
-                                name="calendar-days"
-                                size={15}
-                                color="#4A90E2"
-                            />
-
-                            <Text style={styles.dateText}>
-                                {formatDate(fromDate)}
-                            </Text>
-
+                        <Text style={styles.filterSectionLabel}>FROM DATE</Text>
+                        <TouchableOpacity style={styles.datePickerBtn} onPress={() => setShowFromPicker(true)}>
+                            <FontAwesome6 name="calendar-days" size={13} color="#0D6EFD" />
+                            <Text style={styles.datePickerText}>{formatDate(fromDate)}</Text>
                         </TouchableOpacity>
 
-
                         {showFromPicker && (
-
                             <DateTimePicker
                                 value={fromDate}
                                 mode="date"
                                 display="default"
-                                onChange={(
-                                    event,
-                                    selectedDate
-                                ) => {
-
+                                onChange={(event, selectedDate) => {
                                     setShowFromPicker(false);
-
-                                    if (selectedDate) {
-                                        setFromDate(
-                                            selectedDate
-                                        );
-                                    }
-
+                                    if (selectedDate) setFromDate(selectedDate);
                                 }}
                             />
-
                         )}
 
-
-                        {/* TO DATE */}
-
-                        <Text style={styles.fieldLabel}>
-                            To Date
-                        </Text>
-
-                        <TouchableOpacity
-                            style={styles.dateButton}
-                            onPress={() =>
-                                setShowToPicker(true)
-                            }
-                        >
-
-                            <FontAwesome6
-                                name="calendar-days"
-                                size={15}
-                                color="#4A90E2"
-                            />
-
-                            <Text style={styles.dateText}>
-                                {formatDate(toDate)}
-                            </Text>
-
+                        <Text style={styles.filterSectionLabel}>TO DATE</Text>
+                        <TouchableOpacity style={styles.datePickerBtn} onPress={() => setShowToPicker(true)}>
+                            <FontAwesome6 name="calendar-days" size={13} color="#0D6EFD" />
+                            <Text style={styles.datePickerText}>{formatDate(toDate)}</Text>
                         </TouchableOpacity>
 
-
                         {showToPicker && (
-
                             <DateTimePicker
                                 value={toDate}
                                 mode="date"
                                 display="default"
-                                onChange={(
-                                    event,
-                                    selectedDate
-                                ) => {
-
+                                onChange={(event, selectedDate) => {
                                     setShowToPicker(false);
-
-                                    if (selectedDate) {
-                                        setToDate(
-                                            selectedDate
-                                        );
-                                    }
-
+                                    if (selectedDate) setToDate(selectedDate);
                                 }}
                             />
-
                         )}
 
-
-                        {/* STATUS */}
-
-                        <Text style={styles.fieldLabel}>
-                            Status
-                        </Text>
-
-
-                        <View style={styles.statusOptions}>
-
-                            {/* PENDING */}
-
+                        <Text style={styles.filterSectionLabel}>ENTRY STATUS</Text>
+                        <View style={styles.segmentedRow}>
                             <TouchableOpacity
-                                style={[
-                                    styles.statusOption,
-                                    status === 0 &&
-                                    styles.statusOptionActive,
-                                ]}
-                                onPress={() =>
-                                    setStatus(0)
-                                }
+                                style={[styles.segmentBtn, status === 0 && styles.segmentBtnActive]}
+                                onPress={() => setStatus(0)}
                             >
-
-                                <FontAwesome6
-                                    name="clock"
-                                    size={14}
-                                    color={
-                                        status === 0
-                                            ? "#4A90E2"
-                                            : "#7A8493"
-                                    }
-                                />
-
-                                <Text
-                                    style={[
-                                        styles.statusOptionText,
-                                        status === 0 &&
-                                        styles.statusOptionTextActive,
-                                    ]}
-                                >
+                                <Text style={[styles.segmentText, status === 0 && styles.segmentTextActive]}>
                                     Pending
                                 </Text>
-
                             </TouchableOpacity>
-
-
-                            {/* APPROVED */}
-
                             <TouchableOpacity
-                                style={[
-                                    styles.statusOption,
-                                    status === 1 &&
-                                    styles.statusOptionActive,
-                                ]}
-                                onPress={() =>
-                                    setStatus(1)
-                                }
+                                style={[styles.segmentBtn, status === 1 && styles.segmentBtnActive]}
+                                onPress={() => setStatus(1)}
                             >
-
-                                <FontAwesome6
-                                    name="circle-check"
-                                    size={14}
-                                    color={
-                                        status === 1
-                                            ? "#28A745"
-                                            : "#7A8493"
-                                    }
-                                />
-
-                                <Text
-                                    style={[
-                                        styles.statusOptionText,
-                                        status === 1 &&
-                                        styles.statusOptionTextActive,
-                                    ]}
-                                >
+                                <Text style={[styles.segmentText, status === 1 && styles.segmentTextActive]}>
                                     Completed
                                 </Text>
+                            </TouchableOpacity>
+                        </View>
 
+                        {isAdmin && (
+                            <>
+                                <Text style={styles.filterSectionLabel}>ADMIN APPROVAL</Text>
+                                <View style={styles.segmentedRow}>
+                                    <TouchableOpacity
+                                        style={[styles.segmentBtn, adminApprovalstatus === 0 && styles.segmentBtnActive]}
+                                        onPress={() => setAdminApprovalStatus(0)}
+                                    >
+                                        <Text
+                                            style={[
+                                                styles.segmentText,
+                                                adminApprovalstatus === 0 && styles.segmentTextActive,
+                                            ]}
+                                        >
+                                            Pending
+                                        </Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={[styles.segmentBtn, adminApprovalstatus === 1 && styles.segmentBtnActive]}
+                                        onPress={() => setAdminApprovalStatus(1)}
+                                    >
+                                        <Text
+                                            style={[
+                                                styles.segmentText,
+                                                adminApprovalstatus === 1 && styles.segmentTextActive,
+                                            ]}
+                                        >
+                                            Approved
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </>
+                        )}
+
+                        <View style={styles.modalActionRow}>
+                            <TouchableOpacity style={styles.resetBtn} onPress={handleResetFilters}>
+                                <FontAwesome6 name="rotate-left" size={11} color="#64748B" />
+                                <Text style={styles.resetBtnText}>Reset</Text>
                             </TouchableOpacity>
 
-                        </View>
-                        {isAdmin && <>
-                            <Text style={styles.fieldLabel}>
-                                Admin Approval
-                            </Text>
-                            <View style={styles.statusOptions}>
-
-                                {/* PENDING */}
-
-                                <TouchableOpacity
-                                    style={[
-                                        styles.statusOption,
-                                        adminApprovalstatus === 0 &&
-                                        styles.statusOptionActive,
-                                    ]}
-                                    onPress={() =>
-                                        setAdminApprovalStatus(0)
+                            <TouchableOpacity
+                                style={styles.applyBtn}
+                                onPress={() => {
+                                    if (fromDate > toDate) {
+                                        Alert.alert("Invalid Range", "From date cannot precede To date.");
+                                        return;
                                     }
-                                >
-
-                                    <FontAwesome6
-                                        name="clock"
-                                        size={14}
-                                        color={
-                                            status === 0
-                                                ? "#4A90E2"
-                                                : "#7A8493"
-                                        }
-                                    />
-
-                                    <Text
-                                        style={[
-                                            styles.statusOptionText,
-                                            status === 0 &&
-                                            styles.statusOptionTextActive,
-                                        ]}
-                                    >
-                                        Pending
-                                    </Text>
-
-                                </TouchableOpacity>
-
-
-                                {/* APPROVED */}
-
-                                <TouchableOpacity
-                                    style={[
-                                        styles.statusOption,
-                                        adminApprovalstatus === 1 &&
-                                        styles.statusOptionActive,
-                                    ]}
-                                    onPress={() =>
-                                        setAdminApprovalStatus(1)
-                                    }
-                                >
-
-                                    <FontAwesome6
-                                        name="circle-check"
-                                        size={14}
-                                        color={
-                                            status === 1
-                                                ? "#28A745"
-                                                : "#7A8493"
-                                        }
-                                    />
-
-                                    <Text
-                                        style={[
-                                            styles.statusOptionText,
-                                            status === 1 &&
-                                            styles.statusOptionTextActive,
-                                        ]}
-                                    >
-                                        Approved
-                                    </Text>
-
-                                </TouchableOpacity>
-
-                            </View>
-                        </>}
-                        {/* APPLY */}
-
-                        <TouchableOpacity
-                            style={styles.applyButton}
-                            onPress={() => {
-
-                                if (
-                                    fromDate > toDate
-                                ) {
-
-                                    Alert.alert(
-                                        "Invalid Date Range",
-                                        "From Date cannot be after To Date."
-                                    );
-
-                                    return;
-                                }
-
-                                setShowFilter(false);
-
-                                fetchEntries();
-
-                            }}
-                        >
-
-                            <FontAwesome6
-                                name="filter"
-                                size={14}
-                                color="#FFFFFF"
-                            />
-
-                            <Text
-                                style={
-                                    styles.applyButtonText
-                                }
+                                    setShowFilter(false);
+                                    fetchEntries();
+                                }}
                             >
-                                Apply Filters
-                            </Text>
-
-                        </TouchableOpacity>
-
+                                <FontAwesome6 name="check" size={13} color="#FFFFFF" />
+                                <Text style={styles.applyBtnText}>Apply Filter</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
-
-                </View>
-
+                </TouchableOpacity>
             </Modal>
 
             <ConfirmModal
                 visible={showDeleteModal}
-                title="Delete Stock Entry?"
-                message="Are you sure you want to delete this entry? This action cannot be undone."
+                title="Delete Entry"
+                message="Are you sure you want to permanently delete this stock entry?"
                 confirmText="Delete"
                 onCancel={() => setShowDeleteModal(false)}
                 onConfirm={handleDelete}
                 loading={loading}
             />
-        </SafeAreaView >
-
+        </SafeAreaView>
     );
 };
 
-
-// ============================================================
-// STYLES
-// ============================================================
-
 const styles = StyleSheet.create({
-
-    // ========================================================
-    // CONTAINER
-    // ========================================================
-
     container: {
         flex: 1,
-        backgroundColor: "#F6F9FD",
+        backgroundColor: "#F8FAFC",
     },
-
-
-    // ========================================================
-    // FILTER BAR
-    // ========================================================
-
     filterBar: {
-        minHeight: 44,
         paddingHorizontal: 10,
-        marginTop: 3,
-        marginBottom: 4,
-
+        marginTop: 16,
+        marginBottom: 10,
         flexDirection: "row",
         alignItems: "center",
-
         gap: 6,
     },
-
-
     filterButton: {
-        height: 33,
-
-        paddingHorizontal: 8,
-
-        borderRadius: 8,
-
+        height: 32,
+        paddingHorizontal: 10,
+        borderRadius: 6,
         borderWidth: 1,
-        borderColor: "#DCE8F7",
-
-        backgroundColor: "#FFFFFF",
-
+        borderColor: "#BFDBFE",
+        backgroundColor: "#EFF6FF",
         flexDirection: "row",
         alignItems: "center",
-
-        gap: 5,
+        gap: 6,
     },
-
-
-    filterButtonText: {
-        fontSize: 10,
-        fontWeight: "600",
-        color: "#4A90E2",
-    },
-
-
-    dateBadge: {
-        flex: 1,
-
-        minWidth: 0,
-
-        height: 33,
-
-        paddingHorizontal: 6,
-
-        borderRadius: 8,
-
-        backgroundColor: "#FFFFFF",
-
-        borderWidth: 1,
-        borderColor: "#E7EBF0",
-
-        flexDirection: "row",
-        alignItems: "center",
+    filterIconWrapper: {
+        position: "relative",
         justifyContent: "center",
-
-        gap: 4,
-    },
-
-
-    dateBadgeText: {
-        fontSize: 8,
-        color: "#626B78",
-        fontWeight: "600",
-    },
-
-
-    statusBadge: {
-        height: 33,
-
-        paddingHorizontal: 7,
-
-        borderRadius: 8,
-
-        backgroundColor: "#FFFFFF",
-
-        borderWidth: 1,
-        borderColor: "#E7EBF0",
-
-        flexDirection: "row",
         alignItems: "center",
-
-        gap: 5,
     },
-
-
-    statusDot: {
+    activeFilterIndicator: {
+        position: "absolute",
+        top: -2,
+        right: -3,
         width: 6,
         height: 6,
         borderRadius: 3,
-    },
-
-
-    statusBadgeText: {
-        fontSize: 8,
-        fontWeight: "600",
-        color: "#555E6B",
-    },
-
-
-    submitIconButton: {
-        width: 33,
-        height: 33,
-
-        borderRadius: 8,
-
-        backgroundColor: "#4A90E2",
-
-        alignItems: "center",
-        justifyContent: "center",
-    },
-
-
-    // ========================================================
-    // SUMMARY
-    // ========================================================
-
-    summaryCard: {
-        marginHorizontal: 10,
-        marginBottom: 6,
-
-        paddingHorizontal: 9,
-        paddingVertical: 7,
-
-        backgroundColor: "#FFFFFF",
-
+        backgroundColor: "#EF4444",
         borderWidth: 1,
-        borderColor: "#E2E7ED",
-
-        borderRadius: 9,
+        borderColor: "#EFF6FF",
     },
-
-
-    summaryHeader: {
+    filterButtonText: {
+        fontSize: 11,
+        fontWeight: "600",
+        color: "#0D6EFD",
+    },
+    statusBadge: {
+        height: 32,
+        paddingHorizontal: 9,
+        borderRadius: 6,
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#E2E8F0",
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-between",
-    },
-
-
-    summaryTitleContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-
         gap: 5,
     },
-
-
-    summaryTitle: {
+    statusDot: {
+        width: 7,
+        height: 7,
+        borderRadius: 3.5,
+    },
+    statusBadgeText: {
         fontSize: 10,
-        fontWeight: "700",
-        color: "#252B35",
+        fontWeight: "600",
+        color: "#475569",
     },
-
-
-    entryCount: {
-        fontSize: 8,
-        color: "#7A8493",
-        fontWeight: "500",
+    headerButtons: {
+        flex: 1,
+        flexDirection: "row",
+        justifyContent: "flex-end",
+        gap: 6,
     },
-
-
-    summaryDivider: {
-        height: 1,
-
-        backgroundColor: "#EEF1F4",
-
-        marginVertical: 6,
-    },
-
-
-    summaryRow: {
+    btnSecondary: {
+        height: 32,
+        paddingHorizontal: 10,
+        borderRadius: 6,
+        backgroundColor: "#EFF6FF",
+        borderWidth: 1,
+        borderColor: "#BFDBFE",
         flexDirection: "row",
         alignItems: "center",
+        gap: 5,
     },
-
-
-    summaryItem: {
-        flex: 1,
-
-        alignItems: "center",
-
-        borderRightWidth: 1,
-        borderRightColor: "#EEF1F4",
-    },
-
-
-    amountSummaryItem: {
-        borderRightWidth: 0,
-    },
-
-
-    summaryLabel: {
-        fontSize: 7,
-        color: "#7A8493",
+    btnSecondaryText: {
+        fontSize: 11,
         fontWeight: "600",
-
-        marginBottom: 1,
+        color: "#0D6EFD",
     },
-
-
-    summaryValue: {
-        fontSize: 12,
-        color: "#252B35",
+    btnPrimary: {
+        height: 32,
+        paddingHorizontal: 12,
+        borderRadius: 6,
+        backgroundColor: "#0D6EFD",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 5,
+    },
+    btnPrimaryText: {
+        fontSize: 11,
         fontWeight: "700",
+        color: "#FFFFFF",
     },
-
-
-    summaryAmount: {
-        fontSize: 12,
-        color: "#4A90E2",
-        fontWeight: "700",
-    },
-
-
-    // ========================================================
-    // TABLE
-    // ========================================================
-
-    tableWrapper: {
-        flex: 1,
+    summaryBar: {
         marginHorizontal: 10,
         marginBottom: 8,
         backgroundColor: "#FFFFFF",
         borderWidth: 1,
-        borderColor: "#C9D0D8",
-        borderRadius: 7,
+        borderColor: "#CBD5E1",
+        borderRadius: 6,
+        flexDirection: "row",
         overflow: "hidden",
-        marginBottom: 50
     },
-
-
-    horizontalContent: {
+    summaryBox: {
+        flex: 1,
+        paddingVertical: 6,
+        alignItems: "center",
+        borderRightWidth: 1,
+        borderRightColor: "#E2E8F0",
+        backgroundColor: "#FFFFFF",
+    },
+    summaryBoxHighlight: {
+        flex: 1.3,
+        borderRightWidth: 0,
+        backgroundColor: "#F0F7FF",
+    },
+    summaryBoxLabel: {
+        fontSize: 8,
+        fontWeight: "700",
+        color: "#64748B",
+        letterSpacing: 0.5,
+        marginBottom: 1,
+    },
+    summaryHighlightLabel: {
+        color: "#0D6EFD",
+    },
+    summaryBoxVal: {
+        fontSize: 11,
+        fontWeight: "700",
+        color: "#0F172A",
+    },
+    summaryHighlightVal: {
+        fontSize: 12,
+        fontWeight: "800",
+        color: "#0D6EFD",
+    },
+    inAccentText: {
+        color: "#059669",
+    },
+    outAccentText: {
+        color: "#DC2626",
+    },
+    gridContainer: {
+        flex: 1,
+        marginHorizontal: 10,
+        marginBottom: 12,
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#94A3B8",
+        borderRadius: 6,
+        overflow: "hidden",
+        marginBottom: 50,
+    },
+    horizontalScrollContent: {
         flexGrow: 1,
     },
-
-
-    table: {
-        width: "100%",
+    sheetTable: {
+        minWidth: "100%",
         flex: 1,
-
     },
-
-
-    // ========================================================
-    // HEADER
-    // ========================================================
-
-    tableHeader: {
-        height: 34,
+    gridHeaderRow: {
+        height: 32,
         flexDirection: "row",
-        backgroundColor: "#F1F4F7",
-        borderBottomWidth: 1,
-        borderBottomColor: "#BFC6CE",
-
+        backgroundColor: "#E2E8F0",
+        borderBottomWidth: 1.5,
+        borderBottomColor: "#94A3B8",
     },
-
-
-    headerCell: {
-        height: 34,
-
+    headerCol: {
+        height: 32,
         alignItems: "center",
         justifyContent: "center",
-
         borderRightWidth: 1,
-        borderRightColor: "#D2D7DD",
-
-        paddingHorizontal: 3,
+        borderRightColor: "#CBD5E1",
+        paddingHorizontal: 6,
     },
-
-
-    headerText: {
-        fontSize: 8.5,
-
-        fontWeight: "700",
-
-        color: "#3F4650",
-
-        textAlign: "center",
+    headerLabel: {
+        fontSize: 9,
+        fontWeight: "800",
+        color: "#1E293B",
+        letterSpacing: 0.4,
     },
-
-
-    // ========================================================
-    // COLUMNS
-    // ========================================================
-
-    customerCell: {
+    gridBodyScroll: {
+        flex: 1,
+    },
+    tableRow: {
+        height: 38,
+        flexDirection: "row",
+        backgroundColor: "#FFFFFF",
+        borderBottomWidth: 1,
+        borderBottomColor: "#E2E8F0",
+    },
+    tableRowEven: {
+        backgroundColor: "#F8FAFC",
+    },
+    cell: {
+        height: 38,
+        alignItems: "center",
+        justifyContent: "center",
+        borderRightWidth: 1,
+        borderRightColor: "#E2E8F0",
+        paddingHorizontal: 6,
+    },
+    colCustomer: {
         width: 100,
         alignItems: "flex-start",
-        paddingLeft: 7,
+        paddingLeft: 8,
     },
-
-
-    numberCell: { width: 42, },
-    payCell: { width: 58 },
-
-    amountCell: {
-        width: 60,
+    colNum: {
+        width: 32,
+    },
+    colAmount: {
+        width: 55,
+        alignItems: "flex-end",
+        paddingRight: 8,
+    },
+    colAction: {
+        width: 70,
+        flexDirection: "row",
+        gap: 6,
         borderRightWidth: 0,
-        position: "relative",
-        flexDirection: "row",
-        justifyContent: "space-around",
-        gap: 14,
     },
-    actionButtonsRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 8, // if RN version < 0.71, use marginRight/marginLeft trick below instead
-        marginTop: 4,
-    },
-    editIconButtonAmt: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#EAF2FE", // light blue bg to make it feel like a real button
-    },
-    deleteIconButton: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#FDEAEA", // light red bg
-    },
-
-    // ========================================================
-    // VERTICAL TABLE
-    // ========================================================
-
-    verticalTableScroll: {
-        flex: 1,
-        // marginBottom: 20
-    },
-
-
-    // ========================================================
-    // ROW
-    // ========================================================
-
-    tableRow: {
-        height: 40,
-        flexDirection: "row",
-        backgroundColor: "#FFFFFF",
-        borderBottomWidth: 1,
-        borderBottomColor: "#E0E4E8",
-    },
-
-
-    cell: {
-        height: 40,
-        alignItems: "center",
-        justifyContent: "center",
-        borderRightWidth: 1,
-        borderRightColor: "#E0E4E8",
-        paddingHorizontal: 3,
-    },
-
-
     customerText: {
         width: "100%",
-
-        fontSize: 10,
-
+        fontSize: 11,
         fontWeight: "600",
-
-        color: "#252B35",
+        color: "#0F172A",
     },
-
-
-    entryText: {
-        fontSize: 8.5,
-        fontWeight: "600",
-        color: "#9AA2AD",
-        marginTop: 1,
+    entrySubText: {
+        fontSize: 8,
+        fontWeight: "500",
+        color: "#64748B",
     },
-
-
     numberText: {
         fontSize: 10.5,
-
-        fontWeight: "600",
-
-        color: "#252B35",
-
-        textAlign: "center",
+        fontWeight: "700",
+        color: "#0F172A",
     },
-
-
-    payText: {
-        maxWidth: "100%",
-        fontSize: 8.5,
-        fontWeight: "500",
-        color: "#555E6B",
-        textAlign: "center",
-    },
-
-
     amountText: {
-        fontSize: 9.5,
-
+        fontSize: 11,
         fontWeight: "700",
-
-        color: "#4A90E2",
-
-        textAlign: "center",
+        color: "#0D6EFD",
     },
-
-
-    // ========================================================
-    // EDIT
-    // ========================================================
-
-    editIconButton: {
-        position: "absolute",
-        right: 2,
-        // top: 2,
-        width: 18,
-        height: 18,
+    payTypeBadge: {
+        fontSize: 7.5,
+        fontWeight: "600",
+        color: "#64748B",
+        backgroundColor: "#F1F5F9",
+        paddingHorizontal: 4,
+        borderRadius: 3,
+        marginTop: 1,
+    },
+    actionBtnEdit: {
+        width: 22,
+        height: 22,
         borderRadius: 4,
-        backgroundColor: "#F0F7FF",
         alignItems: "center",
         justifyContent: "center",
-        marginRight: 3
+        backgroundColor: "#EFF6FF",
+        borderWidth: 1,
+        borderColor: "#BFDBFE",
     },
-
-
-    // ========================================================
-    // SUM
-    // ========================================================
-
-    sumRow: {
-        height: 40,
-
-        flexDirection: "row",
-
-        backgroundColor: "#F7F8FA",
-
-        borderTopWidth: 1,
-        borderTopColor: "#BFC6CE",
-    },
-
-
-    sumCell: {
-        height: 40,
-
+    actionBtnDelete: {
+        width: 22,
+        height: 22,
+        borderRadius: 4,
         alignItems: "center",
         justifyContent: "center",
-
-        borderRightWidth: 1,
-        borderRightColor: "#D9DEE4",
-
-        paddingHorizontal: 3,
+        backgroundColor: "#FEF2F2",
+        borderWidth: 1,
+        borderColor: "#FECACA",
     },
-
-
-    sumText: {
-        fontSize: 9,
-
-        fontWeight: "800",
-
-        color: "#252B35",
-    },
-
-
-    sumValue: {
-        fontSize: 10.5,
-
-        fontWeight: "800",
-
-        color: "#252B35",
-    },
-
-
-    sumAmount: {
-        fontSize: 10,
-
-        fontWeight: "800",
-
-        color: "#4A90E2",
-    },
-
-
-    // ========================================================
-    // EMPTY
-    // ========================================================
-
-    emptyContainer: {
+    emptyView: {
+        flex: 1,
         alignItems: "center",
         justifyContent: "center",
-
-        paddingTop: 80,
-        paddingBottom: 80,
-
-        width: 452,
+        paddingVertical: 50,
+        paddingHorizontal: 20,
     },
-
-
+    emptyIconWrap: {
+        width: 44,
+        height: 44,
+        borderRadius: 10,
+        backgroundColor: "#EFF6FF",
+        borderWidth: 1,
+        borderColor: "#DBEAFE",
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: 8,
+    },
     emptyTitle: {
-        marginTop: 10,
-
-        fontSize: 14,
-
+        fontSize: 13,
         fontWeight: "700",
-
-        color: "#252B35",
+        color: "#0F172A",
     },
-
-
-    emptyText: {
-        marginTop: 5,
-
+    emptySubtitle: {
+        marginTop: 3,
         fontSize: 10,
-
-        color: "#7A8493",
-
+        color: "#64748B",
         textAlign: "center",
     },
-
-
-    // ========================================================
-    // MODAL
-    // ========================================================
-
     modalOverlay: {
         flex: 1,
-
-        backgroundColor: "rgba(0,0,0,0.35)",
-
-        justifyContent: "flex-end",
-    },
-
-
-    filterModal: {
-        backgroundColor: "#FFFFFF",
-
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-
+        backgroundColor: "rgba(15, 23, 42, 0.45)",
+        alignItems: "center",
+        justifyContent: "center",
         paddingHorizontal: 20,
-        paddingTop: 20,
-        paddingBottom: 30,
     },
-
-
+    filterModal: {
+        width: "100%",
+        maxWidth: 380,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 14,
+        paddingHorizontal: 18,
+        paddingTop: 18,
+        paddingBottom: 20,
+        elevation: 10,
+        shadowColor: "#0F172A",
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.15,
+        shadowRadius: 16,
+    },
     modalHeader: {
         flexDirection: "row",
-
         justifyContent: "space-between",
-
         alignItems: "flex-start",
-
-        marginBottom: 22,
+        marginBottom: 14,
     },
-
-
     modalTitle: {
-        fontSize: 20,
-
+        fontSize: 17,
         fontWeight: "700",
-
-        color: "#252B35",
+        color: "#0F172A",
     },
-
-
     modalSubtitle: {
-        marginTop: 4,
-
-        fontSize: 12,
-
-        color: "#7A8493",
+        marginTop: 2,
+        fontSize: 11,
+        color: "#64748B",
     },
-
-
-    closeButton: {
-        width: 34,
-        height: 34,
-
-        borderRadius: 17,
-
-        backgroundColor: "#F6F7F9",
-
+    closeBtn: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: "#F1F5F9",
         alignItems: "center",
         justifyContent: "center",
     },
-
-
-    fieldLabel: {
-        fontSize: 12,
-
-        fontWeight: "600",
-
-        color: "#555E6B",
-
-        marginBottom: 7,
+    filterSectionLabel: {
+        fontSize: 9,
+        fontWeight: "800",
+        color: "#475569",
+        letterSpacing: 0.5,
         marginTop: 10,
+        marginBottom: 6,
     },
-
-
-    dateButton: {
-        height: 48,
-
+    datePickerBtn: {
+        height: 40,
         borderWidth: 1,
-
-        borderColor: "#E2E5E9",
-
-        borderRadius: 10,
-
-        paddingHorizontal: 13,
-
+        borderColor: "#CBD5E1",
+        borderRadius: 8,
+        paddingHorizontal: 12,
         flexDirection: "row",
-
         alignItems: "center",
-
         gap: 10,
-
-        backgroundColor: "#FAFBFC",
+        backgroundColor: "#F8FAFC",
     },
-
-
-    dateText: {
-        fontSize: 13,
-
+    datePickerText: {
+        fontSize: 12,
         fontWeight: "500",
-
-        color: "#252B35",
+        color: "#0F172A",
     },
-
-
-    statusOptions: {
+    segmentedRow: {
         flexDirection: "row",
-
-        gap: 10,
-    },
-
-
-    statusOption: {
-        flex: 1,
-
-        height: 46,
-
-        borderWidth: 1,
-
-        borderColor: "#E2E5E9",
-
-        borderRadius: 10,
-
-        flexDirection: "row",
-
-        alignItems: "center",
-
-        justifyContent: "center",
-
         gap: 8,
-
-        backgroundColor: "#FAFBFC",
     },
-
-
-    statusOptionActive: {
-        borderColor: "#4A90E2",
-
-        backgroundColor: "#F0F7FF",
-    },
-
-
-    statusOptionText: {
-        fontSize: 13,
-
-        fontWeight: "600",
-
-        color: "#7A8493",
-    },
-
-
-    statusOptionTextActive: {
-        color: "#4A90E2",
-    },
-
-
-    applyButton: {
-        height: 50,
-
-        marginTop: 24,
-
-        borderRadius: 12,
-
-        backgroundColor: "#4A90E2",
-
+    segmentBtn: {
+        flex: 1,
+        height: 36,
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+        borderRadius: 8,
         alignItems: "center",
-
         justifyContent: "center",
-
-        flexDirection: "row",
-
-        gap: 9,
+        backgroundColor: "#F8FAFC",
     },
-
-
-    applyButtonText: {
+    segmentBtnActive: {
+        borderColor: "#0D6EFD",
+        backgroundColor: "#EFF6FF",
+    },
+    segmentText: {
+        fontSize: 12,
+        fontWeight: "600",
+        color: "#64748B",
+    },
+    segmentTextActive: {
+        color: "#0D6EFD",
+    },
+    modalActionRow: {
+        flexDirection: "row",
+        gap: 10,
+        marginTop: 18,
+    },
+    resetBtn: {
+        flex: 1,
+        height: 42,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+        backgroundColor: "#F8FAFC",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+    },
+    resetBtnText: {
+        color: "#475569",
+        fontSize: 12,
+        fontWeight: "600",
+    },
+    applyBtn: {
+        flex: 2,
+        height: 42,
+        borderRadius: 8,
+        backgroundColor: "#0D6EFD",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "row",
+        gap: 8,
+    },
+    applyBtnText: {
         color: "#FFFFFF",
-
-        fontSize: 14,
-
+        fontSize: 13,
         fontWeight: "700",
     },
-
 });
-
 
 export default EntryList;
