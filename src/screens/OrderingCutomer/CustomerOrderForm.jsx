@@ -33,6 +33,7 @@ import {
 
 import Toast from "react-native-toast-message";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import Dropdown from "../../helper/Dropdown";
 
 
 // =====================================================
@@ -173,7 +174,21 @@ const CustomerOrderForm = () => {
     const currUser = useSelector(
         state => state.auth.userData
     );
+    const customerListData = useSelector(
+        state => state.customer.customerList
+    );
 
+    const isCustomer = currUser?.UserType === "Customer";
+
+    const [customerDropdown, setCustomerDropdown] = useState(false);
+
+    const [form, setForm] = useState({
+        customer: "",
+        customerId: "",
+    });
+    const customerList = Array.isArray(customerListData)
+        ? customerListData
+        : [];
     const loading = useSelector(
         state => state.orderingCustomer.loading
     );
@@ -197,8 +212,36 @@ const CustomerOrderForm = () => {
 
     const [showDatePicker, setShowDatePicker] =
         useState(false);
+    useEffect(() => {
+        if (!currUser) return;
 
+        if (isCustomer) {
+            setForm({
+                customer:
+                    currUser?.Emp ||
+                    currUser?.CustomerName ||
+                    "Customer",
+                customerId:
+                    currUser?.EmpId ??
+                    currUser?.CustomerId ??
+                    currUser?.CustomerID ??
+                    "",
+            });
+        }
+    }, [currUser, isCustomer]);
+    const handleCusotmerSelect = (customer) => {
+        setForm(prev => ({
+            ...prev,
+            customer: customer?.CustomerName || "",
+            customerId:
+                customer?.CustomerId ??
+                customer?.CustomerID ??
+                customer?.id ??
+                "",
+        }));
 
+        setCustomerDropdown(false);
+    };
     // =================================================
     // SUBMIT
     // =================================================
@@ -404,7 +447,7 @@ const CustomerOrderForm = () => {
 
                     {/* CUSTOMER */}
 
-                    <View style={styles.section}>
+                    {/* <View style={styles.section}>
 
                         <Text style={styles.sectionTitle}>
                             Customer
@@ -442,8 +485,72 @@ const CustomerOrderForm = () => {
 
                         </View>
 
-                    </View>
+                    </View> */}
+                    {/* CUSTOMER */}
 
+                    <View style={styles.section}>
+
+                        <Text style={styles.sectionTitle}>
+                            Customer
+                        </Text>
+
+                        {isCustomer ? (
+
+                            // ==============================
+                            // CUSTOMER LOGIN
+                            // ==============================
+
+                            <View style={styles.customerCard}>
+
+                                <View style={styles.customerIcon}>
+                                    <FontAwesome6
+                                        name="user"
+                                        size={16}
+                                        color="#5B21B6"
+                                    />
+                                </View>
+
+                                <View style={{ flex: 1 }}>
+
+                                    <Text style={styles.customerLabel}>
+                                        Logged in as
+                                    </Text>
+
+                                    <Text style={styles.customerValue}>
+                                        {form.customer || "Customer"}
+                                    </Text>
+
+                                </View>
+
+                                <FontAwesome6
+                                    name="circle-check"
+                                    size={17}
+                                    color="#16A34A"
+                                />
+
+                            </View>
+
+                        ) : (
+
+                            // ==============================
+                            // ADMIN / SALES / DELIVERY ETC.
+                            // ==============================
+
+                            <Dropdown
+                                icon="user"
+                                label="Customer"
+                                value={form.customer}
+                                placeholder="Select customer"
+                                open={customerDropdown}
+                                setOpen={setCustomerDropdown}
+                                data={customerList}
+                                onSelect={handleCusotmerSelect}
+                                displayKey="CustomerName"
+                            />
+
+                        )}
+
+                    </View>
 
                     {/* ORDER DATE */}
 

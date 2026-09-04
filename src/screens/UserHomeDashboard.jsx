@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, RefreshControl, ActivityIndicator, TouchableOpacity } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from "react-native";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
@@ -10,6 +10,7 @@ import { getDailyStockEntry } from "../store/slice/DailyStockEntry.slice";
 import { COLORS, StatCard, SectionTitle, QuickAction, InfoRow, Card, StatusCard } from "./DashboardComponents";
 import { getDailyPayment } from "../store/slice/DailyPayment.slice";
 import CustomerDashboard from "./CustomerDashboard";
+import { getCustomerOrderEntry } from "../store/slice/OrderingCustomer.slice";
 
 const apiDate = d => {
   const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
@@ -35,10 +36,10 @@ const roleOf = user => {
 };
 
 const SUBTITLES = {
-  admin: "your business overview at a glance",
-  sales: "your customer overview at a glance",
-  delivery: "your daily work overview at a glance",
-  customer: "All yours orders at a glance",
+  admin: "Overview & business metrics",
+  sales: "Customer operations & leads",
+  delivery: "Route dispatch & stock summary",
+  customer: "Orders & account activity",
 };
 
 const AdminDashboard = ({ navigation, customers, stockEntries, gasEntries }) => {
@@ -47,132 +48,161 @@ const AdminDashboard = ({ navigation, customers, stockEntries, gasEntries }) => 
   const pending = customers.filter(c => c?.Status === "Pending").length;
   const approved = customers.filter(c => c?.Status === "Approved").length;
   const todayEntries = stockEntries.length;
-  const amount = (gasEntries || []).reduce(
-    (total, item) => {
-      return total + Number(
-        item.Amount || 0
-      );
-    }, 0
-  );
+  const amount = (gasEntries || []).reduce((acc, item) => acc + Number(item.Amount || 0), 0);
+  const cylIn = stockEntries.reduce((s, x) => s + Number(x?.CycIn || 0), 0);
+  const cylOut = stockEntries.reduce((s, x) => s + Number(x?.CycOut || 0), 0);
 
   return (
     <View style={styles.content}>
-      <SectionTitle title="OVERVIEW" />
+      {/* 1. Hero Revenue Card */}
+      <TouchableOpacity
+        activeOpacity={0.9}
+        style={styles.heroCard}
+        onPress={() => navigation.getParent()?.navigate("PaymentEntryList")}
+      >
+        <View style={styles.heroContent}>
+          <View style={styles.heroBadge}>
+            <FontAwesome6 name="shield-halved" size={11} color="#A7F3D0" />
+            <Text style={styles.heroBadgeText}>TODAY'S TOTAL INFLOW</Text>
+          </View>
+          <Text style={styles.heroValue}>₹{amount.toLocaleString("en-IN")}</Text>
+          <Text style={styles.heroSubtitle}>{todayEntries} stock transactions recorded today</Text>
+        </View>
+        <View style={styles.heroIconBubble}>
+          <FontAwesome6 name="indian-rupee-sign" size={26} color="#FFFFFF" />
+        </View>
+      </TouchableOpacity>
+
+      {/* 2. Key Metrics Grid */}
+      <View style={styles.sectionHeaderWrap}>
+        <SectionTitle title="PRIMARY METRICS" />
+      </View>
       <View style={styles.grid}>
         <StatCard
           icon="users"
-          title="Total Customers"
+          title="Total Clients"
           value={total}
-          subtitle={`${todayCustomers} created today`}
-          color={COLORS.green}
-          bg={COLORS.greenLight}
+          subtitle={`+${todayCustomers} registered today`}
+          color={COLORS.blue}
+          bg={COLORS.blueLight}
           onPress={() => navigation.navigate("CustomerList")}
         />
         <StatCard
-          icon="clock"
-          title="Pending Approvals"
+          icon="clock-rotate-left"
+          title="Action Required"
           value={pending}
-          subtitle="Needs attention"
+          subtitle="Pending approvals"
           color={COLORS.orange}
           bg={COLORS.orangeLight}
-          onPress={() => navigation.navigate("CustomerList", { status: "Pending", fromDashboard: true, })}
+          onPress={() => navigation.navigate("CustomerList", { status: "Pending", fromDashboard: true })}
         />
         <StatCard
-          icon="clipboard-list"
-          title="Today's Entries"
+          icon="boxes-stacked"
+          title="Daily Logs"
           value={todayEntries}
-          subtitle="Stock transactions"
-          color={COLORS.blue}
-          bg={COLORS.blueLight} />
+          subtitle="Stock records"
+          color={COLORS.purple}
+          bg={COLORS.purpleLight}
+          onPress={() => navigation.getParent()?.navigate("EntryList")}
+        />
         <StatCard
           icon="circle-check"
-          title="Approved Customers"
+          title="Verified"
           value={approved}
-          subtitle="Approved records"
+          subtitle="Approved active"
           color={COLORS.green}
-          bg={COLORS.greenLight} />
-
+          bg={COLORS.greenLight}
+          onPress={() => navigation.navigate("CustomerList", { status: "Approved", fromDashboard: true })}
+        />
       </View>
 
-      <Card style={styles.collection}>
-        <View style={styles.collectionLeft}>
-          <Text style={styles.collectionLabel}>TODAY'S COLLECTION</Text>
-          <Text style={styles.collectionAmount}>₹{amount.toLocaleString("en-IN")}</Text>
-          <Text style={styles.collectionSub}>From today's stock entries</Text>
-        </View>
-        <View style={styles.collectionIcon}>
-          <FontAwesome6 name="indian-rupee-sign" size={22} color="#fff" />
-        </View>
-      </Card>
-
-      <SectionTitle title="QUICK ACTIONS" />
+      {/* 3. Operational Quick Actions */}
+      <View style={styles.sectionHeaderWrap}>
+        <SectionTitle title="FREQUENT WORKFLOWS" />
+      </View>
       <View style={styles.quickGrid}>
         <QuickAction
           icon="user-plus"
-          title="Add Customer"
+          title="New Client"
           onPress={() => navigation.navigate("CreateCustomer")}
           color={COLORS.green}
-          bg={COLORS.greenLight} />
+          bg={COLORS.greenLight}
+        />
         <QuickAction
-          icon="clipboard-list"
-          title="Daily Entry Logs"
+          icon="cart-plus"
+          title="Place Order"
+          onPress={() => navigation.navigate("CustomerOrderForm")}
+          color="#059669"
+          bg="#ECFDF5"
+        />
+        <QuickAction
+          icon="boxes-stacked"
+          title="Stock Entries"
           onPress={() => navigation.getParent()?.navigate("EntryList")}
           color={COLORS.blue}
-          bg={COLORS.blueLight} />
+          bg={COLORS.blueLight}
+        />
         <QuickAction
-          icon="money-bill-transfer"
-          title="Payment Entry"
-          onPress={() => navigation.getParent()?.navigate("DailyPaymentEntry")}
+          icon="receipt"
+          title="Expenses"
+          onPress={() => navigation.getParent()?.navigate("ExpenseEntryList")}
           color={COLORS.orange}
-          bg={COLORS.orangeLight} />
+          bg={COLORS.orangeLight}
+        />
         <QuickAction
-          icon="money-bill"
-          title="Payments Logs"
+          icon="money-bill-wave"
+          title="Collections"
           onPress={() => navigation.getParent()?.navigate("PaymentEntryList")}
           color={COLORS.purple}
-          bg={COLORS.purpleLight} />
+          bg={COLORS.purpleLight}
+        />
+        <QuickAction
+          icon="clipboard-check"
+          title="Orders Log"
+          onPress={() => navigation.getParent()?.navigate("ApproveCustomerOrder")}
+          color="#2563EB"
+          bg="#EFF6FF"
+        />
       </View>
 
-      <Card>
-        <SectionTitle title="TODAY'S OVERVIEW" />
-        <InfoRow
-          icon="user-plus"
-          title="New Customers Today"
-          value={todayCustomers}
-          color={COLORS.green} />
-        <InfoRow
-          icon="clipboard-list"
-          title="Today's Entries"
-          value={todayEntries}
-          color={COLORS.blue} />
-        {/* <InfoRow
-          icon="clock"
-          title="Pending Approvals"
-          value={pending}
-          color={COLORS.orange} /> */}
-        <InfoRow
-          icon="money-bill"
-          title="Today's Collection"
-          value={`₹${amount.toLocaleString("en-IN")}`}
-          color={COLORS.purple} />
-      </Card>
-
-      <Card>
+      {/* 4. Cylinder Movement Strip */}
+      <View style={styles.sectionHeaderWrap}>
         <SectionTitle
-          title="STOCK ACTIVITY"
+          title="CYLINDER MOVEMENT"
           action="View All"
-          onPress={() => navigation.getParent()?.navigate("EntryList")} />
-        <InfoRow
-          icon="arrow-down"
-          title="Cylinders In"
-          value={stockEntries.reduce((s, x) => s + Number(x?.CycIn || 0), 0)}
-          color={COLORS.green} />
-        <InfoRow
-          icon="arrow-up"
-          title="Cylinders Out"
-          value={stockEntries.reduce((s, x) => s + Number(x?.CycOut || 0), 0)}
-          color={COLORS.orange} />
-        {/* <InfoRow icon="box-open" title="Empty Balance" value={stockEntries.reduce((s, x) => s + Number(x?.BalCyc || 0), 0)} color={COLORS.blue} /> */}
+          onPress={() => navigation.getParent()?.navigate("EntryList")}
+        />
+      </View>
+      <View style={styles.flowStrip}>
+        <View style={styles.flowBlock}>
+          <View style={[styles.flowIconBox, { backgroundColor: COLORS.greenLight }]}>
+            <FontAwesome6 name="arrow-down-long" size={15} color={COLORS.green} />
+          </View>
+          <View style={styles.flowTextContainer}>
+            <Text style={styles.flowLabel}>CYLINDERS IN</Text>
+            <Text style={[styles.flowValue, { color: COLORS.green }]}>{cylIn}</Text>
+          </View>
+        </View>
+
+        <View style={styles.flowDivider} />
+
+        <View style={styles.flowBlock}>
+          <View style={[styles.flowIconBox, { backgroundColor: COLORS.orangeLight }]}>
+            <FontAwesome6 name="arrow-up-long" size={15} color={COLORS.orange} />
+          </View>
+          <View style={styles.flowTextContainer}>
+            <Text style={styles.flowLabel}>CYLINDERS OUT</Text>
+            <Text style={[styles.flowValue, { color: COLORS.orange }]}>{cylOut}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* 5. Detailed Operational Breakdown */}
+      <Card style={styles.detailCard}>
+        <SectionTitle title="DAILY PERFORMANCE BREAKDOWN" />
+        <InfoRow icon="user-plus" title="Onboarded Today" value={todayCustomers} color={COLORS.green} />
+        <InfoRow icon="clipboard-list" title="Total Shifts Recorded" value={todayEntries} color={COLORS.blue} />
+        <InfoRow icon="indian-rupee-sign" title="Net Daily Payment" value={`₹${amount.toLocaleString("en-IN")}`} color={COLORS.purple} />
       </Card>
     </View>
   );
@@ -189,164 +219,182 @@ const SalesDashboard = ({ navigation, user, customers }) => {
 
   return (
     <View style={styles.content}>
-      <SectionTitle title="MY OVERVIEW" />
+      <View style={styles.sectionHeaderWrap}>
+        <SectionTitle title="MY PERFORMANCE" />
+      </View>
       <View style={styles.grid}>
         <StatCard
           icon="users"
-          title="My Customers"
+          title="Assigned Accounts"
           value={mine.length}
-          subtitle="Created by me"
+          subtitle="Portfolio count"
           color={COLORS.blue}
-          bg={COLORS.blueLight} />
-        <StatCard icon="user-plus"
-          title="Created This Month"
+          bg={COLORS.blueLight}
+        />
+        <StatCard
+          icon="calendar-plus"
+          title="New This Month"
           value={month}
-          subtitle="This month"
-          color={COLORS.blue}
-          bg={COLORS.blueLight} />
+          subtitle="Recent additions"
+          color={COLORS.purple}
+          bg={COLORS.purpleLight}
+        />
       </View>
 
-      <Card>
+      <Card style={styles.detailCard}>
         <View style={styles.bigMetricRow}>
-          <View style={[styles.bigMetricIcon, { backgroundColor: COLORS.blueLight }]}>
-            <FontAwesome6 name="user-check" size={21} color={COLORS.blue} /></View>
+          <View style={[styles.bigMetricIcon, { backgroundColor: COLORS.greenLight }]}>
+            <FontAwesome6 name="user-check" size={20} color={COLORS.green} />
+          </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.metricLabel}>APPROVED CUSTOMERS</Text>
+            <Text style={styles.metricLabel}>VERIFIED ACCOUNTS</Text>
             <Text style={styles.metricValue}>{approved}</Text>
-            <Text style={styles.metricSub}>From your customers</Text>
+            <Text style={styles.metricSub}>Accounts currently approved and active</Text>
           </View>
         </View>
       </Card>
 
-      <SectionTitle title="QUICK ACTIONS" />
+      <View style={styles.sectionHeaderWrap}>
+        <SectionTitle title="QUICK ACTIONS" />
+      </View>
       <View style={styles.quickGrid}>
         <QuickAction
           icon="user-plus"
           title="Add Customer"
           onPress={() => navigation.navigate("CreateCustomer")}
           color={COLORS.green}
-          bg={COLORS.greenLight} />
+          bg={COLORS.greenLight}
+        />
         <QuickAction
-          icon="users"
-          title="My Customers"
+          icon="address-book"
+          title="My Directory"
           onPress={() => navigation.navigate("CustomerList")}
           color={COLORS.blue}
-          bg={COLORS.blueLight} />
+          bg={COLORS.blueLight}
+        />
+        <QuickAction
+          icon="cart-plus"
+          title="Create Order"
+          onPress={() => navigation.navigate("CustomerOrderForm")}
+          color="#059669"
+          bg="#ECFDF5"
+        />
+        <QuickAction
+          icon="clipboard-check"
+          title="Order Status"
+          onPress={() => navigation.getParent()?.navigate("ApproveCustomerOrder")}
+          color="#2563EB"
+          bg="#EFF6FF"
+        />
       </View>
 
-      <Card>
-        <SectionTitle title="MY CUSTOMERS" />
-        <InfoRow icon="users" title="Total Customers" value={mine.length} color={COLORS.blue} />
-        <InfoRow icon="circle-check" title="Approved Customers" value={approved} color={COLORS.green} />
-        <InfoRow icon="calendar" title="Added This Month" value={month} color={COLORS.purple} />
-      </Card>
-
       <View style={[styles.infoBanner, { backgroundColor: COLORS.blueLight }]}>
-        <FontAwesome6 name="chart-line" size={20} color={COLORS.blue} />
-        <View style={{ flex: 1, marginLeft: 11 }}>
-          <Text style={styles.bannerTitle}>Your customer base</Text>
-          <Text style={styles.bannerText}>Only customers created by you are shown here. Customer pending status is intentionally hidden.</Text>
+        <FontAwesome6 name="shield-halved" size={18} color={COLORS.blue} />
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text style={styles.bannerTitle}>Account Privacy Protected</Text>
+          <Text style={styles.bannerText}>Only customer records created under your Employee ID are displayed in this view.</Text>
         </View>
       </View>
     </View>
   );
 };
 
-const DeliveryDashboard = ({ navigation, user, customers, stockEntries }) => {
-  const mine = customers.filter(c => String(c?.SalespersonId) === String(user?.EmpId));
+const DeliveryDashboard = ({ navigation, user, customers, stockEntries, orders }) => {
   const pending = stockEntries.filter(x => Number(x?.PendingStatus ?? x?.Pending ?? 0) === 0);
+  const pendingOrders = orders.length;
   const completed = stockEntries.filter(x => Number(x?.PendingStatus ?? x?.Pending ?? 0) === 1);
-  const amount = stockEntries.reduce((s, x) => s + Number(x?.Amount || 0), 0);
-  const month = mine.filter(c => {
-    const d = new Date(c?.CreatedDate || c?.CreatedOn || c?.EntryDate);
-    const now = new Date();
-    return !Number.isNaN(d.getTime()) && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  }).length;
+  const cylIn = stockEntries.reduce((s, x) => s + Number(x?.CycIn || 0), 0);
+  const cylOut = stockEntries.reduce((s, x) => s + Number(x?.CycOut || 0), 0);
 
   return (
     <View style={styles.content}>
-      <SectionTitle title="MY OVERVIEW" />
-      <View style={styles.grid}>
-        <StatCard
-          icon="users"
-          title="My Customers"
-          value={mine.length}
-          subtitle="Created by me"
-          color={COLORS.orange}
-          bg={COLORS.orangeLight} />
-        <StatCard
-          icon="user-plus"
-          title="Created This Month"
-          value={month}
-          subtitle="Customer records"
-          color={COLORS.orange}
-          bg={COLORS.orangeLight} />
+      {/* Actionable Dispatch Status Cards */}
+      <View style={styles.sectionHeaderWrap}>
+        <SectionTitle title="DELIVERY STATUS" />
       </View>
-
       <StatusCard
-        icon="clipboard-list"
-        title="TODAY'S STOCK ENTRY"
-        status={pending.length ? "Pending" : completed.length ? "Completed" : "Not Created"}
-        subtitle={pending.length ? `${pending.length} entries not submitted` : `${completed.length} stock entries today`}
+        icon="truck-fast"
+        title="PENDING DELIVERIES"
+        status={pendingOrders > 0 ? "In Progress" : "Clear"}
+        subtitle={`${pendingOrders} customer orders awaiting drop-off`}
         color={COLORS.orange}
+        onPress={() => navigation.getParent()?.navigate("ApproveCustomerOrder")}
+      />
+      <StatusCard
+        icon="boxes-stacked"
+        title="TODAY'S STOCK TRANSACTION"
+        status={pending.length ? "Pending Log" : completed.length ? "Logged" : "Not Started"}
+        subtitle={pending.length ? `${pending.length} unsaved entries` : `${completed.length} batches saved`}
+        color={COLORS.blue}
         onPress={() => navigation.getParent()?.navigate("EntryList")}
       />
 
-      <SectionTitle title="QUICK ACTIONS" />
+      {/* Movement Counters */}
+      <View style={styles.flowStrip}>
+        <View style={styles.flowBlock}>
+          <View style={[styles.flowIconBox, { backgroundColor: COLORS.greenLight }]}>
+            <FontAwesome6 name="arrow-down-long" size={15} color={COLORS.green} />
+          </View>
+          <View style={styles.flowTextContainer}>
+            <Text style={styles.flowLabel}>CYLINDERS IN</Text>
+            <Text style={[styles.flowValue, { color: COLORS.green }]}>{cylIn}</Text>
+          </View>
+        </View>
+
+        <View style={styles.flowDivider} />
+
+        <View style={styles.flowBlock}>
+          <View style={[styles.flowIconBox, { backgroundColor: COLORS.orangeLight }]}>
+            <FontAwesome6 name="arrow-up-long" size={15} color={COLORS.orange} />
+          </View>
+          <View style={styles.flowTextContainer}>
+            <Text style={styles.flowLabel}>CYLINDERS OUT</Text>
+            <Text style={[styles.flowValue, { color: COLORS.orange }]}>{cylOut}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Delivery Task Shortcuts */}
+      <View style={styles.sectionHeaderWrap}>
+        <SectionTitle title="ROUTE SHORTCUTS" />
+      </View>
       <View style={styles.quickGrid}>
+        <QuickAction
+          icon="boxes-stacked"
+          title="Daily Entry"
+          onPress={() => navigation.getParent()?.navigate("DailyStockEntry")}
+          color={COLORS.orange}
+          bg={COLORS.orangeLight}
+        />
+        <QuickAction
+          icon="cart-plus"
+          title="New Order"
+          onPress={() => navigation.navigate("CustomerOrderForm")}
+          color="#059669"
+          bg="#ECFDF5"
+        />
+        <QuickAction
+          icon="clipboard-check"
+          title="Dispatch Logs"
+          onPress={() => navigation.getParent()?.navigate("ApproveCustomerOrder")}
+          color={COLORS.purple}
+          bg={COLORS.purpleLight}
+        />
         <QuickAction
           icon="user-plus"
           title="Add Customer"
           onPress={() => navigation.navigate("CreateCustomer")}
           color={COLORS.green}
-          bg={COLORS.greenLight} />
-        <QuickAction
-          icon="clipboard-list"
-          title="Daily Stock Entry"
-          onPress={() => navigation.getParent()?.navigate("DailyStockEntry")}
-          color={COLORS.orange}
-          bg={COLORS.orangeLight} />
+          bg={COLORS.greenLight}
+        />
       </View>
 
-      <Card>
-        <SectionTitle title="TODAY'S STOCK ENTRIES" />
-        <InfoRow
-          icon="clock"
-          title="Pending Entries"
-          subtitle="Not submitted"
-          value={pending.length}
-          color={COLORS.orange} />
-        <InfoRow
-          icon="circle-check"
-          title="Completed Entries"
-          subtitle="Submitted"
-          value={completed.length}
-          color={COLORS.green} />
-        {/* <InfoRow icon="money-bill" title="Today's Amount" value={`₹${amount.toLocaleString("en-IN")}`} color={COLORS.purple} /> */}
+      <Card style={styles.detailCard}>
+        <SectionTitle title="SHIFT SUMMARY" />
+        <InfoRow icon="clock" title="Unsubmitted Logs" value={pending.length} color={COLORS.orange} />
+        <InfoRow icon="truck-ramp-box" title="Pending Deliveries" value={pendingOrders} color={COLORS.orange} />
+        <InfoRow icon="circle-check" title="Completed Transactions" value={completed.length} color={COLORS.green} />
       </Card>
-
-      <Card>
-        <SectionTitle title="STOCK SUMMARY" action="View All" onPress={() => navigation.getParent()?.navigate("EntryList")} />
-        <InfoRow
-          icon="arrow-down"
-          title="Cylinders In"
-          value={stockEntries.reduce((s, x) => s + Number(x?.CycIn || 0), 0)}
-          color={COLORS.green} />
-        <InfoRow
-          icon="arrow-up"
-          title="Cylinders Out"
-          value={stockEntries.reduce((s, x) => s + Number(x?.CycOut || 0), 0)}
-          color={COLORS.orange} />
-        {/* <InfoRow icon="box-open" title="Empty Balance" value={stockEntries.reduce((s, x) => s + Number(x?.BalCyc || 0), 0)} color={COLORS.blue} /> */}
-      </Card>
-
-      <View style={[styles.infoBanner, { backgroundColor: COLORS.orangeLight }]}>
-        <FontAwesome6 name="circle-info" size={20} color={COLORS.orange} />
-        <View style={{ flex: 1, marginLeft: 11 }}>
-          <Text style={[styles.bannerTitle, { color: "#9A5B00" }]}>Daily stock workflow</Text>
-          <Text style={styles.bannerText}>Entries stay pending until submitted. Completed entries can be viewed from today and previous days.</Text>
-        </View>
-      </View>
     </View>
   );
 };
@@ -358,71 +406,57 @@ const UserHomeDashboard = () => {
   const user = useSelector(state => state.auth.userData);
   const customersData = useSelector(state => state.customer.customerList);
   const stockData = useSelector(state => state.dailyEntry.stockEntryList);
-  const gasEntries = useSelector((state) => state.dailyPayment.paymentList);
+  const gasEntries = useSelector(state => state.dailyPayment.paymentList);
+  const orders = useSelector(state => state.orderingCustomer.customerOrderList) || [];
   const customers = Array.isArray(customersData) ? customersData : [];
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!user?.Comid) return;
+    const d = new Date();
+    const isDeliveryOrAdmin = String(user?.UserType) === "Admin" || String(user?.UserType).toLowerCase().includes("user");
+    const isAdmin = String(user?.UserType).toLowerCase().includes("admin");
+
     await dispatch(getAllCustomers(user.Comid));
-    if (String(user?.UserType) === "Admin" || String(user?.UserType).toLowerCase().includes("user")) {
-      const d = new Date();
-      await dispatch(getDailyStockEntry({
-        Comid: user.Comid,
-        FromDate: apiDate(d),
-        Todate: apiDate(d),
-        PendingStatus: 2,
-        AdminApproval: 2
-      }));
+
+    if (isDeliveryOrAdmin) {
+      await Promise.all([
+        dispatch(getDailyStockEntry({ Comid: user.Comid, FromDate: apiDate(d), Todate: apiDate(d), PendingStatus: 2, AdminApproval: 2 })),
+        dispatch(getCustomerOrderEntry({ FromDate: apiDate(d), Todate: apiDate(d), Comid: user.Comid, CustomerId: 0, OrderStatus: 0 }))
+      ]);
     }
-    if (String(user?.UserType).toLowerCase().includes("admin")) {
-      const d = new Date();
-      await dispatch(
-        getDailyPayment({
-          FromDate: apiDate(d),
-          Todate: apiDate(d),
-          PendingStatus: 2,
-          Comid: user.Comid,
-          AdminApproval: 2,
-        })
-      );
+    if (isAdmin) {
+      await dispatch(getDailyPayment({ FromDate: apiDate(d), Todate: apiDate(d), PendingStatus: 2, Comid: user.Comid, AdminApproval: 2 }));
     }
   }, [dispatch, user?.Comid, user?.UserType]);
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData]);
-
-  useEffect(() => {
-    if (focused) fetchData()
-  }, [focused]);
+    if (focused) fetchData();
+  }, [focused, fetchData]);
 
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      await fetchData()
+      await fetchData();
     } finally {
-      setRefreshing(false)
+      setRefreshing(false);
     }
   };
 
   const entries = Array.isArray(stockData) ? stockData : [];
-
   const role = roleOf(user);
-  // const role = "customer";
 
   return (
     <View style={styles.container}>
-      {/* Sticky header: sits outside the ScrollView so it never scrolls away */}
       <CustomNavBar navName="Dashboard" subtitle={SUBTITLES[role]} />
-
       <ScrollView
+        showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.blue} />}
-        contentContainerStyle={{ paddingBottom: 30 }}
+        contentContainerStyle={styles.scrollContainer}
       >
         {role === "admin" && <AdminDashboard navigation={navigation} customers={customers} stockEntries={entries} gasEntries={gasEntries} />}
         {role === "sales" && <SalesDashboard navigation={navigation} user={user} customers={customers} />}
-        {role === "delivery" && <DeliveryDashboard navigation={navigation} user={user} customers={customers} stockEntries={entries} />}
+        {role === "delivery" && <DeliveryDashboard navigation={navigation} user={user} customers={customers} stockEntries={entries} orders={orders} />}
         {role === "customer" && <CustomerDashboard navigation={navigation} />}
       </ScrollView>
     </View>
@@ -430,122 +464,188 @@ const UserHomeDashboard = () => {
 };
 
 const styles = StyleSheet.create({
-  container:
-  {
+  container: {
     flex: 1,
-    backgroundColor: COLORS.bg
+    backgroundColor: "#F8FAFC",
   },
-  content:
-  {
+  scrollContainer: {
+    paddingBottom: 40,
+  },
+  content: {
     paddingHorizontal: 16,
-    marginTop: 16
+    paddingTop: 8,
   },
-  grid:
-  {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between"
+  sectionHeaderWrap: {
+    marginTop: 10,
+    marginBottom: 4,
   },
-  quickGrid:
-  {
+  grid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    marginBottom: 8
   },
-  collection:
-  {
-    backgroundColor: COLORS.green,
+  quickGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+
+  /* Hero Banner */
+  heroCard: {
+    backgroundColor: "#065F46",
+    borderRadius: 20,
+    padding: 20,
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center", padding: 17
-  },
-  collectionLeft:
-  {
-    flex: 1
-  },
-  collectionLabel:
-  {
-    fontSize: 9,
-    color: "#D8F5E4",
-    fontWeight: "700",
-    letterSpacing: .6
-  },
-  collectionAmount:
-  {
-    fontSize: 26,
-    color: "#fff",
-    fontWeight: "900",
-    marginTop: 4
-  },
-  collectionSub:
-  {
-    fontSize: 9,
-    color: "#D8F5E4",
-    marginTop: 2
-  },
-  collectionIcon:
-  {
-    width: 50,
-    height: 50,
-    borderRadius: 15,
-    backgroundColor: "rgba(255,255,255,.16)",
     alignItems: "center",
-    justifyContent: "center"
+    marginBottom: 12,
+    shadowColor: "#065F46",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 4,
   },
-  bigMetricRow:
-  {
+  heroContent: {
+    flex: 1,
+  },
+  heroBadge: {
     flexDirection: "row",
-    alignItems: "center"
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    alignSelf: "flex-start",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginBottom: 8,
   },
-  bigMetricIcon:
-  {
-    width: 50,
-    height: 50,
-    borderRadius: 15,
+  heroBadgeText: {
+    fontSize: 9,
+    fontWeight: "700",
+    color: "#A7F3D0",
+    marginLeft: 5,
+    letterSpacing: 0.6,
+  },
+  heroValue: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#FFFFFF",
+    letterSpacing: 0.3,
+  },
+  heroSubtitle: {
+    fontSize: 11,
+    color: "#D1FAE5",
+    marginTop: 3,
+    fontWeight: "500",
+  },
+  heroIconBubble: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.18)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 12,
+  },
+
+  /* Cylinder Flow Strip */
+  flowStrip: {
+    flexDirection: "row",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  flowBlock: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  flowIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  flowTextContainer: {
+    flex: 1,
+  },
+  flowLabel: {
+    fontSize: 9,
+    fontWeight: "700",
+    color: "#64748B",
+    letterSpacing: 0.4,
+  },
+  flowValue: {
+    fontSize: 18,
+    fontWeight: "900",
+    marginTop: 1,
+  },
+  flowDivider: {
+    width: 1,
+    height: "80%",
+    backgroundColor: "#E2E8F0",
+    marginHorizontal: 10,
+  },
+
+  /* Cards and Banners */
+  detailCard: {
+    marginBottom: 14,
+    borderRadius: 16,
+  },
+  bigMetricRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 4,
+  },
+  bigMetricIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12
+    marginRight: 12,
   },
-  metricLabel:
-  {
-    fontSize: 9,
+  metricLabel: {
+    fontSize: 10,
     color: COLORS.muted,
     fontWeight: "700",
-    letterSpacing: .5
+    letterSpacing: 0.6,
   },
-  metricValue:
-  {
-    fontSize: 26,
+  metricValue: {
+    fontSize: 24,
     color: COLORS.text,
     fontWeight: "900",
-    marginTop: 2
+    marginTop: 2,
   },
-  metricSub:
-  {
-    fontSize: 9,
-    color: COLORS.muted
+  metricSub: {
+    fontSize: 11,
+    color: COLORS.muted,
+    marginTop: 1,
   },
-  infoBanner:
-  {
-    borderRadius: 16,
+  infoBanner: {
+    borderRadius: 14,
     padding: 14,
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 2
+    marginTop: 4,
+    marginBottom: 12,
   },
-  bannerTitle:
-  {
+  bannerTitle: {
     fontSize: 12,
     fontWeight: "800",
-    color: "#24599A"
+    color: "#1E40AF",
   },
-  bannerText:
-  {
-    fontSize: 10,
-    lineHeight: 15,
+  bannerText: {
+    fontSize: 11,
+    lineHeight: 16,
     color: COLORS.muted,
-    marginTop: 3
+    marginTop: 2,
   },
 });
 

@@ -105,7 +105,7 @@ const ProfilePage = ({ navigation }) => {
                             {user.Emp}
                         </Text>
 
-                        {!user.UserType == "Customer" && <View style={styles.roleRow}>
+                        {!(user.UserType == "Customer") && <View style={styles.roleRow}>
                             <FontAwesome6Icon
                                 name="user-shield"
                                 size={11}
@@ -155,7 +155,7 @@ const ProfilePage = ({ navigation }) => {
 
 
                 {/* COMPANY INFORMATION */}
-                {!user.UserType == "Customer" && <View style={styles.section}>
+                {!(user.UserType == "Customer") && <View style={styles.section}>
 
                     <Text style={styles.sectionTitle}>
                         Company Information
@@ -215,7 +215,7 @@ const ProfilePage = ({ navigation }) => {
 
                         <View style={styles.divider} />
 
-                        {!user.UserType == "Customer" && <InfoRow
+                        {!(user.UserType == "Customer") && <InfoRow
                             icon="user-shield"
                             label="Account Type"
                             value={user.UserType}
