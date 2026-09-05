@@ -112,6 +112,20 @@ export const editConfirmDailyExpense = createAsyncThunk(
   },
 );
 
+export const delDailyExpenseEntry = createAsyncThunk(
+  'delDailyExpenseEntry',
+  async ({ comid, id }) => {
+    try {
+      const res = await axiosInstance.get(
+        `/RemoveEntry?Comid=${comid}&DelId=${id}&type=4`,
+      );
+      return res.data;
+    } catch (err) {
+      throw err;
+    }
+  },
+);
+
 const expenseSlice = createSlice({
   name: 'expense',
   initialState,
@@ -184,6 +198,15 @@ const expenseSlice = createSlice({
         state.loading = false;
       })
       .addCase(editConfirmDailyExpense.rejected, state => {
+        state.loading = false;
+      })
+      .addCase(delDailyExpenseEntry.pending, state => {
+        state.loading = true;
+      })
+      .addCase(delDailyExpenseEntry.fulfilled, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(delDailyExpenseEntry.rejected, state => {
         state.loading = false;
       });
   },

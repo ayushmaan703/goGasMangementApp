@@ -9,6 +9,7 @@ import {
     Alert,
     RefreshControl,
     ScrollView,
+    TextInput,
 } from "react-native";
 import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -18,7 +19,7 @@ import { delDailyStockEntry } from "../../store/slice/DailyStockEntry.slice";
 import { useIsFocused } from "@react-navigation/native";
 import ConfirmModal from "../../helper/ConfirmModal";
 import Toast from "react-native-toast-message";
-import { getDailyExpense } from "../../store/slice/Expence.slice";
+import { delDailyExpenseEntry, getDailyExpense } from "../../store/slice/Expence.slice";
 
 const formatDate = (dateString) => {
     if (!dateString) return "-";
@@ -54,6 +55,7 @@ const ExpenseEntryList = ({ navigation }) => {
     const isAdmin = currUser?.UserType === "Admin";
 
     const [refreshing, setRefreshing] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
     const [showFilter, setShowFilter] = useState(false);
     const [fromDate, setFromDate] = useState(new Date());
     const [toDate, setToDate] = useState(new Date());
@@ -71,10 +73,6 @@ const ExpenseEntryList = ({ navigation }) => {
         status !== 0 ||
         (isAdmin && adminApprovalstatus !== 0);
 
-    useEffect(() => {
-        fetchEntries();
-    }, [fromDate, toDate, status, adminApprovalstatus]);
-
     const fetchEntries = async () => {
         await dispatch(
             getDailyExpense({
@@ -86,6 +84,10 @@ const ExpenseEntryList = ({ navigation }) => {
             })
         );
     };
+
+    useEffect(() => {
+        fetchEntries();
+    }, [fromDate, toDate, status, adminApprovalstatus]);
 
     const handleResetFilters = () => {
         const today = new Date();
@@ -111,17 +113,27 @@ const ExpenseEntryList = ({ navigation }) => {
         }
     }, [isFocused]);
 
-    const totalAmount = (expenseEntries || []).reduce((acc, item) => acc + Number(item.Amount || 0), 0);
-    const cashTotal = (expenseEntries || [])
+    const filteredEntries = (expenseEntries || []).filter((item) => {
+        if (!searchQuery.trim()) return true;
+        const query = searchQuery.toLowerCase().trim();
+        return (
+            (item?.Customer && item.Customer.toLowerCase().includes(query)) ||
+            (item?.PaymentMode && item.PaymentMode.toLowerCase().includes(query)) ||
+            String(item?.EntryID || "").includes(query)
+        );
+    });
+
+    const totalAmount = filteredEntries.reduce((acc, item) => acc + Number(item.Amount || 0), 0);
+    const cashTotal = filteredEntries
         .filter((item) => String(item.paytype || "").toLowerCase() === "cash")
         .reduce((total, item) => total + Number(item.Amount || 0), 0);
-    const upiTotal = (expenseEntries || [])
+    const upiTotal = filteredEntries
         .filter((item) => String(item.paytype || "").toLowerCase() === "upi")
         .reduce((total, item) => total + Number(item.Amount || 0), 0);
 
     const handleDelete = async () => {
-        const res = await dispatch(delDailyStockEntry({ comid, id: customerId }));
-        if (res.type === "deleteDailyStockEntry/rejected") {
+        const res = await dispatch(delDailyExpenseEntry({ comid, id: customerId }));
+        if (res.type === "delDailyExpenseEntry/rejected") {
             Toast.show({
                 type: "customNotificationError",
                 text1: res?.error?.message || "Error Occurred",
@@ -132,7 +144,7 @@ const ExpenseEntryList = ({ navigation }) => {
         }
         Toast.show({
             type: "customNotificationSuccess",
-            text1: "Daily Stock Entry Deleted Successfully",
+            text1: "Daily Expense Entry Deleted Successfully",
             visibilityTime: 2000,
         });
         setShowDeleteModal(false);
@@ -193,6 +205,17 @@ const ExpenseEntryList = ({ navigation }) => {
                                 <FontAwesome6 name="pen-to-square" size={11} color="#0D6EFD" />
                             </TouchableOpacity>
                         )}
+                        {status === 0 && (
+                            <TouchableOpacity
+                                style={styles.actionBtnDelete}
+                                onPress={() => {
+                                    setShowDeleteModal(true);
+                                    setCustomerId(item.EntryID);
+                                }}
+                            >
+                                <FontAwesome6 name="trash-can" size={11} color="#DC3545" />
+                            </TouchableOpacity>
+                        )}
                     </View>
                 </View>
             </View>
@@ -205,6 +228,31 @@ const ExpenseEntryList = ({ navigation }) => {
                 navName="Daily Expenses"
                 subtitle="View your expense transactions"
             />
+
+            {/* Expense Search Bar */}
+            <View style={styles.searchContainer}>
+                <View style={styles.searchBar}>
+                    <FontAwesome6 name="magnifying-glass" size={13} color="#94A3B8" />
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder="Search expense, ID or mode..."
+                        placeholderTextColor="#94A3B8"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        autoCapitalize="none"
+                        returnKeyType="search"
+                        clearButtonMode="while-editing"
+                    />
+                    {searchQuery.length > 0 && (
+                        <TouchableOpacity
+                            onPress={() => setSearchQuery("")}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                            <FontAwesome6 name="circle-xmark" size={13} color="#94A3B8" />
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </View>
 
             <View style={styles.filterBar}>
                 <TouchableOpacity style={styles.filterButton} onPress={() => setShowFilter(true)}>
@@ -252,7 +300,7 @@ const ExpenseEntryList = ({ navigation }) => {
             <View style={styles.summaryBar}>
                 <View style={styles.summaryBox}>
                     <Text style={styles.summaryBoxLabel}>COUNT</Text>
-                    <Text style={styles.summaryBoxVal}>{expenseEntries?.length || 0}</Text>
+                    <Text style={styles.summaryBoxVal}>{filteredEntries.length}</Text>
                 </View>
                 <View style={styles.summaryBox}>
                     <Text style={styles.summaryBoxLabel}>CASH</Text>
@@ -304,16 +352,20 @@ const ExpenseEntryList = ({ navigation }) => {
                                 />
                             }
                         >
-                            {expenseEntries && expenseEntries.length > 0 ? (
-                                expenseEntries.map((item, index) => renderEntry(item, index))
+                            {filteredEntries && filteredEntries.length > 0 ? (
+                                filteredEntries.map((item, index) => renderEntry(item, index))
                             ) : (
                                 <View style={styles.emptyView}>
                                     <View style={styles.emptyIconWrap}>
                                         <FontAwesome6 name="clipboard-list" size={22} color="#0D6EFD" />
                                     </View>
-                                    <Text style={styles.emptyTitle}>No Expense Entries</Text>
+                                    <Text style={styles.emptyTitle}>
+                                        {searchQuery ? "No Matching Expenses" : "No Expense Entries"}
+                                    </Text>
                                     <Text style={styles.emptySubtitle}>
-                                        Your daily expense records will appear here in the ledger table.
+                                        {searchQuery
+                                            ? `No results found for "${searchQuery}".`
+                                            : "Your daily expense records will appear here in the ledger table."}
                                     </Text>
                                 </View>
                             )}
@@ -459,19 +511,18 @@ const ExpenseEntryList = ({ navigation }) => {
                         </View>
                     </View>
                 </TouchableOpacity>
-
             </Modal>
 
             <ConfirmModal
                 visible={showDeleteModal}
-                title="Delete Stock Entry?"
+                title="Delete Expense Entry?"
                 message="Are you sure you want to delete this entry? This action cannot be undone."
                 confirmText="Delete"
                 onCancel={() => setShowDeleteModal(false)}
                 onConfirm={handleDelete}
                 loading={loading}
             />
-        </SafeAreaView >
+        </SafeAreaView>
     );
 };
 
@@ -480,9 +531,30 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#F8FAFC",
     },
+    searchContainer: {
+        paddingHorizontal: 10,
+        marginTop: 12,
+    },
+    searchBar: {
+        height: 38,
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+        borderRadius: 8,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 10,
+        gap: 8,
+    },
+    searchInput: {
+        flex: 1,
+        fontSize: 12,
+        color: "#0F172A",
+        paddingVertical: 0,
+    },
     filterBar: {
         paddingHorizontal: 10,
-        marginTop: 16,
+        marginTop: 10,
         marginBottom: 10,
         flexDirection: "row",
         alignItems: "center",
@@ -622,13 +694,12 @@ const styles = StyleSheet.create({
     gridContainer: {
         flex: 1,
         marginHorizontal: 10,
-        marginBottom: 12,
+        marginBottom: 50,
         backgroundColor: "#FFFFFF",
         borderWidth: 1,
         borderColor: "#94A3B8",
         borderRadius: 6,
         overflow: "hidden",
-        marginBottom: 50,
     },
     horizontalScrollContent: {
         flexGrow: 1,
@@ -756,6 +827,16 @@ const styles = StyleSheet.create({
         backgroundColor: "#EFF6FF",
         borderWidth: 1,
         borderColor: "#BFDBFE",
+    },
+    actionBtnDelete: {
+        width: 22,
+        height: 22,
+        borderRadius: 4,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#FEF2F2",
+        borderWidth: 1,
+        borderColor: "#FECACA",
     },
     emptyView: {
         flex: 1,
@@ -920,4 +1001,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default ExpenseEntryList;
+export default ExpenseEntryList;  

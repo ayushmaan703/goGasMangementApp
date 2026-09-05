@@ -224,7 +224,7 @@ const CustomDrawer = (props) => {
                     title="Daily Expenses"
                     icon="file-invoice-dollar"
                     onPress={() => navigation.navigate("ExpenseEntryList")}
-                    isActive={activeButton === "Daily Expenses "}
+                    isActive={activeButton === "Daily Expenses"}
                     setActive={setActiveButton}
                     navigation={navigation}
                 />}

@@ -59,30 +59,7 @@ const CustomerDashboard = ({ navigation }) => {
   // ---------------------------------------------------------
   // FETCH CUSTOMER ORDERS
   // ---------------------------------------------------------
-
-  useEffect(() => {
-    if (!currUser?.EmpId || !currUser?.Comid) return;
-    const today = new Date();
-
-    const firstDay = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      1
-    );
-
-
-
-    dispatch(
-      getCustomerOrderEntry({
-        FromDate: formatDate(firstDay),
-        Todate: formatDate(today),
-        Comid: currUser.Comid,
-        OrderStatus: 0,
-        CustomerId: currUser.EmpId,
-      })
-    );
-  }, [dispatch, currUser?.EmpId, currUser?.Comid]);
-
+  
   // ---------------------------------------------------------
   // NORMALIZE ORDERS
   // ---------------------------------------------------------

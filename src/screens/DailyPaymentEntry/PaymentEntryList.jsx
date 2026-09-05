@@ -383,7 +383,11 @@ const PaymentEntryList = ({ navigation }) => {
                 animationType="fade"
                 onRequestClose={() => setShowFilter(false)}
             >
-                <View style={styles.modalOverlay}>
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowFilter(false)}
+                >
                     <View style={styles.filterModal}>
                         <View style={styles.modalHeader}>
                             <View>
@@ -507,7 +511,7 @@ const PaymentEntryList = ({ navigation }) => {
                             </TouchableOpacity>
                         </View>
                     </View>
-                </View>
+                </TouchableOpacity>
             </Modal>
 
             <ConfirmModal

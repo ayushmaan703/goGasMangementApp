@@ -9,6 +9,7 @@ import {
     Alert,
     RefreshControl,
     ScrollView,
+    TextInput,
 } from "react-native";
 import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -52,6 +53,7 @@ const EntryList = ({ navigation }) => {
     const isAdmin = currUser?.UserType === "Admin";
 
     const [refreshing, setRefreshing] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
     const [showFilter, setShowFilter] = useState(false);
     const [fromDate, setFromDate] = useState(new Date());
     const [toDate, setToDate] = useState(new Date());
@@ -109,7 +111,16 @@ const EntryList = ({ navigation }) => {
         }
     }, [isFocused]);
 
-    const totals = (gasEntries || []).reduce(
+    const filteredEntries = (gasEntries || []).filter((item) => {
+        if (!searchQuery.trim()) return true;
+        const query = searchQuery.toLowerCase().trim();
+        return (
+            item?.Customer?.toLowerCase().includes(query) ||
+            String(item?.EntryID || "").includes(query)
+        );
+    });
+
+    const totals = filteredEntries.reduce(
         (acc, item) => {
             acc.in += Number(item.CycIn || 0);
             acc.out += Number(item.CycOut || 0);
@@ -213,6 +224,28 @@ const EntryList = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.container}>
             <CustomNavBar navName="Daily Stock" subtitle="Spreadsheet Register" />
+
+            {/* Customer Search Bar */}
+            <View style={styles.searchContainer}>
+                <View style={styles.searchBar}>
+                    <FontAwesome6 name="magnifying-glass" size={13} color="#94A3B8" />
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder="Search customer or ID..."
+                        placeholderTextColor="#94A3B8"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        autoCapitalize="none"
+                        returnKeyType="search"
+                        clearButtonMode="while-editing"
+                    />
+                    {searchQuery.length > 0 && (
+                        <TouchableOpacity onPress={() => setSearchQuery("")} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                            <FontAwesome6 name="circle-xmark" size={13} color="#94A3B8" />
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </View>
 
             <View style={styles.filterBar}>
                 <TouchableOpacity style={styles.filterButton} onPress={() => setShowFilter(true)}>
@@ -320,15 +353,21 @@ const EntryList = ({ navigation }) => {
                                 />
                             }
                         >
-                            {gasEntries && gasEntries.length > 0 ? (
-                                gasEntries.map((item, index) => renderEntry(item, index))
+                            {filteredEntries && filteredEntries.length > 0 ? (
+                                filteredEntries.map((item, index) => renderEntry(item, index))
                             ) : (
                                 <View style={styles.emptyView}>
                                     <View style={styles.emptyIconWrap}>
                                         <FontAwesome6 name="table" size={22} color="#0D6EFD" />
                                     </View>
-                                    <Text style={styles.emptyTitle}>No Records Found</Text>
-                                    <Text style={styles.emptySubtitle}>Tap 'Create' above to add stock entries.</Text>
+                                    <Text style={styles.emptyTitle}>
+                                        {searchQuery ? "No Matching Entries" : "No Records Found"}
+                                    </Text>
+                                    <Text style={styles.emptySubtitle}>
+                                        {searchQuery
+                                            ? `No results found for "${searchQuery}".`
+                                            : "Tap 'Create' above to add stock entries."}
+                                    </Text>
                                 </View>
                             )}
                         </ScrollView>
@@ -491,9 +530,30 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#F8FAFC",
     },
+    searchContainer: {
+        paddingHorizontal: 10,
+        marginTop: 12,
+    },
+    searchBar: {
+        height: 38,
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+        borderRadius: 8,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 10,
+        gap: 8,
+    },
+    searchInput: {
+        flex: 1,
+        fontSize: 12,
+        color: "#0F172A",
+        paddingVertical: 0,
+    },
     filterBar: {
         paddingHorizontal: 10,
-        marginTop: 16,
+        marginTop: 10,
         marginBottom: 10,
         flexDirection: "row",
         alignItems: "center",
@@ -640,13 +700,12 @@ const styles = StyleSheet.create({
     gridContainer: {
         flex: 1,
         marginHorizontal: 10,
-        marginBottom: 12,
+        marginBottom: 50,
         backgroundColor: "#FFFFFF",
         borderWidth: 1,
         borderColor: "#94A3B8",
         borderRadius: 6,
         overflow: "hidden",
-        marginBottom: 50,
     },
     horizontalScrollContent: {
         flexGrow: 1,
@@ -703,10 +762,10 @@ const styles = StyleSheet.create({
         paddingLeft: 8,
     },
     colNum: {
-        width: 32,
+        width: 35,
     },
     colAmount: {
-        width: 55,
+        width: 60,
         alignItems: "flex-end",
         paddingRight: 8,
     },
@@ -913,20 +972,20 @@ const styles = StyleSheet.create({
         fontWeight: "600",
     },
     applyBtn: {
-        flex: 2,
+        flex: 1.5,
         height: 42,
         borderRadius: 8,
         backgroundColor: "#0D6EFD",
+        flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        flexDirection: "row",
-        gap: 8,
+        gap: 6,
     },
     applyBtnText: {
         color: "#FFFFFF",
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: "700",
     },
 });
 
-export default EntryList;
+export default EntryList; 

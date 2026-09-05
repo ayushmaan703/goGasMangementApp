@@ -357,7 +357,7 @@ const ApproveCustomerOrder = () => {
                                 <Text style={styles.headerLabel}>CYLINDERS</Text>
                             </View>
                             <View style={[styles.headerCol, styles.actionCell]}>
-                                <Text style={styles.headerLabel}>COMPLETE</Text>
+                                <Text style={styles.headerLabel}>FINISH</Text>
                             </View>
                         </View>
 
@@ -744,7 +744,7 @@ const styles = StyleSheet.create({
         color: "#64748B",
     },
     dateCell: {
-        width: 65,
+        width: 70,
     },
     cellText: {
         fontSize: 10,
@@ -772,7 +772,7 @@ const styles = StyleSheet.create({
         color: "#0F172A",
     },
     actionCell: {
-        width: 59,
+        width: 55,
         borderRightWidth: 0,
     },
     completeBtn: {

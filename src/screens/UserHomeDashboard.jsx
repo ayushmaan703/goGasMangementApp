@@ -51,6 +51,9 @@ const AdminDashboard = ({ navigation, customers, stockEntries, gasEntries }) => 
   const amount = (gasEntries || []).reduce((acc, item) => acc + Number(item.Amount || 0), 0);
   const cylIn = stockEntries.reduce((s, x) => s + Number(x?.CycIn || 0), 0);
   const cylOut = stockEntries.reduce((s, x) => s + Number(x?.CycOut || 0), 0);
+  const latestEntry = stockEntries.length > 0 ? stockEntries[stockEntries.length - 1] : null;
+  const balCyc = latestEntry ? Number(latestEntry.BalanceCyc || 0) : 0;
+  const balEmpty = latestEntry ? Number(latestEntry.BalanceEmpty || 0) : 0;
 
   return (
     <View style={styles.content}>
@@ -174,26 +177,46 @@ const AdminDashboard = ({ navigation, customers, stockEntries, gasEntries }) => 
         />
       </View>
       <View style={styles.flowStrip}>
+        {/* IN */}
         <View style={styles.flowBlock}>
-          <View style={[styles.flowIconBox, { backgroundColor: COLORS.greenLight }]}>
-            <FontAwesome6 name="arrow-down-long" size={15} color={COLORS.green} />
+          <View style={[styles.flowIconBox, { backgroundColor: "#ECFDF5" }]}>
+            <FontAwesome6 name="arrow-down-long" size={13} color="#059669" />
           </View>
-          <View style={styles.flowTextContainer}>
-            <Text style={styles.flowLabel}>CYLINDERS IN</Text>
-            <Text style={[styles.flowValue, { color: COLORS.green }]}>{cylIn}</Text>
-          </View>
+          <Text style={styles.flowValue}>{cylIn}</Text>
+          <Text style={styles.flowLabel} numberOfLines={1}>IN</Text>
         </View>
 
         <View style={styles.flowDivider} />
 
+        {/* OUT */}
         <View style={styles.flowBlock}>
-          <View style={[styles.flowIconBox, { backgroundColor: COLORS.orangeLight }]}>
-            <FontAwesome6 name="arrow-up-long" size={15} color={COLORS.orange} />
+          <View style={[styles.flowIconBox, { backgroundColor: "#FFF1F2" }]}>
+            <FontAwesome6 name="arrow-up-long" size={13} color="#E11D48" />
           </View>
-          <View style={styles.flowTextContainer}>
-            <Text style={styles.flowLabel}>CYLINDERS OUT</Text>
-            <Text style={[styles.flowValue, { color: COLORS.orange }]}>{cylOut}</Text>
+          <Text style={styles.flowValue}>{cylOut}</Text>
+          <Text style={styles.flowLabel} numberOfLines={1}>OUT</Text>
+        </View>
+
+        <View style={styles.flowDivider} />
+
+        {/* BAL CYC */}
+        <View style={styles.flowBlock}>
+          <View style={[styles.flowIconBox, { backgroundColor: "#EFF6FF" }]}>
+            <FontAwesome6 name="boxes-stacked" size={13} color="#2563EB" />
           </View>
+          <Text style={styles.flowValue}>{balCyc}</Text>
+          <Text style={styles.flowLabel} numberOfLines={1}>BAL CYC</Text>
+        </View>
+
+        <View style={styles.flowDivider} />
+
+        {/* BAL EMPTY */}
+        <View style={styles.flowBlock}>
+          <View style={[styles.flowIconBox, { backgroundColor: "#F5F3FF" }]}>
+            <FontAwesome6 name="recycle" size={13} color="#7C3AED" />
+          </View>
+          <Text style={styles.flowValue}>{balEmpty}</Text>
+          <Text style={styles.flowLabel} numberOfLines={1}>EMPTY</Text>
         </View>
       </View>
 
@@ -305,10 +328,12 @@ const DeliveryDashboard = ({ navigation, user, customers, stockEntries, orders }
   const completed = stockEntries.filter(x => Number(x?.PendingStatus ?? x?.Pending ?? 0) === 1);
   const cylIn = stockEntries.reduce((s, x) => s + Number(x?.CycIn || 0), 0);
   const cylOut = stockEntries.reduce((s, x) => s + Number(x?.CycOut || 0), 0);
+  const latestEntry = stockEntries.length > 0 ? stockEntries[stockEntries.length - 1] : null;
+  const balCyc = latestEntry ? Number(latestEntry.BalanceCyc || 0) : 0;
+  const balEmpty = latestEntry ? Number(latestEntry.BalanceEmpty || 0) : 0;
 
   return (
     <View style={styles.content}>
-      {/* Actionable Dispatch Status Cards */}
       <View style={styles.sectionHeaderWrap}>
         <SectionTitle title="DELIVERY STATUS" />
       </View>
@@ -329,32 +354,51 @@ const DeliveryDashboard = ({ navigation, user, customers, stockEntries, orders }
         onPress={() => navigation.getParent()?.navigate("EntryList")}
       />
 
-      {/* Movement Counters */}
       <View style={styles.flowStrip}>
+        {/* IN */}
         <View style={styles.flowBlock}>
-          <View style={[styles.flowIconBox, { backgroundColor: COLORS.greenLight }]}>
-            <FontAwesome6 name="arrow-down-long" size={15} color={COLORS.green} />
+          <View style={[styles.flowIconBox, { backgroundColor: "#ECFDF5" }]}>
+            <FontAwesome6 name="arrow-down-long" size={13} color="#059669" />
           </View>
-          <View style={styles.flowTextContainer}>
-            <Text style={styles.flowLabel}>CYLINDERS IN</Text>
-            <Text style={[styles.flowValue, { color: COLORS.green }]}>{cylIn}</Text>
-          </View>
+          <Text style={styles.flowValue}>{cylIn}</Text>
+          <Text style={styles.flowLabel} numberOfLines={1}>IN</Text>
         </View>
 
         <View style={styles.flowDivider} />
 
+        {/* OUT */}
         <View style={styles.flowBlock}>
-          <View style={[styles.flowIconBox, { backgroundColor: COLORS.orangeLight }]}>
-            <FontAwesome6 name="arrow-up-long" size={15} color={COLORS.orange} />
+          <View style={[styles.flowIconBox, { backgroundColor: "#FFF1F2" }]}>
+            <FontAwesome6 name="arrow-up-long" size={13} color="#E11D48" />
           </View>
-          <View style={styles.flowTextContainer}>
-            <Text style={styles.flowLabel}>CYLINDERS OUT</Text>
-            <Text style={[styles.flowValue, { color: COLORS.orange }]}>{cylOut}</Text>
+          <Text style={styles.flowValue}>{cylOut}</Text>
+          <Text style={styles.flowLabel} numberOfLines={1}>OUT</Text>
+        </View>
+
+        <View style={styles.flowDivider} />
+
+        {/* BAL CYC */}
+        <View style={styles.flowBlock}>
+          <View style={[styles.flowIconBox, { backgroundColor: "#EFF6FF" }]}>
+            <FontAwesome6 name="boxes-stacked" size={13} color="#2563EB" />
           </View>
+          <Text style={styles.flowValue}>{balCyc}</Text>
+          <Text style={styles.flowLabel} numberOfLines={1}>BAL CYC</Text>
+        </View>
+
+        <View style={styles.flowDivider} />
+
+        {/* BAL EMPTY */}
+        <View style={styles.flowBlock}>
+          <View style={[styles.flowIconBox, { backgroundColor: "#F5F3FF" }]}>
+            <FontAwesome6 name="recycle" size={13} color="#7C3AED" />
+          </View>
+          <Text style={styles.flowValue}>{balEmpty}</Text>
+          <Text style={styles.flowLabel} numberOfLines={1}>EMPTY</Text>
         </View>
       </View>
 
-      {/* Delivery Task Shortcuts */}
+
       <View style={styles.sectionHeaderWrap}>
         <SectionTitle title="ROUTE SHORTCUTS" />
       </View>
@@ -547,50 +591,56 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
 
-  /* Cylinder Flow Strip */
+  /* Cylinder Flow Strip - Redesigned Balanced Horizontal Layout */
   flowStrip: {
     flexDirection: "row",
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
     alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 14,
     borderWidth: 1,
     borderColor: "#E2E8F0",
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
   flowBlock: {
     flex: 1,
-    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 2,
   },
   flowIconBox: {
-    width: 38,
-    height: 38,
+    width: 32,
+    height: 32,
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 10,
-  },
-  flowTextContainer: {
-    flex: 1,
-  },
-  flowLabel: {
-    fontSize: 9,
-    fontWeight: "700",
-    color: "#64748B",
-    letterSpacing: 0.4,
+    marginBottom: 6,
   },
   flowValue: {
-    fontSize: 18,
-    fontWeight: "900",
-    marginTop: 1,
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#0F172A",
+    letterSpacing: 0.2,
+  },
+  flowLabel: {
+    fontSize: 8.5,
+    fontWeight: "700",
+    color: "#64748B",
+    letterSpacing: 0.3,
+    marginTop: 2,
+    textTransform: "uppercase",
   },
   flowDivider: {
     width: 1,
-    height: "80%",
-    backgroundColor: "#E2E8F0",
-    marginHorizontal: 10,
+    height: 38,
+    backgroundColor: "#F1F5F9",
   },
 
   /* Cards and Banners */
