@@ -197,14 +197,14 @@ const ExpenseAdminApprovalAndEdit = ({ navigation }) => {
         try {
             const [day, month, year] = form.PayDate.split("/");
             const payload = {
+                transid: entry?.transid,
                 EntryId: entry?.EntryID,
                 PayDate: `${year}-${month}-${day}`,
-                ExpenceId: form.ExpenceId || "",
-                Amount: form.amount || "0",
+                CustomerId: form.ExpenceId || "",
                 Comid: comid,
                 Uid: currUser.EmpId,
                 PayMode: form.paymode || "0",
-                transid: entry?.transid,
+                Amount: form.amount || "0",
             };
 
             let res;
