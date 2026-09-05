@@ -312,7 +312,7 @@ const CustomDrawer = (props) => {
                 {/* Version */}
 
                 <Text style={styles.versionText}>
-                    SmartBiz • v1.0
+                    SmartBiz • v1.1.2
                 </Text>
 
             </View>

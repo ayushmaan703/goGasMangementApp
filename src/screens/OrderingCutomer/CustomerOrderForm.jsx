@@ -299,8 +299,7 @@ const CustomerOrderForm = () => {
             OrderDate:
                 dateToApiDate(orderDate),
 
-            CustomerId:
-                currUser.EmpId,
+            CustomerId: form.customerId,
 
             OrderCycQty:
                 numericQuantity,
@@ -367,7 +366,7 @@ const CustomerOrderForm = () => {
                         : "Your cylinder order was placed successfully.",
             });
 
-            navigation.goBack();
+            currUser?.UserType == "cusotmer" ? navigation.goBack() : navigation.navigate("ApproveCustomerOrder");
 
         } else {
 
