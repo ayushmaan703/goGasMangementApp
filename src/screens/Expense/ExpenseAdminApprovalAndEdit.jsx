@@ -19,7 +19,7 @@ import {
     editDailyExpense,
     getExpenseMaster,
     confirmDailyExpense,
-    editconfirmDailyExpense,
+    editConfirmDailyExpense,
 } from "../../store/slice/Expence.slice";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -210,11 +210,9 @@ const ExpenseAdminApprovalAndEdit = ({ navigation }) => {
             let res;
             if (approveNow && isApproved == 0) {
                 // If your store slice uses confirmDailyExpense, keep this action
-                res = await dispatch(confirmDailyExpense ? confirmDailyExpense(payload) : editDailyExpense(payload)
-                );
+                res = await dispatch(confirmDailyExpense ? confirmDailyExpense(payload) : editDailyExpense(payload));
             } else if (isApproved == 1) {
-                res = await dispatch(editconfirmDailyExpense ? editconfirmDailyExpense(payload) : editDailyExpense(payload)
-                );
+                res = await dispatch(editConfirmDailyExpense ? editConfirmDailyExpense(payload) : editDailyExpense(payload));
             } else {
                 res = await dispatch(editDailyExpense(payload));
             }
