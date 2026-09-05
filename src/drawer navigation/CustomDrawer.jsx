@@ -220,7 +220,7 @@ const CustomDrawer = (props) => {
                     setActive={setActiveButton}
                     navigation={navigation}
                 />} */}
-                {!(currUser?.UserType == "Customer") && <CustomBtn
+                {(currUser?.UserType == "Admin") && <CustomBtn
                     title="Daily Expenses"
                     icon="file-invoice-dollar"
                     onPress={() => navigation.navigate("ExpenseEntryList")}

@@ -292,7 +292,7 @@ const DailyPaymentEntry = ({ navigation }) => {
                     customerId: "",
                 });
                 setPaymentType("");
-                navigation.navigate("PaymentEntryList")
+                currUser.UserType == "Admin" && navigation.navigate("PaymentEntryList")
             } else {
                 Toast.show({
                     type: "customNotificationError",
@@ -318,7 +318,7 @@ const DailyPaymentEntry = ({ navigation }) => {
                 date: getTodayDate(),
                 customerId: "",
             });
-            navigation.navigate("PaymentEntryList")
+            currUser.UserType == "Admin" && navigation.navigate("PaymentEntryList")
             setPaymentType("");
         } else {
             Toast.show({

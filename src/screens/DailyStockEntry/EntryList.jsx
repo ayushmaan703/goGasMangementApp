@@ -120,6 +120,11 @@ const EntryList = ({ navigation }) => {
         );
     });
 
+    // const latestEntry = gasEntries.length > 0 ? gasEntries[gasEntries.length - 1] : null;
+    const latestEntry = filteredEntries.length > 0 ? filteredEntries[filteredEntries.length - 1] : null;
+    const balCyc = latestEntry ? Number(latestEntry.BalanceCyc || 0) : 0;
+    const balEmpty = latestEntry ? Number(latestEntry.BalanceEmpty || 0) : 0;
+
     const totals = filteredEntries.reduce(
         (acc, item) => {
             acc.in += Number(item.CycIn || 0);
@@ -292,16 +297,24 @@ const EntryList = ({ navigation }) => {
 
             <View style={styles.summaryBar}>
                 <View style={styles.summaryBox}>
-                    <Text style={styles.summaryBoxLabel}>TOTAL IN</Text>
+                    <Text style={styles.summaryBoxLabel}>IN</Text>
                     <Text style={[styles.summaryBoxVal, styles.inAccentText]}>{totals.in}</Text>
                 </View>
                 <View style={styles.summaryBox}>
-                    <Text style={styles.summaryBoxLabel}>TOTAL OUT</Text>
+                    <Text style={styles.summaryBoxLabel}>OUT</Text>
                     <Text style={[styles.summaryBoxVal, styles.outAccentText]}>{totals.out}</Text>
                 </View>
                 <View style={styles.summaryBox}>
-                    <Text style={styles.summaryBoxLabel}>REGULATOR</Text>
+                    <Text style={styles.summaryBoxLabel}>REG</Text>
                     <Text style={styles.summaryBoxVal}>{totals.regulator}</Text>
+                </View>
+                <View style={styles.summaryBox}>
+                    <Text style={styles.summaryBoxLabel}>BAL CYC</Text>
+                    <Text style={styles.summaryBoxVal}>{balCyc}</Text>
+                </View>
+                <View style={styles.summaryBox}>
+                    <Text style={styles.summaryBoxLabel}>BAL EMPTY</Text>
+                    <Text style={styles.summaryBoxVal}>{balEmpty}</Text>
                 </View>
                 <View style={[styles.summaryBox, styles.summaryBoxHighlight]}>
                     <Text style={[styles.summaryBoxLabel, styles.summaryHighlightLabel]}>TOTAL AMOUNT</Text>

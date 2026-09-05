@@ -132,7 +132,7 @@ const CustomerOrderDetails = () => {
                 text1: "Order Completed",
                 text2: "Your order has been marked as completed.",
             });
-            navigation.goBack();
+            navigation.navigate("ApproveCustomerOrder");
         } else {
             Toast.show({
                 type: "customNotificationError",
