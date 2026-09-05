@@ -205,6 +205,7 @@ const ExpenseAdminApprovalAndEdit = ({ navigation }) => {
                 Uid: currUser.EmpId,
                 PayMode: form.paymode || "0",
                 Amount: form.amount || "0",
+                ExpenceId: form.ExpenceId
             };
 
             let res;
