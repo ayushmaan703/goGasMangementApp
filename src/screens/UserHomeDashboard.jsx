@@ -6,7 +6,7 @@ import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
 
 import CustomNavBar from "../helper/CustomNavBar";
 import { getAllCustomers } from "../store/slice/Customer.slice";
-import { getDailyStockEntry } from "../store/slice/DailyStockEntry.slice";
+import { getDailyBal, getDailyStockEntry } from "../store/slice/DailyStockEntry.slice";
 import { COLORS, StatCard, SectionTitle, QuickAction, InfoRow, Card, StatusCard } from "./DashboardComponents";
 import { getDailyPayment } from "../store/slice/DailyPayment.slice";
 import CustomerDashboard from "./CustomerDashboard";
@@ -42,7 +42,7 @@ const SUBTITLES = {
   customer: "Orders & account activity",
 };
 
-const AdminDashboard = ({ navigation, customers, stockEntries, gasEntries }) => {
+const AdminDashboard = ({ navigation, customers, stockEntries, gasEntries, balDetails }) => {
   const total = customers.length;
   const todayCustomers = customers.filter(c => sameDay(c?.CreatedDate || c?.CreatedOn || c?.EntryDate)).length;
   const pending = customers.filter(c => c?.Status === "Pending").length;
@@ -51,9 +51,8 @@ const AdminDashboard = ({ navigation, customers, stockEntries, gasEntries }) => 
   const amount = (gasEntries || []).reduce((acc, item) => acc + Number(item.Amount || 0), 0);
   const cylIn = stockEntries.reduce((s, x) => s + Number(x?.CycIn || 0), 0);
   const cylOut = stockEntries.reduce((s, x) => s + Number(x?.CycOut || 0), 0);
-  const latestEntry = stockEntries.length > 0 ? stockEntries[stockEntries.length - 1] : null;
-  const balCyc = latestEntry ? Number(latestEntry.BalanceCyc || 0) : 0;
-  const balEmpty = latestEntry ? Number(latestEntry.BalanceEmpty || 0) : 0;
+  const balCyc = balDetails ? Number(balDetails.BalanceCyc || 0) : 0;
+  const balEmpty = balDetails ? Number(balDetails.BalanceEmpty || 0) : 0;
 
   return (
     <View style={styles.content}>
@@ -322,15 +321,15 @@ const SalesDashboard = ({ navigation, user, customers }) => {
   );
 };
 
-const DeliveryDashboard = ({ navigation, user, customers, stockEntries, orders }) => {
+const DeliveryDashboard = ({ navigation, user, customers, stockEntries, orders, balDetails }) => {
   const pending = stockEntries.filter(x => Number(x?.PendingStatus ?? x?.Pending ?? 0) === 0);
   const pendingOrders = orders.length;
   const completed = stockEntries.filter(x => Number(x?.PendingStatus ?? x?.Pending ?? 0) === 1);
   const cylIn = stockEntries.reduce((s, x) => s + Number(x?.CycIn || 0), 0);
   const cylOut = stockEntries.reduce((s, x) => s + Number(x?.CycOut || 0), 0);
-  const latestEntry = stockEntries.length > 0 ? stockEntries[stockEntries.length - 1] : null;
-  const balCyc = latestEntry ? Number(latestEntry.BalanceCyc || 0) : 0;
-  const balEmpty = latestEntry ? Number(latestEntry.BalanceEmpty || 0) : 0;
+  const balCyc = balDetails ? Number(balDetails.BalanceCyc || 0) : 0;
+  const balEmpty = balDetails ? Number(balDetails.BalanceEmpty || 0) : 0;
+
 
   return (
     <View style={styles.content}>
@@ -450,6 +449,7 @@ const UserHomeDashboard = () => {
   const user = useSelector(state => state.auth.userData);
   const customersData = useSelector(state => state.customer.customerList);
   const stockData = useSelector(state => state.dailyEntry.stockEntryList);
+  const balDetails = useSelector(state => state.dailyEntry.bolDetails);
   const gasEntries = useSelector(state => state.dailyPayment.paymentList);
   const orders = useSelector(state => state.orderingCustomer.customerOrderList) || [];
   const customers = Array.isArray(customersData) ? customersData : [];
@@ -466,7 +466,8 @@ const UserHomeDashboard = () => {
     if (isDeliveryOrAdmin) {
       await Promise.all([
         dispatch(getDailyStockEntry({ Comid: user.Comid, FromDate: apiDate(d), Todate: apiDate(d), PendingStatus: 2, AdminApproval: 2 })),
-        dispatch(getCustomerOrderEntry({ FromDate: apiDate(d), Todate: apiDate(d), Comid: user.Comid, CustomerId: 0, OrderStatus: 0 }))
+        dispatch(getCustomerOrderEntry({ FromDate: apiDate(d), Todate: apiDate(d), Comid: user.Comid, CustomerId: 0, OrderStatus: 0 })),
+        dispatch(getDailyBal({ comid: user.Comid }))
       ]);
     }
     if (isAdmin) {
@@ -498,9 +499,9 @@ const UserHomeDashboard = () => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.blue} />}
         contentContainerStyle={styles.scrollContainer}
       >
-        {role === "admin" && <AdminDashboard navigation={navigation} customers={customers} stockEntries={entries} gasEntries={gasEntries} />}
+        {role === "admin" && <AdminDashboard navigation={navigation} customers={customers} stockEntries={entries} gasEntries={gasEntries} balDetails={balDetails} />}
         {role === "sales" && <SalesDashboard navigation={navigation} user={user} customers={customers} />}
-        {role === "delivery" && <DeliveryDashboard navigation={navigation} user={user} customers={customers} stockEntries={entries} orders={orders} />}
+        {role === "delivery" && <DeliveryDashboard navigation={navigation} user={user} customers={customers} stockEntries={entries} orders={orders} balDetails={balDetails} />}
         {role === "customer" && <CustomerDashboard navigation={navigation} />}
       </ScrollView>
     </View>

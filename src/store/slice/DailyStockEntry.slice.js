@@ -6,6 +6,7 @@ const initialState = {
   loading: false,
   paymentMethodList: null,
   stockEntryList: null,
+  bolDetails: null,
 };
 
 export const getPaymentMethod = createAsyncThunk(
@@ -120,6 +121,15 @@ export const delDailyStockEntry = createAsyncThunk(
   },
 );
 
+export const getDailyBal = createAsyncThunk(getDailyBal, async ({ comid }) => {
+  try {
+    const res = await axiosInstance.get(`/GetStockData?Comid=${comid}`);
+    return res.data[0];
+  } catch (error) {
+    throw error;
+  }
+});
+
 const dailyEntrySlice = createSlice({
   name: 'dailyEntry',
   initialState,
@@ -200,6 +210,16 @@ const dailyEntrySlice = createSlice({
         state.loading = false;
       })
       .addCase(delDailyStockEntry.rejected, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(getDailyBal.pending, state => {
+        state.loading = true;
+      })
+      .addCase(getDailyBal.fulfilled, (state, action) => {
+        state.loading = false;
+        state.bolDetails = action.payload;
+      })
+      .addCase(getDailyBal.rejected, (state, action) => {
         state.loading = false;
       });
   },

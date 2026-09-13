@@ -230,7 +230,7 @@ const ExpenseAdminApprovalAndEdit = ({ navigation }) => {
                 });
                 navigation.navigate("ExpenseEntryList");
             } else {
-                const err = res?.payload?.[0]?.status || res?.payload?.[0]?.message || "Something went wrong";
+                const err = res?.payload?.[0]?.Status || res?.payload?.[0]?.message || "Something went wrong";
                 Toast.show({
                     type: "customNotificationError",
                     text1: err,

@@ -331,7 +331,7 @@ const DailyStockEntry = ({ navigation }) => {
             PayDate: `${year}-${month}-${day}`,
             OrderDate: `${year}-${month}-${day}`,
             CustomerId: form.customerId,
-            CycIn: form.in,
+            CycIn: form.in || "0",
             CycOut: form.out || "0",
             BalCyc: form.balEmpty || "0",
             Regulator: form.regulator || "0",
