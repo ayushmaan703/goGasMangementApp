@@ -391,7 +391,7 @@ const AdminApprovalAndEdit = ({ navigation }) => {
                 CustomerId: form.customerId,
                 InQty: form.in,
                 OutQty: form.out || "0",
-                CycIn: form.in,
+                CycIn: form.in||"0",
                 CycOut: form.out || "0",
                 BalCyc: form.balEmpty || "0",
                 Regulator: form.regulator || "0",
